@@ -1,7 +1,7 @@
 import React from "react";
 
 const About = () => {
-  return <div>About</div>;
+  return <div className="h-full w-full flex justify-center items-center">About</div>;
 };
 
 export default About;
