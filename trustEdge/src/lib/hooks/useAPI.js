@@ -1,0 +1,112 @@
+import { useRef, useState } from "react";
+import axios from "axios";
+
+// ─── useAPI Custom Hook ───────────────────────────────────────
+//
+// Usage:
+// const { data, isLoading, error, callApi } = useAPI("/api/auth/login/", {
+//   method: "POST",
+//   onSuccess: (data) => { console.log(data) },
+//   onFailure: (error) => { console.log(error) },
+// });
+//
+// onClick: callApi({ email: "a@b.com", password: "123" })
+// ─────────────────────────────────────────────────────────────
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+export const useAPI = (url, options = {}) => {
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); 
+  const [error, setError] = useState(null);
+
+  const cancelTokenRef = useRef(null);
+
+  // ─── Axios Instance ──────────────────────────────────────
+  const axiosInstance = axios.create({
+    baseURL: BASE_URL,
+  });
+
+  // ─── Request Interceptor ─────────────────────────────────
+  axiosInstance.interceptors.request.use(
+    (request) => {
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        request.headers["Authorization"] = `Bearer ${token}`;
+      }
+      return request;
+    },
+    (error) => Promise.reject(error)
+  );
+
+  // ─── Response Interceptor ────────────────────────────────
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error?.response?.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        window.location.href = "/login";
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  // ─── Cancel API Call ─────────────────────────────────────
+  const cancelApiCall = (reason = "Request cancelled!") => {
+    if (cancelTokenRef.current) {
+      cancelTokenRef.current.cancel(reason);
+    }
+  };
+
+  // ─── Fetch Data ──────────────────────────────────────────
+  const fetchData = async (additionalParams) => {
+    setIsLoading(true);
+    setError(null);
+
+    if (cancelTokenRef.current) {
+      cancelTokenRef.current.cancel("New request initiated.");
+    }
+
+    cancelTokenRef.current = axios.CancelToken.source();
+
+    const requestBody = {
+      ...options?.data,
+      ...additionalParams,
+    };
+
+    try {
+      const response = await axiosInstance(url, {
+        ...options,
+        data: requestBody,
+        cancelToken: cancelTokenRef.current.token,
+      });
+
+      setData(response.data);
+
+      if (options?.onSuccess) {
+        options.onSuccess(response.data, response.status);
+      }
+
+    } catch (err) {
+      if (axios.isCancel(err)) {
+        console.log("Request cancelled:", err.message);
+      } else {
+        setError(err);
+
+        if (options?.onFailure) {
+          options.onFailure(err);
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ─── callApi ─────────────────────────────────────────────
+  const callApi = (additionalParams) => {
+    fetchData(additionalParams);
+  };
+
+  return { data, isLoading, error, callApi, cancelApiCall };
+};
