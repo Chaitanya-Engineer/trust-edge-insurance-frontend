@@ -31,7 +31,7 @@ const HomePage = lazy(() => import("../../pages/public/HomePage"));
 const PlansPage = lazy(() => import("../../pages/public/PlansPage"));
 const AboutPage = lazy(() => import("../../pages/public/AboutPage"));
 const ContactPage = lazy(() => import("../../pages/public/ContactPage"));
-
+const LoginPage = lazy(() => import("../../pages/login/LoginPage"));
 // // Auth Pages
 // const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 // const RegisterPage = lazy(() => import("../pages/auth/RegisterPage"));
@@ -40,7 +40,9 @@ const ContactPage = lazy(() => import("../../pages/public/ContactPage"));
 // );
 
 // // Admin Pages
-// const AdminDashboardPage = lazy(() => import("../pages/admin/DashboardPage"));
+const AdminDashboardPage = lazy(() =>
+  import("../../pages/admin/DashboardPage")
+);
 // const AdminUsersPage = lazy(() => import("../pages/admin/UsersPage"));
 // const AdminUserDetail = lazy(() => import("../pages/admin/UserDetailPage"));
 // const AdminPlansPage = lazy(() => import("../pages/admin/PlansPage"));
@@ -95,13 +97,13 @@ export const routes = [
   },
 
   // ── Auth Routes ────────────────────────────────────────────
-  // {
-  //   name: "Login",
-  //   path: "/login",
-  //   component: LoginPage,
-  //   userRoles: [ROLES.ALL],
-  //   layout: "auth",
-  // },
+  {
+    name: "Login",
+    path: "/login",
+    component: LoginPage,
+    userRoles: [ROLES.ALL],
+    layout: "auth",
+  },
   // {
   //   name: "Register",
   //   path: "/register",
@@ -118,13 +120,13 @@ export const routes = [
   // },
 
   // // ── Admin Routes ───────────────────────────────────────────
-  // {
-  //   name: "Admin Dashboard",
-  //   path: "/admin",
-  //   component: AdminDashboardPage,
-  //   userRoles: [ROLES.ADMIN],
-  //   layout: "admin",
-  // },
+  {
+    name: "Admin Dashboard",
+    path: "/admin",
+    component: AdminDashboardPage,
+    userRoles: [ROLES.ADMIN],
+    layout: "admin",
+  },
   // {
   //   name: "Admin Users",
   //   path: "/admin/users",
