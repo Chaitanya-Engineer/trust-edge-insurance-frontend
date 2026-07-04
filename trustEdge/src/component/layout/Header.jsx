@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Title } from "../../lib/constant/AppLevelConstant";
 const navLinks = [
   { label: "Home", href: "/" },
+  { label: "About Us", href: "/about" },
   { label: "Plans", href: "/plans" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+  { label: "Contact Us", href: "/contact" },
 ];
 
 export default function Header() {
