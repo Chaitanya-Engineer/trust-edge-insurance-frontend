@@ -33,7 +33,6 @@ export default function LoginPage() {
       }
     },
 
-    // ❌ Error pe yeh chalega
     onFailure: (err) => {
       console.error(err?.response?.data);
     },
