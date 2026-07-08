@@ -13,6 +13,7 @@ import {
   Car,
   Loader2,
 } from "lucide-react";
+import WhatsAppIcon from "../../assets/WhatsappIcon";
 
 /* ─────────────────────────────────────────────
    CONTACT INFO DATA
@@ -110,8 +111,7 @@ const ContactPage = () => {
             Get in Touch
           </span>
           <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4">
-            We're Here to{" "}
-            <span className="text-gold">Help You</span>
+            We're Here to <span className="text-gold">Help You</span>
           </h1>
           <p className="text-slate-200 text-lg leading-relaxed max-w-lg mx-auto">
             Have questions about a plan, need a quote, or want claim support?
@@ -183,15 +183,24 @@ const ContactPage = () => {
                   Message Sent Successfully!
                 </h3>
                 <p className="text-sm text-slate-500 max-w-xs leading-relaxed">
-                  Thank you, <span className="font-semibold text-navy">{form.name}</span>!
+                  Thank you,{" "}
+                  <span className="font-semibold text-navy">{form.name}</span>!
                   Our advisor will call you on{" "}
-                  <span className="font-semibold text-navy">+91 {form.phone}</span>{" "}
+                  <span className="font-semibold text-navy">
+                    +91 {form.phone}
+                  </span>{" "}
                   shortly.
                 </p>
                 <button
                   onClick={() => {
                     setSubmitted(false);
-                    setForm({ name: "", phone: "", email: "", vehicle: "", message: "" });
+                    setForm({
+                      name: "",
+                      phone: "",
+                      email: "",
+                      vehicle: "",
+                      message: "",
+                    });
                   }}
                   className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-green-brand hover:text-navy transition-colors"
                 >
@@ -287,7 +296,11 @@ const ContactPage = () => {
                         errors.vehicle
                           ? "border-red-400 bg-red-50"
                           : "border-slate-200 bg-slate-50 focus:border-gold focus:bg-white"
-                      } ${form.vehicle === "" ? "text-slate-400" : "text-slate-800"}`}
+                      } ${
+                        form.vehicle === ""
+                          ? "text-slate-400"
+                          : "text-slate-800"
+                      }`}
                     >
                       <option value="">Select vehicle type</option>
                       {vehicleTypes.map((v) => (
@@ -298,7 +311,9 @@ const ContactPage = () => {
                     </select>
                   </div>
                   {errors.vehicle && (
-                    <p className="mt-1 text-xs text-red-500">{errors.vehicle}</p>
+                    <p className="mt-1 text-xs text-red-500">
+                      {errors.vehicle}
+                    </p>
                   )}
                 </div>
 
@@ -346,10 +361,7 @@ const ContactPage = () => {
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 bg-green-brand hover:bg-green-light text-white font-bold py-3.5 rounded-xl text-sm transition-all duration-300 hover:scale-[1.02]"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-                    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.555 4.124 1.527 5.855L0 24l6.335-1.502A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.727.883.936-3.62-.235-.372A9.817 9.817 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z" />
-                  </svg>
+                  <WhatsAppIcon />
                   Or Chat on WhatsApp
                 </a>
 
@@ -396,10 +408,30 @@ const ContactPage = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: Phone, label: "Phone 1", val: "+91 97735 48537", href: "tel:+919773548537" },
-                  { icon: Phone, label: "Phone 2", val: "+91 99225 54066", href: "tel:+919922554066" },
-                  { icon: Mail, label: "Email 1", val: "trustedgeimf@gmail.com", href: "mailto:trustedgeimf@gmail.com" },
-                  { icon: Mail, label: "Email 2", val: "kmchaudhari939@gmail.com", href: "mailto:kmchaudhari939@gmail.com" },
+                  {
+                    icon: Phone,
+                    label: "Phone 1",
+                    val: "+91 97735 48537",
+                    href: "tel:+919773548537",
+                  },
+                  {
+                    icon: Phone,
+                    label: "Phone 2",
+                    val: "+91 99225 54066",
+                    href: "tel:+919922554066",
+                  },
+                  {
+                    icon: Mail,
+                    label: "Email 1",
+                    val: "trustedgeimf@gmail.com",
+                    href: "mailto:trustedgeimf@gmail.com",
+                  },
+                  {
+                    icon: Mail,
+                    label: "Email 2",
+                    val: "kmchaudhari939@gmail.com",
+                    href: "mailto:kmchaudhari939@gmail.com",
+                  },
                 ].map(({ icon: Icon, label, val, href }, i) => (
                   <a
                     key={i}
@@ -427,7 +459,9 @@ const ContactPage = () => {
                 </div>
                 <div className="ml-auto flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-green-light animate-pulse" />
-                  <span className="text-xs text-green-light font-semibold">Open</span>
+                  <span className="text-xs text-green-light font-semibold">
+                    Open
+                  </span>
                 </div>
               </div>
 

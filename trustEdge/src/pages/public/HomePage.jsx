@@ -135,10 +135,26 @@ const testimonials = [
 ];
 
 const steps = [
-  { n: "01", title: "Share Vehicle Details", desc: "Tell us your vehicle type, year, and current insurance status." },
-  { n: "02", title: "Get Instant Quotes", desc: "We compare plans from 6+ insurers and show the best options." },
-  { n: "03", title: "Choose Your Plan", desc: "Pick the cover that fits your needs and budget — we explain every clause." },
-  { n: "04", title: "Policy Issued Instantly", desc: "Pay online and receive your policy document in minutes." },
+  {
+    n: "01",
+    title: "Share Vehicle Details",
+    desc: "Tell us your vehicle type, year, and current insurance status.",
+  },
+  {
+    n: "02",
+    title: "Get Instant Quotes",
+    desc: "We compare plans from 6+ insurers and show the best options.",
+  },
+  {
+    n: "03",
+    title: "Choose Your Plan",
+    desc: "Pick the cover that fits your needs and budget — we explain every clause.",
+  },
+  {
+    n: "04",
+    title: "Policy Issued Instantly",
+    desc: "Pay online and receive your policy document in minutes.",
+  },
 ];
 
 /* ─────────────────────────────────────────────
@@ -181,7 +197,9 @@ const HomePage = () => {
         <div className="relative z-20 mx-auto max-w-7xl w-full px-6 py-32">
           <div
             className={`max-w-2xl transition-all duration-1000 ${
-              heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              heroVisible
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
             }`}
           >
             <span className="inline-block rounded-full border border-gold/60 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold-light mb-6">
@@ -223,7 +241,10 @@ const HomePage = () => {
             <div className="flex flex-wrap gap-5">
               {["Instant Policy", "Cashless Claims", "6 Insurer Partners"].map(
                 (t, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm text-slate-200">
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 text-sm text-slate-200"
+                  >
                     <CheckCircle2 className="w-4 h-4 text-green-light flex-shrink-0" />
                     {t}
                   </div>
@@ -250,7 +271,10 @@ const HomePage = () => {
               key={i}
               className="bg-white flex flex-col items-center gap-2 py-7 px-4 text-center group hover:bg-navy transition-colors duration-300"
             >
-              <Icon className="h-6 w-6 text-gold group-hover:text-gold transition-colors" strokeWidth={1.8} />
+              <Icon
+                className="h-6 w-6 text-gold group-hover:text-gold transition-colors"
+                strokeWidth={1.8}
+              />
               <span className="text-3xl font-extrabold text-navy group-hover:text-white transition-colors">
                 {value}
               </span>
@@ -278,45 +302,49 @@ const HomePage = () => {
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            {vehicleProducts.map(({ icon: Icon, title, subtitle, desc, img }, i) => (
-              <div
-                key={i}
-                className="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer"
-              >
-                {/* Image */}
-                <div className="relative h-52 overflow-hidden">
-                  <img
-                    src={img}
-                    alt={title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-navy/50 group-hover:bg-navy/30 transition-colors duration-300" />
-                  <div className="absolute top-4 left-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-                    <Icon className="h-6 w-6 text-white" strokeWidth={1.8} />
+            {vehicleProducts.map(
+              ({ icon: Icon, title, subtitle, desc, img }, i) => (
+                <div
+                  key={i}
+                  className="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+                >
+                  {/* Image */}
+                  <div className="relative h-52 overflow-hidden">
+                    <img
+                      src={img}
+                      alt={title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-navy/50 group-hover:bg-navy/30 transition-colors duration-300" />
+                    <div className="absolute top-4 left-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+                      <Icon className="h-6 w-6 text-white" strokeWidth={1.8} />
+                    </div>
                   </div>
-                </div>
 
-                {/* Content */}
-                <div className="bg-white p-6">
-                  <p className="text-xs font-semibold text-gold uppercase tracking-wider mb-1">
-                    {subtitle}
-                  </p>
-                  <h3 className="text-lg font-bold text-navy mb-2">{title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                    {desc}
-                  </p>
-                  <a
-                    href="tel:+919773548537"
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-brand group-hover:text-navy transition-colors"
-                  >
-                    Get Quote <ArrowRight className="w-4 h-4" />
-                  </a>
-                </div>
+                  {/* Content */}
+                  <div className="bg-white p-6">
+                    <p className="text-xs font-semibold text-gold uppercase tracking-wider mb-1">
+                      {subtitle}
+                    </p>
+                    <h3 className="text-lg font-bold text-navy mb-2">
+                      {title}
+                    </h3>
+                    <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                      {desc}
+                    </p>
+                    <a
+                      href="tel:+919773548537"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-brand group-hover:text-navy transition-colors"
+                    >
+                      Get Quote <ArrowRight className="w-4 h-4" />
+                    </a>
+                  </div>
 
-                {/* Gold accent on hover */}
-                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-gold transition-all duration-500 group-hover:w-full" />
-              </div>
-            ))}
+                  {/* Gold accent on hover */}
+                  <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-gold transition-all duration-500 group-hover:w-full" />
+                </div>
+              )
+            )}
           </div>
         </div>
       </section>
@@ -340,9 +368,9 @@ const HomePage = () => {
               <span className="text-gold">We're Your Insurance Partner.</span>
             </h2>
             <p className="mt-5 text-slate-300 leading-relaxed max-w-lg">
-              For 22 years, we've helped thousands of vehicle owners across
-              Navi Mumbai find the right cover — not the most expensive one.
-              We compare, advise, and stand by you even at claim time.
+              For 22 years, we've helped thousands of vehicle owners across Navi
+              Mumbai find the right cover — not the most expensive one. We
+              compare, advise, and stand by you even at claim time.
             </p>
             <ul className="mt-6 space-y-3">
               {[
@@ -351,7 +379,10 @@ const HomePage = () => {
                 "Claim assistance from start to finish",
                 "Renewal reminders & policy tracking",
               ].map((p, i) => (
-                <li key={i} className="flex items-center gap-3 text-sm text-slate-200">
+                <li
+                  key={i}
+                  className="flex items-center gap-3 text-sm text-slate-200"
+                >
                   <CheckCircle2 className="w-5 h-5 text-green-light flex-shrink-0" />
                   {p}
                 </li>
@@ -408,9 +439,6 @@ const HomePage = () => {
                 <span className="text-5xl font-extrabold text-navy/8 group-hover:text-gold/20 transition-colors select-none">
                   {n}
                 </span>
-                <div className="absolute top-6 left-6 text-4xl font-extrabold text-slate-100 group-hover:text-gold/10 transition-colors select-none leading-none -z-0">
-                  {n}
-                </div>
                 <h3 className="text-base font-bold text-navy relative z-10">
                   {title}
                 </h3>
@@ -451,7 +479,10 @@ const HomePage = () => {
               >
                 <span className="absolute left-0 top-0 h-0.5 w-0 bg-gradient-to-r from-gold to-green-brand transition-all duration-500 group-hover:w-full" />
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy/5 mb-4 group-hover:bg-navy transition-all duration-300 group-hover:rotate-6">
-                  <Icon className="h-6 w-6 text-navy group-hover:text-gold transition-colors duration-300" strokeWidth={1.8} />
+                  <Icon
+                    className="h-6 w-6 text-navy group-hover:text-gold transition-colors duration-300"
+                    strokeWidth={1.8}
+                  />
                 </div>
                 <h3 className="text-base font-bold text-navy mb-2">{title}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
@@ -513,9 +544,11 @@ const HomePage = () => {
           <div className="relative bg-navy rounded-3xl p-8 md:p-12 shadow-xl mb-8">
             <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-bl-3xl border-b border-l border-gold/20" />
             <div className="flex gap-1 mb-4">
-              {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => (
-                <Star key={i} className="w-5 h-5 text-gold fill-gold" />
-              ))}
+              {[...Array(testimonials[activeTestimonial].rating)].map(
+                (_, i) => (
+                  <Star key={i} className="w-5 h-5 text-gold fill-gold" />
+                )
+              )}
             </div>
             <p className="text-lg md:text-xl text-white leading-relaxed mb-8 italic">
               "{testimonials[activeTestimonial].text}"
@@ -552,9 +585,7 @@ const HomePage = () => {
                   key={i}
                   onClick={() => setActiveTestimonial(i)}
                   className={`h-2 rounded-full transition-all duration-300 ${
-                    i === activeTestimonial
-                      ? "w-8 bg-gold"
-                      : "w-2 bg-slate-300"
+                    i === activeTestimonial ? "w-8 bg-gold" : "w-2 bg-slate-300"
                   }`}
                 />
               ))}
@@ -576,10 +607,22 @@ const HomePage = () => {
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { icon: MapPin, label: "Office", val: "D-121, Steel Chamber, Kalamboli, Navi Mumbai 410218" },
-              { icon: Phone, label: "Call Us", val: "+91 97735 48537 / +91 99225 54066" },
+              {
+                icon: MapPin,
+                label: "Office",
+                val: "D-121, Steel Chamber, Kalamboli, Navi Mumbai 410218",
+              },
+              {
+                icon: Phone,
+                label: "Call Us",
+                val: "+91 97735 48537 / +91 99225 54066",
+              },
               { icon: Mail, label: "Email", val: "trustedgeimf@gmail.com" },
-              { icon: Clock, label: "Hours", val: "Mon–Sat, 10:00 AM – 7:00 PM" },
+              {
+                icon: Clock,
+                label: "Hours",
+                val: "Mon–Sat, 10:00 AM – 7:00 PM",
+              },
             ].map(({ icon: Icon, label, val }, i) => (
               <div
                 key={i}
@@ -614,12 +657,11 @@ const HomePage = () => {
             Free Consultation
           </span>
           <h2 className="text-4xl md:text-5xl font-extrabold leading-tight mb-5">
-            Ready to Get the{" "}
-            <span className="text-gold">Right Cover?</span>
+            Ready to Get the <span className="text-gold">Right Cover?</span>
           </h2>
           <p className="text-slate-200 text-lg mb-8">
-            Talk to our advisor today — no pressure, no spam. Just honest
-            advice and the best price for your vehicle.
+            Talk to our advisor today — no pressure, no spam. Just honest advice
+            and the best price for your vehicle.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <a
