@@ -4,7 +4,7 @@ import { routes } from "../lib/constant/routes";
 import { ROLES } from "../lib/constant/roles";
 
 import PublicLayout from "../component/layout/PublicLayout";
-// import AdminLayout from "../component/layout/AdminLayout";
+import AdminLayout from "../component/layout/AdminLayout";
 // import UserLayout from "../component/layout/UserLayout";
 
 // ─── Loading Spinner ──────────────────────────────────────────
@@ -21,7 +21,7 @@ function PageLoader() {
 
 // ─── Layout Wrapper ───────────────────────────────────────────
 function LayoutWrapper({ layout, children }) {
-  //   if (layout === "admin") return <AdminLayout>{children}</AdminLayout>;
+  if (layout === "admin") return <AdminLayout>{children}</AdminLayout>;
   //   if (layout === "user") return <UserLayout>{children}</UserLayout>;
   if (layout === "auth") return <>{children}</>; // no header/footer
   return <PublicLayout>{children}</PublicLayout>; // default

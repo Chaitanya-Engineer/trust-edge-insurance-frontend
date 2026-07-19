@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import axios from "axios";
-
+import store from '../../store/index.js'
 // ─── useAPI Custom Hook ───────────────────────────────────────
 //
 // Usage:
@@ -21,7 +21,7 @@ export const useAPI = (url, options = {}) => {
   const [error, setError] = useState(null);
 
   const cancelTokenRef = useRef(null);
-
+ const reduxToken = store.getState()?.auth?.accessToken;
   // ─── Axios Instance ──────────────────────────────────────
   const axiosInstance = axios.create({
     baseURL: BASE_URL,
@@ -30,7 +30,7 @@ export const useAPI = (url, options = {}) => {
   // ─── Request Interceptor ─────────────────────────────────
   axiosInstance.interceptors.request.use(
     (request) => {
-      const token = localStorage.getItem("access_token");
+      const token = reduxToken || localStorage.getItem("access_token");
       if (token) {
         request.headers["Authorization"] = `Bearer ${token}`;
       }

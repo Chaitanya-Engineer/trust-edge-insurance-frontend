@@ -22,9 +22,7 @@ export default function LoginPage() {
     method: "POST",
 
     onSuccess: (data) => {
-      localStorage.setItem("access_token", data?.tokens?.access);
-      localStorage.setItem("refresh_token", data?.tokens?.refresh);
-      login(formData);
+      login(data);
 
       if (data?.user?.role === "ADMIN") {
         navigate("/admin");
