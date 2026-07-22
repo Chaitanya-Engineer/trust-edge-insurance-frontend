@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 *,
 *::after,
 *::before {
@@ -8,12 +9,16 @@
   padding: 0;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
-  font-family: 'Lexend';
+  font-family: 'Lexend', system-ui, -apple-system, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::-webkit-scrollbar {
   width: 0.2rem;
   height: 0.6rem;
+
   @media (min-width: 768px) {
     width: 0.5rem;
     height: 0.5rem;
@@ -45,12 +50,12 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Lexend';
+  font-family: 'Merriweather', Georgia, serif;
 }
 
 button {
   background: none;
-  font-family: 'Lexend';
+  font-family: 'Lexend', system-ui, -apple-system, sans-serif;
 }
 
 /*Lexend Font Family */
@@ -114,6 +119,29 @@ button {
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

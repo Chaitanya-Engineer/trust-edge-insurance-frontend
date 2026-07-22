@@ -1,22 +1,19 @@
 export const footerLinks = {
   Company: [
     { label: "About Us", href: "/about" },
-    { label: "Contact", href: "/contact" },
-    { label: "Careers", href: "/careers" },
+    { label: "Contact Us", href: "/contact" },
   ],
   Plans: [
-    { label: "Health Insurance", href: "/plans#health" },
-    { label: "Life Insurance", href: "/plans#life" },
-    { label: "Vehicle Insurance", href: "/plans#vehicle" },
+    { label: "Vehicle Insurance", href: "/plans" },
   ],
   Support: [
     { label: "Help Center", href: "/help" },
     { label: "Claim Process", href: "/claims" },
-    { label: "WhatsApp Us", href: "https://wa.me/919999999999" },
+    { label: "WhatsApp Us", href: "https://wa.me/919773548537" },
   ],
   Legal: [
     { label: "Privacy Policy", href: "/privacy" },
-    { label: "Terms of Service", href: "/terms" },
+    { label: "Terms & Conditions", href: "/terms" },
     { label: "Disclaimer", href: "/disclaimer" },
   ],
 };
@@ -32,6 +29,11 @@ const PlansPage = lazy(() => import("../../pages/public/PlansPage"));
 const AboutPage = lazy(() => import("../../pages/public/AboutPage"));
 const ContactPage = lazy(() => import("../../pages/public/ContactPage"));
 const LoginPage = lazy(() => import("../../pages/login/LoginPage"));
+const PrivacyPage = lazy(() => import("../../pages/public/PrivacyPage"));
+const TermsPage = lazy(() => import("../../pages/public/TermsPage"));
+const DisclaimerPage = lazy(() => import("../../pages/public/DisclaimerPage"));
+const HelpCenterPage = lazy(() => import("../../pages/public/HelpCenterPage"));
+const ClaimProcessPage = lazy(() => import("../../pages/public/ClaimProcessPage"));
 // // Auth Pages
 // const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 // const RegisterPage = lazy(() => import("../pages/auth/RegisterPage"));
@@ -92,6 +94,41 @@ export const routes = [
     name: "Contact",
     path: "/contact",
     component: ContactPage,
+    userRoles: [ROLES.ALL],
+    layout: "public",
+  },
+  {
+    name: "Privacy Policy",
+    path: "/privacy",
+    component: PrivacyPage,
+    userRoles: [ROLES.ALL],
+    layout: "public",
+  },
+  {
+    name: "Terms",
+    path: "/terms",
+    component: TermsPage,
+    userRoles: [ROLES.ALL],
+    layout: "public",
+  },
+  {
+    name: "Disclaimer",
+    path: "/disclaimer",
+    component: DisclaimerPage,
+    userRoles: [ROLES.ALL],
+    layout: "public",
+  },
+  {
+    name: "Help Center",
+    path: "/help",
+    component: HelpCenterPage,
+    userRoles: [ROLES.ALL],
+    layout: "public",
+  },
+  {
+    name: "Claim Process",
+    path: "/claims",
+    component: ClaimProcessPage,
     userRoles: [ROLES.ALL],
     layout: "public",
   },
