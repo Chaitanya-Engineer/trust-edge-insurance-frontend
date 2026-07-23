@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import familyHero from "../../assets/family_hero.jpg";
+import videoAd from "../../assets/video_ad.mp4";
 import {
   Shield,
   Car,
@@ -11,6 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Play,
+  Volume2,
+  VolumeX,
   Award,
   Users,
   TrendingUp,
@@ -164,10 +168,20 @@ const HomePage = () => {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [heroVisible, setHeroVisible] = useState(false);
   const videoRef = useRef(null);
+  const [videoMuted, setVideoMuted] = useState(true);
 
   useEffect(() => {
     setHeroVisible(true);
   }, []);
+
+  // Auto-slide testimonials every 5 seconds, resetting the timer on manual navigation
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveTestimonial((p) => (p === testimonials.length - 1 ? 0 : p + 1));
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [activeTestimonial]);
 
   const prevTestimonial = () =>
     setActiveTestimonial((p) => (p === 0 ? testimonials.length - 1 : p - 1));
@@ -179,28 +193,27 @@ const HomePage = () => {
       {/* ══════════════════════════════════════
           HERO
       ══════════════════════════════════════ */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
+      <section className="relative min-h-[75vh] md:min-h-screen flex items-center overflow-hidden">
         {/* Background image */}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=80"
-            alt="Car on road"
-            className="w-full h-full object-cover"
+            src={familyHero}
+            alt="Family with car"
+            className="w-full h-full object-cover object-[70%_top] sm:object-[right_15%] opacity-65 md:opacity-100"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/80 to-navy/30" />
+          <div className="absolute inset-0 bg-gradient-to-b from-navy/85 via-navy/60 to-navy/35 md:bg-gradient-to-r md:from-navy/95 md:via-navy/90 md:to-navy/40" />
         </div>
 
         {/* Gold decorative ring */}
         <div className="pointer-events-none absolute right-[-120px] top-[-120px] h-[500px] w-[500px] rounded-full border-[2px] border-gold/20 z-10" />
         <div className="pointer-events-none absolute right-[-60px] top-[-60px] h-[360px] w-[360px] rounded-full border-[2px] border-gold/15 z-10" />
 
-        <div className="relative z-20 mx-auto max-w-7xl w-full px-6 py-32">
+        <div className="relative z-20 mx-auto max-w-7xl w-full px-6 py-16 md:py-32">
           <div
-            className={`max-w-2xl transition-all duration-1000 ${
-              heroVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
-            }`}
+            className={`max-w-2xl transition-all duration-1000 ${heroVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+              }`}
           >
             <span className="inline-block rounded-full border border-gold/60 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold-light mb-6">
               22 Years of Trusted Insurance
@@ -253,12 +266,6 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 text-white/50 text-xs">
-          <div className="w-px h-8 bg-white/20" />
-          Scroll
-        </div>
       </section>
 
       {/* ══════════════════════════════════════
@@ -269,16 +276,16 @@ const HomePage = () => {
           {stats.map(({ icon: Icon, value, label }, i) => (
             <div
               key={i}
-              className="bg-white flex flex-col items-center gap-2 py-7 px-4 text-center group hover:bg-navy transition-colors duration-300"
+              className="bg-white flex flex-col items-center gap-2 py-5 px-3 md:py-7 md:px-4 text-center group md:hover:bg-navy transition-colors duration-300"
             >
               <Icon
-                className="h-6 w-6 text-gold group-hover:text-gold transition-colors"
+                className="h-6 w-6 text-gold transition-colors"
                 strokeWidth={1.8}
               />
-              <span className="text-3xl font-extrabold text-navy group-hover:text-white transition-colors">
+              <span className="text-2xl sm:text-3xl font-extrabold text-navy md:group-hover:text-white transition-colors">
                 {value}
               </span>
-              <span className="text-xs font-medium text-slate-500 group-hover:text-slate-300 transition-colors">
+              <span className="text-[10px] sm:text-xs font-medium text-slate-500 md:group-hover:text-slate-300 transition-colors leading-tight">
                 {label}
               </span>
             </div>
@@ -399,17 +406,63 @@ const HomePage = () => {
 
           {/* Video embed */}
           <div className="flex-1 w-full">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-video bg-navy-light">
-              <iframe
-                className="w-full h-full"
-                src="https://youtu.be/l6XadC7iqSg?si=Ox4-kjEcqPuizSiK"
-                title="Understanding Vehicle Insurance"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
+            <div
+              className="group/video relative rounded-2xl overflow-hidden shadow-2xl aspect-video bg-navy-light cursor-pointer transform hover:scale-[1.02] transition-all duration-500 border border-white/10"
+              onMouseEnter={() => {
+                if (videoRef.current) {
+                  videoRef.current.play().catch((err) => console.log("Video play interrupted:", err));
+                }
+              }}
+              onMouseLeave={() => {
+                if (videoRef.current) {
+                  videoRef.current.pause();
+                }
+              }}
+            >
+              <video
+                ref={videoRef}
+                src={videoAd}
+                muted={videoMuted}
+                loop
+                playsInline
+                className="w-full h-full object-cover"
               />
+
+              {/* Overlay shadow gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 group-hover/video:from-black/30 transition-all duration-500 pointer-events-none" />
+
+              {/* Central Play Button */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/25 backdrop-blur-md border border-white/40 text-white shadow-lg transition-all duration-500 transform group-hover/video:scale-75 group-hover/video:opacity-0">
+                  <Play className="h-7 w-7 text-white fill-white ml-1" />
+                </div>
+              </div>
+
+              {/* Hover to Preview Badge */}
+              <div className="absolute top-4 left-4 bg-navy/80 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-1.5 transition-all duration-500 group-hover/video:opacity-0 group-hover/video:translate-y-[-10px]">
+                <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                Hover to Play
+              </div>
+
+              {/* Volume Controller (speaker icon) */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setVideoMuted(!videoMuted);
+                }}
+                className="absolute bottom-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-navy/90 hover:bg-navy backdrop-blur-sm border border-white/15 text-white shadow-md hover:scale-105 active:scale-95 transition-all duration-200"
+                title={videoMuted ? "Unmute" : "Mute"}
+              >
+                {videoMuted ? (
+                  <VolumeX className="h-5 w-5 text-gold-light" />
+                ) : (
+                  <Volume2 className="h-5 w-5 text-gold-light" />
+                )}
+              </button>
             </div>
             <p className="mt-3 text-xs text-slate-400 text-center">
-              Understanding vehicle insurance — a quick guide
+              Understanding vehicle insurance — hover to play, click speaker to unmute
             </p>
           </div>
         </div>
@@ -436,7 +489,7 @@ const HomePage = () => {
                 key={i}
                 className="group relative flex flex-col items-start gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
-                <span className="text-5xl font-extrabold text-navy/8 group-hover:text-gold/20 transition-colors select-none">
+                <span className="text-5xl font-extrabold text-navy/8 group-hover:text-gold/50 transition-colors select-none">
                   {n}
                 </span>
                 <h3 className="text-base font-bold text-navy relative z-10">
@@ -475,7 +528,7 @@ const HomePage = () => {
             {whyUs.map(({ icon: Icon, title, desc }, i) => (
               <div
                 key={i}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
+                className="group relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-md p-6 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500"
               >
                 <span className="absolute left-0 top-0 h-0.5 w-0 bg-gradient-to-r from-gold to-green-brand transition-all duration-500 group-hover:w-full" />
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy/5 mb-4 group-hover:bg-navy transition-all duration-300 group-hover:rotate-6">
@@ -512,7 +565,7 @@ const HomePage = () => {
             {insurers.map(({ name, short }, i) => (
               <div
                 key={i}
-                className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-5 py-4 hover:bg-white/10 hover:border-gold/40 transition-all duration-300 hover:-translate-y-1"
+                className="group flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] backdrop-blur-md px-5 py-4 hover:bg-white/10 hover:border-gold/30 transition-all duration-300 hover:-translate-y-1"
               >
                 <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-light group-hover:scale-110 transition-transform" />
                 <div>
@@ -540,20 +593,24 @@ const HomePage = () => {
             <div className="mx-auto mt-3 h-1 w-16 rounded-full bg-gold" />
           </div>
 
-          {/* Active card */}
-          <div className="relative bg-navy rounded-3xl p-8 md:p-12 shadow-xl mb-8">
+          {/* Active card (Stabilized Height to prevent layout jumping on mobile) */}
+          <div className="relative bg-navy rounded-3xl p-6 sm:p-8 md:p-12 shadow-xl mb-8 min-h-[320px] sm:min-h-[250px] md:min-h-0 flex flex-col justify-between">
             <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-bl-3xl border-b border-l border-gold/20" />
-            <div className="flex gap-1 mb-4">
-              {[...Array(testimonials[activeTestimonial].rating)].map(
-                (_, i) => (
-                  <Star key={i} className="w-5 h-5 text-gold fill-gold" />
-                )
-              )}
+
+            <div>
+              <div className="flex gap-1 mb-4">
+                {[...Array(testimonials[activeTestimonial].rating)].map(
+                  (_, i) => (
+                    <Star key={i} className="w-5 h-5 text-gold fill-gold" />
+                  )
+                )}
+              </div>
+              <p className="text-base sm:text-lg md:text-xl text-white leading-relaxed mb-6 italic">
+                "{testimonials[activeTestimonial].text}"
+              </p>
             </div>
-            <p className="text-lg md:text-xl text-white leading-relaxed mb-8 italic">
-              "{testimonials[activeTestimonial].text}"
-            </p>
-            <div className="flex items-center gap-4">
+
+            <div className="flex items-center gap-4 mt-auto">
               <div className="h-11 w-11 rounded-full bg-gold/20 flex items-center justify-center">
                 <span className="text-lg font-bold text-gold">
                   {testimonials[activeTestimonial].name[0]}
@@ -572,10 +629,10 @@ const HomePage = () => {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4 mt-6">
             <button
               onClick={prevTestimonial}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-navy/20 hover:bg-navy hover:text-white text-navy transition-all duration-300"
+              className="flex h-11 w-11 md:h-10 md:w-10 items-center justify-center rounded-full border border-navy/20 hover:bg-navy hover:text-white text-navy transition-all duration-300"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -584,9 +641,8 @@ const HomePage = () => {
                 <button
                   key={i}
                   onClick={() => setActiveTestimonial(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    i === activeTestimonial ? "w-8 bg-gold" : "w-2 bg-slate-300"
-                  }`}
+                  className={`h-2 rounded-full transition-all duration-300 ${i === activeTestimonial ? "w-8 bg-gold" : "w-2 bg-slate-300"
+                    }`}
                 />
               ))}
             </div>
@@ -600,50 +656,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════
-          CONTACT STRIP
-      ══════════════════════════════════════ */}
-      <section className="py-16 px-6 bg-slate-50">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: MapPin,
-                label: "Office",
-                val: "D-121, Steel Chamber, Kalamboli, Navi Mumbai 410218",
-              },
-              {
-                icon: Phone,
-                label: "Call Us",
-                val: "+91 97735 48537 / +91 99225 54066",
-              },
-              { icon: Mail, label: "Email", val: "trustedgeimf@gmail.com" },
-              {
-                icon: Clock,
-                label: "Hours",
-                val: "Mon–Sat, 10:00 AM – 7:00 PM",
-              },
-            ].map(({ icon: Icon, label, val }, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-3 rounded-xl bg-white border border-slate-100 p-5 shadow-sm"
-              >
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-navy">
-                  <Icon className="h-5 w-5 text-gold" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-0.5">
-                    {label}
-                  </p>
-                  <p className="text-sm font-medium text-navy leading-snug">
-                    {val}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Contact Strip removed - Handled dynamically by premium footer contacts below */}
 
       {/* ══════════════════════════════════════
           CTA BANNER
