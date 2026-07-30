@@ -3,8 +3,14 @@ export const footerLinks = {
     { label: "About Us", href: "/about" },
     { label: "Contact Us", href: "/contact" },
   ],
-  Plans: [
-    { label: "Vehicle Insurance", href: "/plans" },
+  Insurance: [
+    { label: "All Insurance", href: "/insurance" },
+    { label: "Health Insurance", href: "/insurance/health" },
+    { label: "Motor Insurance", href: "/insurance/motor" },
+    { label: "Property Insurance", href: "/insurance/property" },
+    { label: "Marine Insurance", href: "/insurance/marine" },
+    { label: "Workmen Compensation", href: "/insurance/workmen-compensation" },
+    { label: "Personal Insurance", href: "/insurance/personal" },
   ],
   Support: [
     { label: "Help Center", href: "/help" },
@@ -25,7 +31,8 @@ import { ROLES } from "./roles";
 
 // Public Pages
 const HomePage = lazy(() => import("../../pages/public/HomePage"));
-const PlansPage = lazy(() => import("../../pages/public/PlansPage"));
+const InsuranceDirectoryPage = lazy(() => import("../../pages/public/insurance/InsuranceDirectoryPage"));
+const InsuranceCategoryPage = lazy(() => import("../../pages/public/insurance/InsuranceCategoryPage"));
 const AboutPage = lazy(() => import("../../pages/public/AboutPage"));
 const ContactPage = lazy(() => import("../../pages/public/ContactPage"));
 const LoginPage = lazy(() => import("../../pages/login/LoginPage"));
@@ -77,9 +84,16 @@ export const routes = [
     layout: "public",
   },
   {
-    name: "Plans",
-    path: "/plans",
-    component: PlansPage,
+    name: "Insurance",
+    path: "/insurance",
+    component: InsuranceDirectoryPage,
+    userRoles: [ROLES.ALL],
+    layout: "public",
+  },
+  {
+    name: "Insurance Category",
+    path: "/insurance/:categoryId",
+    component: InsuranceCategoryPage,
     userRoles: [ROLES.ALL],
     layout: "public",
   },

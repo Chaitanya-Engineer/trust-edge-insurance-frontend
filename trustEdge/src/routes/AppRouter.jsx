@@ -1,7 +1,19 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 import { routes } from "../lib/constant/routes";
 import { ROLES } from "../lib/constant/roles";
+
+// Scroll to top helper on route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 import PublicLayout from "../component/layout/PublicLayout";
 import AdminLayout from "../component/layout/AdminLayout";
@@ -31,6 +43,7 @@ function LayoutWrapper({ layout, children }) {
 export default function AppRouter() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       {/* <Suspense fallback={<PageLoader />}> */}
       <Routes>
         {routes.map((route) => {
