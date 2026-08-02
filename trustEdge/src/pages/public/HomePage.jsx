@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import familyHero from "../../assets/family_hero.jpg";
 import videoAd from "../../assets/video_ad.mp4";
 import {
   Shield,
-  Car,
-  Truck,
-  Bike,
   CheckCircle2,
   ArrowRight,
   Phone,
@@ -38,32 +36,7 @@ const stats = [
   { icon: TrendingUp, value: "98%", label: "Claim Success Rate" },
 ];
 
-const vehicleProducts = [
-  {
-    icon: Car,
-    title: "Private Car Insurance",
-    subtitle: "For hatchbacks, sedans & SUVs",
-    desc: "Comprehensive cover, zero-dep add-ons, instant policy issuance for all private cars.",
-    color: "from-navy to-navy-light",
-    img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&q=80",
-  },
-  {
-    icon: Truck,
-    title: "Commercial Vehicle Insurance",
-    subtitle: "Trucks, tempos, buses & more",
-    desc: "Protect your business fleet with tailored cover for all commercial and goods vehicles.",
-    color: "from-green-brand to-green-light",
-    img: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80",
-  },
-  {
-    icon: Bike,
-    title: "Two-Wheeler Insurance",
-    subtitle: "Bikes, scooters & mopeds",
-    desc: "Affordable premiums with accidental damage, third-party liability and cashless garages.",
-    color: "from-gold to-gold-light",
-    img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
-  },
-];
+
 
 const whyUs = [
   {
@@ -294,64 +267,56 @@ const HomePage = () => {
       </section>
 
       {/* ══════════════════════════════════════
-          VEHICLE PRODUCTS
+          EXPLORE SOLUTIONS — DIRECTIONAL STRIP
       ══════════════════════════════════════ */}
-      <section className="py-24 px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-14">
-            <span className="text-xs font-semibold uppercase tracking-widest text-gold">
-              What We Cover
-            </span>
-            <h2 className="mt-2 text-4xl font-bold text-navy">
-              Insurance for Every Vehicle
-            </h2>
-            <div className="mx-auto mt-3 h-1 w-16 rounded-full bg-gold" />
+      <section className="relative py-10 sm:py-14 md:py-20 px-4 sm:px-6 bg-gradient-to-br from-slate-50 via-white to-slate-50 overflow-hidden">
+        {/* Decorative circles */}
+        <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full border border-gold/10" />
+        <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full border border-green-brand/10" />
+
+        <div className="relative z-10 mx-auto max-w-4xl text-center">
+          {/* Shield icon */}
+          <div className="mx-auto mb-4 sm:mb-5 flex h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-navy/5 border border-navy/10">
+            <Shield className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-navy" strokeWidth={1.5} />
           </div>
 
-          <div className="grid gap-8 md:grid-cols-3">
-            {vehicleProducts.map(
-              ({ icon: Icon, title, subtitle, desc, img }, i) => (
-                <div
-                  key={i}
-                  className="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer"
-                >
-                  {/* Image */}
-                  <div className="relative h-52 overflow-hidden">
-                    <img
-                      src={img}
-                      alt={title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-navy/50 group-hover:bg-navy/30 transition-colors duration-300" />
-                    <div className="absolute top-4 left-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-                      <Icon className="h-6 w-6 text-white" strokeWidth={1.8} />
-                    </div>
-                  </div>
+          {/* Headline */}
+          <h2 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold text-navy leading-tight px-2">
+            From Health to Motor to Business, {" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold to-gold-light">
+              we've got you covered
+            </span>
+          </h2>
 
-                  {/* Content */}
-                  <div className="bg-white p-6">
-                    <p className="text-xs font-semibold text-gold uppercase tracking-wider mb-1">
-                      {subtitle}
-                    </p>
-                    <h3 className="text-lg font-bold text-navy mb-2">
-                      {title}
-                    </h3>
-                    <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                      {desc}
-                    </p>
-                    <a
-                      href="tel:+919773548537"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-brand group-hover:text-navy transition-colors"
-                    >
-                      Get Quote <ArrowRight className="w-4 h-4" />
-                    </a>
-                  </div>
+          {/* Subtitle */}
+          <p className="mt-2.5 sm:mt-4 text-xs sm:text-sm md:text-base text-slate-500 max-w-xl mx-auto leading-relaxed px-4 sm:px-0">
+            Explore our complete range of insurance solutions, tailored for individuals, families, and businesses across India.
+          </p>
 
-                  {/* Gold accent on hover */}
-                  <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-gold transition-all duration-500 group-hover:w-full" />
-                </div>
-              )
-            )}
+          {/* CTA Button */}
+          <div className="mt-5 sm:mt-7 md:mt-8">
+            <Link
+              to="/insurance"
+              className="group inline-flex items-center gap-2 bg-navy hover:bg-navy-dark text-white font-semibold px-5 sm:px-7 md:px-8 py-3 sm:py-3.5 rounded-xl text-sm sm:text-base transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              Explore All Insurance Solutions
+              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </div>
+
+          {/* Trust micro-badges */}
+          <div className="mt-5 sm:mt-7 md:mt-8 flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-5 md:gap-x-6 gap-y-2 text-[11px] sm:text-xs md:text-sm text-slate-400">
+            {[
+              "Motor & Vehicle",
+              "Health & Family",
+              "Business & Property",
+              "Workmen & Liability",
+            ].map((label, i) => (
+              <span key={i} className="flex items-center gap-1 sm:gap-1.5">
+                <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-brand flex-shrink-0" />
+                {label}
+              </span>
+            ))}
           </div>
         </div>
       </section>
