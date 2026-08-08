@@ -52,7 +52,7 @@ const ClaimProcessPage = lazy(() => import("../../pages/public/ClaimProcessPage"
 const AdminDashboardPage = lazy(() =>
   import("../../pages/admin/DashboardPage")
 );
-// const AdminUsersPage = lazy(() => import("../pages/admin/UsersPage"));
+const AdminUsersPage = lazy(() => import("../../pages/admin/UsersPage"));
 // const AdminUserDetail = lazy(() => import("../pages/admin/UserDetailPage"));
 // const AdminPlansPage = lazy(() => import("../pages/admin/PlansPage"));
 // const AdminPlanForm = lazy(() => import("../pages/admin/PlanFormPage"));
@@ -178,13 +178,13 @@ export const routes = [
     userRoles: [ROLES.ADMIN],
     layout: "admin",
   },
-  // {
-  //   name: "Admin Users",
-  //   path: "/admin/users",
-  //   component: AdminUsersPage,
-  //   userRoles: [ROLES.ADMIN],
-  //   layout: "admin",
-  // },
+  {
+    name: "Admin Users",
+    path: "/admin/users",
+    component: AdminUsersPage,
+    userRoles: [ROLES.ADMIN],
+    layout: "admin",
+  },
   // {
   //   name: "Admin User Detail",
   //   path: "/admin/users/:id",
