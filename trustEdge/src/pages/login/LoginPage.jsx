@@ -60,7 +60,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-slate-50 font-sans">
-
       {/* ══════════════════════════════════════
           LEFT SIDE: FULL LOGO BANNER (DESKTOP)
       ══════════════════════════════════════ */}
@@ -99,7 +98,6 @@ export default function LoginPage() {
           RIGHT SIDE: CLEAN LIGHT LOGIN CARD
       ══════════════════════════════════════ */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 bg-slate-50 relative">
-
         {/* Mobile-only Back to Home Link */}
         <div className="lg:hidden absolute top-6 left-6 z-20">
           <Link
@@ -113,7 +111,6 @@ export default function LoginPage() {
 
         {/* Minimal White Login Card */}
         <div className="relative z-10 w-full max-w-[380px] bg-white border border-slate-200/80 p-8 sm:p-10 rounded-[24px] shadow-[0_10px_35px_rgba(0,0,0,0.03)] animate-fadeInUp">
-
           {/* Mobile-only Logo container (centered full logo) */}
           <div className="lg:hidden flex flex-col items-center mb-8 text-center bg-white p-4 rounded-2xl border border-slate-100">
             <img
@@ -141,7 +138,6 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4">
-
             {/* Username Input */}
             <div className="relative">
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider px-1">
@@ -199,7 +195,8 @@ export default function LoginPage() {
             {error && (
               <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-2xl animate-fadeInUp">
                 <p className="text-xs text-red-600 font-medium text-center">
-                  {error.response?.data?.non_field_errors?.[0] || "Invalid credentials. Please try again."}
+                  {error.response?.data?.non_field_errors?.[0] ||
+                    "Invalid credentials. Please try again."}
                 </p>
               </div>
             )}

@@ -31,8 +31,12 @@ import { ROLES } from "./roles";
 
 // Public Pages
 const HomePage = lazy(() => import("../../pages/public/HomePage"));
-const InsuranceDirectoryPage = lazy(() => import("../../pages/public/insurance/InsuranceDirectoryPage"));
-const InsuranceCategoryPage = lazy(() => import("../../pages/public/insurance/InsuranceCategoryPage"));
+const InsuranceDirectoryPage = lazy(() =>
+  import("../../pages/public/insurance/InsuranceDirectoryPage")
+);
+const InsuranceCategoryPage = lazy(() =>
+  import("../../pages/public/insurance/InsuranceCategoryPage")
+);
 const AboutPage = lazy(() => import("../../pages/public/AboutPage"));
 const ContactPage = lazy(() => import("../../pages/public/ContactPage"));
 const LoginPage = lazy(() => import("../../pages/login/LoginPage"));
@@ -40,7 +44,9 @@ const PrivacyPage = lazy(() => import("../../pages/public/PrivacyPage"));
 const TermsPage = lazy(() => import("../../pages/public/TermsPage"));
 const DisclaimerPage = lazy(() => import("../../pages/public/DisclaimerPage"));
 const HelpCenterPage = lazy(() => import("../../pages/public/HelpCenterPage"));
-const ClaimProcessPage = lazy(() => import("../../pages/public/ClaimProcessPage"));
+const ClaimProcessPage = lazy(() =>
+  import("../../pages/public/ClaimProcessPage")
+);
 // // Auth Pages
 // const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 // const RegisterPage = lazy(() => import("../pages/auth/RegisterPage"));
@@ -52,7 +58,9 @@ const ClaimProcessPage = lazy(() => import("../../pages/public/ClaimProcessPage"
 const AdminDashboardPage = lazy(() =>
   import("../../pages/admin/DashboardPage")
 );
-// const AdminUsersPage = lazy(() => import("../pages/admin/UsersPage"));
+const AdminUsersDashboardPage = lazy(() =>
+  import("../../pages/admin/UserDashboardPage/UserDashboardPage")
+);
 // const AdminUserDetail = lazy(() => import("../pages/admin/UserDetailPage"));
 // const AdminPlansPage = lazy(() => import("../pages/admin/PlansPage"));
 // const AdminPlanForm = lazy(() => import("../pages/admin/PlanFormPage"));
@@ -178,13 +186,13 @@ export const routes = [
     userRoles: [ROLES.ADMIN],
     layout: "admin",
   },
-  // {
-  //   name: "Admin Users",
-  //   path: "/admin/users",
-  //   component: AdminUsersPage,
-  //   userRoles: [ROLES.ADMIN],
-  //   layout: "admin",
-  // },
+  {
+    name: " Users Dashboard",
+    path: "/admin/user-dashboard",
+    component: AdminUsersDashboardPage,
+    userRoles: [ROLES.ADMIN],
+    layout: "admin",
+  },
   // {
   //   name: "Admin User Detail",
   //   path: "/admin/users/:id",
