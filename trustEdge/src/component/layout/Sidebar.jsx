@@ -23,8 +23,8 @@ const navItems = [
     ),
   },
   {
-    label: "Users",
-    path: "/admin/users",
+    label: "User Dashboard",
+    path: "/admin/user-dashboard",
     icon: (
       <svg
         className="w-5 h-5"
