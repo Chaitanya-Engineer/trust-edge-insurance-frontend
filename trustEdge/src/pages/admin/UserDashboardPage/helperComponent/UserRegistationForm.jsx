@@ -161,22 +161,6 @@ const UserRegistrationForm = ({
           </h2>
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            {/* Passport Photo */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Passport Size Photo
-              </label>
-
-              <DocumentUpload
-                accept={["jpg", "jpeg", "png", "webp"]}
-                maxSize={5}
-                multiple={false}
-                placeholder="Upload passport size photo"
-                onChange={(file) => handleInputChange("passportPhoto", file)}
-                width="w-full"
-              />
-            </div>
-
             {/* PAN Card */}
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -189,22 +173,6 @@ const UserRegistrationForm = ({
                 multiple={false}
                 placeholder="Upload PAN card"
                 onChange={(file) => handleInputChange("panCard", file)}
-                width="w-full"
-              />
-            </div>
-
-            {/* Signature */}
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Signature
-              </label>
-
-              <DocumentUpload
-                accept={["jpg", "jpeg", "png"]}
-                maxSize={2}
-                multiple={false}
-                placeholder="Upload signature"
-                onChange={(file) => handleInputChange("signature", file)}
                 width="w-full"
               />
             </div>

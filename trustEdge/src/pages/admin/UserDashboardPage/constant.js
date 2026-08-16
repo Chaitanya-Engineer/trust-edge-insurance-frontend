@@ -87,6 +87,14 @@
       accessor: "status",
       type: "string",
     },
+    {
+      title: "Action",
+      accessor: "action",
+      type: "special",
+      is_filter: false,
+      width: 100,
+      specialCellRowFunction: (row) => null,
+    },
   ];
 
   export const genderOptions = [
@@ -102,4 +110,50 @@
     value: "other",
     label: "Other",
   },
+];
+
+export const subTypes = {
+  health: ['Individual', 'Family Floater', 'Group Health'],
+  personal: ['Term Life', 'Whole Life', 'Personal Accident', 'Travel'],
+  motor: ['Two Wheeler', 'Four Wheeler', 'Commercial Vehicle', 'Miscellaneous Vehicle'],
+  property: ['Home', 'Shop', 'Office', 'Industrial'],
+  marine: ['Cargo', 'Hull', 'Freight'],
+  workmen: ['Standard', 'Enhanced'],
+};
+
+export const relations = [
+  { value: 'Self', label: 'Self' },
+  { value: 'Spouse', label: 'Spouse' },
+  { value: 'Father', label: 'Father' },
+  { value: 'Mother', label: 'Mother' },
+  { value: 'Son', label: 'Son' },
+  { value: 'Daughter', label: 'Daughter' },
+  { value: 'Sibling', label: 'Sibling' },
+  { value: 'Other', label: 'Other' },
+];
+
+export const categoryOptions = [
+  { value: "health", label: "Health Insurance" },
+  { value: "personal", label: "Personal Insurance" },
+  { value: "motor", label: "Motor Insurance" },
+  { value: "property", label: "Property Insurance" },
+  { value: "marine", label: "Marine Insurance" },
+  { value: "workmen", label: "Workmen Compensation" },
+];
+
+export const transactionModeOptions = [
+  { value: "upi", label: "UPI" },
+  { value: "card", label: "Card" },
+  { value: "cheque", label: "Cheque" },
+  { value: "cash", label: "Cash" },
+];
+
+export const vehicleOwnerOptions = [
+  { value: "personal", label: "Personal" },
+  { value: "business", label: "Business" },
+];
+
+export const paymentStatusOptions = [
+  { value: "done", label: "Done" },
+  { value: "pending", label: "Pending" },
 ];
