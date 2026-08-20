@@ -9,6 +9,7 @@ const CustomDatePicker = ({
   min,
   max,
   className = "",
+  error = false,
 }) => {
   const selectedDate = value || defaultDate;
 
@@ -24,7 +25,11 @@ const CustomDatePicker = ({
       disabled={disabled}
       min={min}
       max={max}
-      className={`${width} ${className} h-10 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-800 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100`}
+      className={`${width} ${className} h-10 rounded-md border ${
+        error
+          ? "border-red-500 focus:border-red-500 focus:ring-red-500 focus:ring-1"
+          : "border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-1"
+      } bg-white px-3 text-sm text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100`}
     />
   );
 };

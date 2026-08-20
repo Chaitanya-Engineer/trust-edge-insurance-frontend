@@ -1,10 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { genderOptions } from "../constant";
 import CustomInput from "../../../../component/core_components/CustomInput/CustomeInput";
 import CustomDatePicker from "../../../../component/core_components/DatePicker/CustomDatePicker";
 import CustomSelect from "../../../../component/core_components/CustomSelect/CustomSelect";
 import DocumentUpload from "../../../../component/core_components/DocumentUpload/DocumentUpload";
+import {
+  validateFullName,
+  validateDob,
+  validateMobileNumber,
+  validateEmail,
+  validatePanNumber,
+  validateAadhaarNumber,
+} from "../../../../lib/validation";
 
 const UserRegistrationForm = ({
   formData,
@@ -13,17 +21,71 @@ const UserRegistrationForm = ({
   onSubmit,
   onCancel,
 }) => {
+  const [errors, setErrors] = useState({});
+
   const handleInputChange = (field, value) => {
     onChange?.((prev) => ({
       ...prev,
       [field]: value,
     }));
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: null,
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Full Name
+    const fullNameError = validateFullName(formData?.fullName);
+    if (fullNameError) newErrors.fullName = fullNameError;
+
+    // Date of Birth
+    const dobError = validateDob(formData?.dob);
+    if (dobError) newErrors.dob = dobError;
+
+    // Gender
+    if (!formData?.gender) {
+      newErrors.gender = "Gender is required";
+    }
+
+    // Mobile Number
+    const mobileError = validateMobileNumber(formData?.mobileNumber);
+    if (mobileError) newErrors.mobileNumber = mobileError;
+
+    // Email Address
+    const emailError = validateEmail(formData?.emailAddress);
+    if (emailError) newErrors.emailAddress = emailError;
+
+    // PAN Number
+    const panError = validatePanNumber(formData?.panNumber);
+    if (panError) newErrors.panNumber = panError;
+
+    // Aadhaar Number
+    const aadhaarError = validateAadhaarNumber(formData?.aadhaarNumber);
+    if (aadhaarError) newErrors.aadhaarNumber = aadhaarError;
+
+    // PAN Card Upload
+    if (!formData?.panCard) {
+      newErrors.panCard = "Please upload PAN Card document";
+    }
+
+    // Aadhaar Card Upload
+    if (!formData?.aadhaarCard) {
+      newErrors.aadhaarCard = "Please upload Aadhaar Card document";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   return (
     <div className="w-full rounded-xl bg-white p-4 shadow-sm sm:p-6 lg:p-8">
       <div
-        className="text-navy-light py-3 cursor-pointer"
+        className="text-navy-light py-3 cursor-pointer hover:text-blue-600 transition-colors"
         onClick={onClickBack}
       >
         Back
@@ -31,7 +93,16 @@ const UserRegistrationForm = ({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          onSubmit?.(formData);
+          if (validateForm()) {
+            onSubmit?.(formData);
+          } else {
+            setTimeout(() => {
+              const firstErrorField = document.querySelector(".text-red-500");
+              if (firstErrorField) {
+                firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }, 100);
+          }
         }}
         className="w-full"
       >
@@ -53,7 +124,11 @@ const UserRegistrationForm = ({
                 width="w-full"
                 type="text"
                 placeholder="Enter full name"
+                error={!!errors.fullName}
               />
+              {errors.fullName && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.fullName}</p>
+              )}
             </div>
 
             {/* Date of Birth */}
@@ -66,7 +141,11 @@ const UserRegistrationForm = ({
                 value={formData?.dob || ""}
                 onChange={(value) => handleInputChange("dob", value)}
                 width="w-full"
+                error={!!errors.dob}
               />
+              {errors.dob && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.dob}</p>
+              )}
             </div>
 
             {/* Gender */}
@@ -87,7 +166,11 @@ const UserRegistrationForm = ({
                 }
                 width="w-full"
                 placeholder="Select gender"
+                error={!!errors.gender}
               />
+              {errors.gender && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.gender}</p>
+              )}
             </div>
 
             {/* Mobile Number */}
@@ -102,7 +185,12 @@ const UserRegistrationForm = ({
                 width="w-full"
                 type="numeric"
                 placeholder="Enter mobile number"
+                error={!!errors.mobileNumber}
+                maxLength={10}
               />
+              {errors.mobileNumber && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.mobileNumber}</p>
+              )}
             </div>
 
             {/* Email Address */}
@@ -117,7 +205,11 @@ const UserRegistrationForm = ({
                 width="w-full"
                 type="text"
                 placeholder="Enter email address"
+                error={!!errors.emailAddress}
               />
+              {errors.emailAddress && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.emailAddress}</p>
+              )}
             </div>
 
             {/* PAN Number */}
@@ -134,7 +226,12 @@ const UserRegistrationForm = ({
                 width="w-full"
                 type="alphanumeric"
                 placeholder="Enter PAN number"
+                error={!!errors.panNumber}
+                maxLength={10}
               />
+              {errors.panNumber && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.panNumber}</p>
+              )}
             </div>
 
             {/* Aadhaar Number */}
@@ -149,7 +246,12 @@ const UserRegistrationForm = ({
                 width="w-full"
                 type="numeric"
                 placeholder="Enter Aadhaar number"
+                error={!!errors.aadhaarNumber}
+                maxLength={12}
               />
+              {errors.aadhaarNumber && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.aadhaarNumber}</p>
+              )}
             </div>
           </div>
         </div>
@@ -174,6 +276,7 @@ const UserRegistrationForm = ({
                 placeholder="Upload PAN card"
                 onChange={(file) => handleInputChange("panCard", file)}
                 width="w-full"
+                error={errors.panCard}
               />
             </div>
 
@@ -190,6 +293,7 @@ const UserRegistrationForm = ({
                 placeholder="Upload Aadhaar card"
                 onChange={(file) => handleInputChange("aadhaarCard", file)}
                 width="w-full"
+                error={errors.aadhaarCard}
               />
             </div>
           </div>

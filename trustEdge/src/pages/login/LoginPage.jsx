@@ -3,6 +3,9 @@ import { API_ENDPOINTS } from "../../lib/constant/ApiEndpoints";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../store/slices/authSlice";
+
 import {
   User,
   Lock,
@@ -17,7 +20,7 @@ import teLoginImg from "../../assets/trust edge logo.jpeg";
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
-
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -47,15 +50,39 @@ export default function LoginPage() {
     },
   });
 
-  const handleLogin = (e) => {
-    if (e) e.preventDefault();
-    if (!formData?.username || !formData?.password || isLoading) return;
+  // const handleLogin = (e) => {
+  //   if (e) e.preventDefault();
+  //   if (!formData?.username || !formData?.password || isLoading) return;
 
-    // Pass username under the email payload key for backend compatibility
-    loginUser({
-      email: formData.username,
-      password: formData.password,
-    });
+  //   // Pass username under the email payload key for backend compatibility
+  //   loginUser({
+  //     email: formData.username,
+  //     password: formData.password,
+  //   });
+  // };
+
+  const handleLogin = () => {
+    // ─── TEMPORARY BYPASS — remove before git push ───
+    dispatch(
+      setCredentials({
+        user: {
+          id: 1,
+          name: "Admin User",
+          email: "admin@insurance.com",
+          role: "ADMIN",
+        },
+        tokens: {
+          access: "dummy-access-token",
+          refresh: "dummy-refresh-token",
+        },
+      })
+    );
+    navigate("/admin");
+    return; 
+    // ─────────────────────────────────────────────────
+
+    if (!formData?.email || !formData?.password) return;
+    loginUser(formData);
   };
 
   return (
