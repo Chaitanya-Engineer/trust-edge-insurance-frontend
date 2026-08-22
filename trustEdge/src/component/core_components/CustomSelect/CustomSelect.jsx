@@ -12,9 +12,29 @@ const CustomSelect = ({
   isSearchable = true,
   name = "",
   className = "",
+  error = false,
 }) => {
   const handleChange = (selectedOption) => {
     onChange?.(selectedOption);
+  };
+
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      borderColor: error
+        ? "#ef4444"
+        : state.isFocused
+        ? "#3b82f6"
+        : "#d1d5db",
+      boxShadow: error
+        ? "0 0 0 1px #ef4444"
+        : state.isFocused
+        ? "0 0 0 1px #3b82f6"
+        : "none",
+      "&:hover": {
+        borderColor: error ? "#dc2626" : "#9ca3af",
+      },
+    }),
   };
 
   return (
@@ -30,6 +50,7 @@ const CustomSelect = ({
         isSearchable={isSearchable}
         className="text-sm"
         classNamePrefix="custom-select"
+        styles={customStyles}
       />
     </div>
   );

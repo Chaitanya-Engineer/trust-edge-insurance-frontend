@@ -9,11 +9,12 @@ const DocumentUpload = ({
   width = "w-full",
   height = "h-40",
   placeholder = "Drag & drop your file here",
+  error = "",
 }) => {
   const inputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState([]);
-  const [error, setError] = useState("");
+  const [uploadError, setUploadError] = useState("");
 
   /*
    * Convert:
@@ -53,7 +54,7 @@ const DocumentUpload = ({
   };
 
   const processFiles = (selectedFiles) => {
-    setError("");
+    setUploadError("");
 
     const fileArray = Array.from(selectedFiles);
 
@@ -63,7 +64,7 @@ const DocumentUpload = ({
       const validationError = validateFile(file);
 
       if (validationError) {
-        setError(validationError);
+        setUploadError(validationError);
         continue;
       }
 
@@ -146,7 +147,9 @@ const DocumentUpload = ({
           text-center
           transition
           ${
-            isDragging
+            error
+              ? "border-red-500 bg-red-50 hover:border-red-600 hover:bg-red-100/50"
+              : isDragging
               ? "border-blue-500 bg-blue-50"
               : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-gray-100"
           }
@@ -178,7 +181,9 @@ const DocumentUpload = ({
         <p className="mt-1 text-xs text-gray-500">Maximum size: {maxSize} MB</p>
       </div>
 
-      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+      {(uploadError || error) && (
+        <p className="mt-2 text-xs text-red-500">{uploadError || error}</p>
+      )}
 
       {files.length > 0 && (
         <div className="mt-3 space-y-2">

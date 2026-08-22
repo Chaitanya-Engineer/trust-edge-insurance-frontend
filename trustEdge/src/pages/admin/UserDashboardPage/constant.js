@@ -149,11 +149,17 @@ export const transactionModeOptions = [
 ];
 
 export const vehicleOwnerOptions = [
-  { value: "personal", label: "Personal" },
-  { value: "business", label: "Business" },
+  { value: "private", label: "Private" },
+  { value: "commercial", label: "Commercial" },
 ];
 
 export const paymentStatusOptions = [
   { value: "done", label: "Done" },
   { value: "pending", label: "Pending" },
 ];
+
+export const CommissionStatusOptions = [
+  { value: "pending", label: "Pending" },
+  { value: "received", label: "Received" },
+];
+
