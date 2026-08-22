@@ -31,18 +31,18 @@
  export const headers = [
     {
       title: "ID",
-      accessor: "id",
+      accessor: "customer_id",
       type: "string",
     },
     {
       title: "Full Name",
-      accessor: "fullName",
+      accessor: "name",
       type: "string",
       is_filter: true,
     },
     {
       title: "Date of Birth",
-      accessor: "dob",
+      accessor: "date_of_birth",
       type: "date",
     },
     {
@@ -52,7 +52,7 @@
     },
     {
       title: "Mobile Number",
-      accessor: "mobileNumber",
+      accessor: "phone",
       type: "string",
       isCopy: true,
     },
@@ -99,16 +99,16 @@
 
   export const genderOptions = [
   {
-    value: "male",
-    label: "Male",
+    value: "MALE",
+    label: "MALE",
   },
   {
-    value: "female",
-    label: "Female",
+    value: "FEMALE",
+    label: "FEMALE",
   },
   {
-    value: "other",
-    label: "Other",
+    value: "OTHER",
+    label: "OTHER",
   },
 ];
 

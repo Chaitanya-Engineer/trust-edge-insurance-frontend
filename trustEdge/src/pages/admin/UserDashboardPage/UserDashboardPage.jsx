@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import CustomizeBtn from "../../../component/core_components/CustomizeBtn/CustomizeBtn";
 import TableComponent from "../../../component/core_components/TableComponent/TableComponent";
 import { headers, users } from "./constant";
@@ -6,17 +6,23 @@ import { useState } from "react";
 import UserRegistrationForm from "./helperComponent/UserRegistationForm";
 import PolicyRegistrationForm from "./helperComponent/PolicyRegistrationForm";
 import { Edit } from "lucide-react";
+import { API_ENDPOINTS } from "../../../lib/constant/ApiEndpoints";
+import { useAPI } from "../../../lib/hooks/useAPI";
 
 const UserDashboardPage = () => {
   const [isOpenForm, setIsOpenForm] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: "",
-    dob: "",
+    name: "",
+    date_of_birth: "",
     gender: "",
-    mobileNumber: "",
-    emailAddress: "",
-    panNumber: "",
-    aadhaarNumber: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    pan_no: "",
+    aadhar_no: "",
     passportPhoto: null,
     panCard: null,
     signature: null,
@@ -26,6 +32,7 @@ const UserDashboardPage = () => {
   // Policy Form States
   const [isOpenPolicyForm, setIsOpenPolicyForm] = useState(false);
   const [selectedUserForPolicy, setSelectedUserForPolicy] = useState(null);
+  const [userList, setUserList] = useState([]);
   const [policyFormData, setPolicyFormData] = useState({
     policyName: "",
     category: "",
@@ -60,6 +67,38 @@ const UserDashboardPage = () => {
     policyDoc: null,
   });
 
+  //-----------------API INTEGRATIONS------------------------
+
+  const { callApi: userRegistration } = useAPI(
+    API_ENDPOINTS?.ADMIN?.USER_REGISTRATION,
+    {
+      method: "POST",
+      onSuccess: (response) => {
+        console.log(response?.message);
+        setIsOpenForm(false);
+      },
+      onFailure: (error) => {
+        console.log("Error", error);
+      },
+    }
+  );
+
+  const { callApi: AllUsersList } = useAPI(API_ENDPOINTS?.ADMIN?.USERS_LIST, {
+    method: "GET",
+    onSuccess: (response) => {
+      console.log("resonse.result", response);
+      if (response && response.length > 0) {
+        setUserList(response);
+      } else {
+        setUserList([]);
+      }
+    },
+    onFailure: (error) => {
+      console.log("error", error);
+      setUserList([]);
+    },
+  });
+
   const onNewRegisrationFormClick = () => {
     console.log("Click");
     setIsOpenForm(true);
@@ -71,6 +110,11 @@ const UserDashboardPage = () => {
 
   const handleClickBack = () => {
     setIsOpenForm(false);
+  };
+
+  const handleSubitRegistration = (data) => {
+    console.log("data", data);
+    userRegistration(data);
   };
 
   const handleEditButtonClick = (row) => {
@@ -109,6 +153,13 @@ const UserDashboardPage = () => {
     return header;
   });
 
+  // useEffect(() => {
+  //   // users();
+  // }, []);
+  useEffect(() => {
+    AllUsersList();
+  }, []);
+
   return (
     <div className="h-full w-full bg-slate-50">
       {isOpenForm ? (
@@ -118,9 +169,7 @@ const UserDashboardPage = () => {
           formData={formData}
           onChange={setFormData}
           onCancel={handleCancelRegistration}
-          onSubmit={(data) => {
-            console.log("Registration Data:", data);
-          }}
+          onSubmit={handleSubitRegistration}
         />
       ) : isOpenPolicyForm ? (
         // Policy Registration Form
@@ -139,7 +188,9 @@ const UserDashboardPage = () => {
             if (cust) {
               setPolicyFormData((prev) => ({
                 ...prev,
-                members: [{ id: 1, name: cust.fullName, age: "", relation: "Self" }],
+                members: [
+                  { id: 1, name: cust.fullName, age: "", relation: "Self" },
+                ],
               }));
             } else {
               setPolicyFormData((prev) => ({
@@ -209,7 +260,7 @@ const UserDashboardPage = () => {
             <TableComponent
               theme="light"
               defaultHeaders={tableHeaders}
-              dataSource={users}
+              dataSource={userList}
             />
           </div>
         </div>
@@ -219,4 +270,3 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
-

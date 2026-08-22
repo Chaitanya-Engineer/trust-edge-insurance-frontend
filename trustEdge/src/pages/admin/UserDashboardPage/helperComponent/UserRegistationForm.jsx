@@ -48,8 +48,8 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.fullName || ""}
-                onChange={(value) => handleInputChange("fullName", value)}
+                value={formData?.name || ""}
+                onChange={(value) => handleInputChange("name", value)}
                 width="w-full"
                 type="text"
                 placeholder="Enter full name"
@@ -63,8 +63,8 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomDatePicker
-                value={formData?.dob || ""}
-                onChange={(value) => handleInputChange("dob", value)}
+                value={formData?.date_of_birth || ""}
+                onChange={(value) => handleInputChange("date_of_birth", value)}
                 width="w-full"
               />
             </div>
@@ -97,8 +97,8 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.mobileNumber || ""}
-                onChange={(value) => handleInputChange("mobileNumber", value)}
+                value={formData?.phone || ""}
+                onChange={(value) => handleInputChange("phone", value)}
                 width="w-full"
                 type="numeric"
                 placeholder="Enter mobile number"
@@ -112,11 +112,65 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.emailAddress || ""}
-                onChange={(value) => handleInputChange("emailAddress", value)}
+                value={formData?.email || ""}
+                onChange={(value) => handleInputChange("email", value)}
                 width="w-full"
                 type="text"
                 placeholder="Enter email address"
+              />
+            </div>
+
+            <div className="w-full">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Address
+              </label>
+
+              <CustomInput
+                value={formData?.address || ""}
+                onChange={(value) => handleInputChange("address", value)}
+                width="w-full"
+                type="text"
+                placeholder="Enter address"
+              />
+            </div>
+            <div className="w-full">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                City
+              </label>
+
+              <CustomInput
+                value={formData?.city || ""}
+                onChange={(value) => handleInputChange("city", value)}
+                width="w-full"
+                type="text"
+                placeholder="Enter city Name"
+              />
+            </div>
+            <div className="w-full">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                State
+              </label>
+
+              <CustomInput
+                value={formData?.state || ""}
+                onChange={(value) => handleInputChange("state", value)}
+                width="w-full"
+                type="text"
+                placeholder="Enter State Name"
+              />
+            </div>
+
+            <div className="w-full">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Pin Code
+              </label>
+
+              <CustomInput
+                value={formData?.pincode || ""}
+                onChange={(value) => handleInputChange("pincode", value)}
+                width="w-full"
+                type="text"
+                placeholder="Enter Pincode"
               />
             </div>
 
@@ -127,9 +181,9 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.panNumber || ""}
+                value={formData?.pan_no || ""}
                 onChange={(value) =>
-                  handleInputChange("panNumber", value.toUpperCase())
+                  handleInputChange("pan_no", value.toUpperCase())
                 }
                 width="w-full"
                 type="alphanumeric"
@@ -144,8 +198,8 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.aadhaarNumber || ""}
-                onChange={(value) => handleInputChange("aadhaarNumber", value)}
+                value={formData?.aadhar_no || ""}
+                onChange={(value) => handleInputChange("aadhar_no", value)}
                 width="w-full"
                 type="numeric"
                 placeholder="Enter Aadhaar number"
