@@ -62,3 +62,29 @@ export const validateVehicleNumber = (vehicleNum) => {
   }
   return null;
 };
+
+export const validateAddress = (address) => {
+  if (!address?.trim()) return "Address is required";
+  if (address.trim().length < 5) return "Address must be at least 5 characters long";
+  return null;
+};
+
+export const validateCity = (city) => {
+  if (!city?.trim()) return "City is required";
+  if (!/^[A-Za-z\s]+$/.test(city)) return "City can only contain letters and spaces";
+  return null;
+};
+
+export const validateState = (state) => {
+  if (!state?.trim()) return "State is required";
+  if (!/^[A-Za-z\s]+$/.test(state)) return "State can only contain letters and spaces";
+  return null;
+};
+
+export const validatePinCode = (pinCode) => {
+  if (!pinCode) return "PIN Code is required";
+  if (pinCode.length !== 6) return "PIN Code must be exactly 6 digits";
+  if (!/^\d{6}$/.test(pinCode)) return "PIN Code must contain only numbers";
+  return null;
+};
+

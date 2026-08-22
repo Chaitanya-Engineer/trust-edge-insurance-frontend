@@ -12,6 +12,10 @@ import {
   validateEmail,
   validatePanNumber,
   validateAadhaarNumber,
+  validateAddress,
+  validateCity,
+  validateState,
+  validatePinCode,
 } from "../../../../lib/validation";
 
 const UserRegistrationForm = ({
@@ -67,6 +71,22 @@ const UserRegistrationForm = ({
     // Aadhaar Number
     const aadhaarError = validateAadhaarNumber(formData?.aadhaarNumber);
     if (aadhaarError) newErrors.aadhaarNumber = aadhaarError;
+
+    // Address
+    const addressError = validateAddress(formData?.address);
+    if (addressError) newErrors.address = addressError;
+
+    // City
+    const cityError = validateCity(formData?.city);
+    if (cityError) newErrors.city = cityError;
+
+    // State
+    const stateError = validateState(formData?.state);
+    if (stateError) newErrors.state = stateError;
+
+    // PIN Code
+    const pinCodeError = validatePinCode(formData?.pinCode);
+    if (pinCodeError) newErrors.pinCode = pinCodeError;
 
     // PAN Card Upload
     if (!formData?.panCard) {
@@ -251,6 +271,92 @@ const UserRegistrationForm = ({
               />
               {errors.aadhaarNumber && (
                 <p className="mt-1.5 text-xs text-red-500">{errors.aadhaarNumber}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ================= Address Details ================= */}
+        <div className="mb-8">
+          <h2 className="mb-5 text-lg font-semibold text-gray-800 sm:text-xl">
+            Address Details
+          </h2>
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {/* Address */}
+            <div className="w-full md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Address
+              </label>
+
+              <CustomInput
+                value={formData?.address || ""}
+                onChange={(value) => handleInputChange("address", value)}
+                width="w-full"
+                type="text"
+                placeholder="Enter address"
+                error={!!errors.address}
+              />
+              {errors.address && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.address}</p>
+              )}
+            </div>
+
+            {/* City */}
+            <div className="w-full">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                City
+              </label>
+
+              <CustomInput
+                value={formData?.city || ""}
+                onChange={(value) => handleInputChange("city", value)}
+                width="w-full"
+                type="text"
+                placeholder="Enter city"
+                error={!!errors.city}
+              />
+              {errors.city && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.city}</p>
+              )}
+            </div>
+
+            {/* State */}
+            <div className="w-full">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                State
+              </label>
+
+              <CustomInput
+                value={formData?.state || ""}
+                onChange={(value) => handleInputChange("state", value)}
+                width="w-full"
+                type="text"
+                placeholder="Enter state"
+                error={!!errors.state}
+              />
+              {errors.state && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.state}</p>
+              )}
+            </div>
+
+            {/* PIN Code */}
+            <div className="w-full">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                PIN Code
+              </label>
+
+              <CustomInput
+                value={formData?.pinCode || ""}
+                onChange={(value) => handleInputChange("pinCode", value)}
+                width="w-full"
+                type="numeric"
+                placeholder="Enter PIN code"
+                error={!!errors.pinCode}
+                maxLength={6}
+              />
+              {errors.pinCode && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.pinCode}</p>
               )}
             </div>
           </div>
