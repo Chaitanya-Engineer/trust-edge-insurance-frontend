@@ -19,6 +19,7 @@ import {
   paymentStatusOptions,
   users,
   CommissionStatusOptions,
+  insuranceCompanyOptions,
 } from "../constant";
 import { showToast } from "../../../../component/core_components/CustomToast/CustomToast";
 
@@ -624,17 +625,21 @@ const PolicyRegistrationForm = ({
 
           {/* Policy Name & Category (2-column grid) */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mb-6">
-            {/* Policy Name */}
+            {/* Policy Name / Insurance Company Dropdown */}
             <div className="w-full">
               <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                Policy Name <span className="text-[#B42318] ml-0.5">*</span>
+                Insurance Company / Policy Name <span className="text-[#B42318] ml-0.5">*</span>
               </label>
-              <CustomInput
-                value={formData.policyName || ""}
-                onChange={(val) => handleInputChange("policyName", val)}
-                placeholder="e.g. Family Health Cover 2024"
+              <CustomSelect
+                options={insuranceCompanyOptions}
+                value={
+                  insuranceCompanyOptions.find(
+                    (o) => o.value === formData.policyName || o.label === formData.policyName
+                  ) || null
+                }
+                onChange={(opt) => handleInputChange("policyName", opt?.value || "")}
+                placeholder="Select Insurance Company"
                 width="w-full"
-                type="text"
                 error={!!errors.policyName}
               />
               {errors.policyName && (
