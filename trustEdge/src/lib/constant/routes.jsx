@@ -61,10 +61,9 @@ const AdminDashboardPage = lazy(() =>
 const AdminUsersDashboardPage = lazy(() =>
   import("../../pages/admin/UserDashboardPage/UserDashboardPage")
 );
-// const AdminUserDetail = lazy(() => import("../pages/admin/UserDetailPage"));
-// const AdminPlansPage = lazy(() => import("../pages/admin/PlansPage"));
-// const AdminPlanForm = lazy(() => import("../pages/admin/PlanFormPage"));
-// const AdminPoliciesPage = lazy(() => import("../pages/admin/PoliciesPage"));
+const AdminPoliciesPage = lazy(() =>
+  import("../../pages/admin/PolicyDashboardPage/PolicyDashboardPage")
+);
 // const AdminDocumentsPage = lazy(() => import("../pages/admin/DocumentsPage"));
 // const AdminReportsPage = lazy(() => import("../pages/admin/ReportsPage"));
 // const AdminSettingsPage = lazy(() => import("../pages/admin/SettingsPage"));
@@ -214,13 +213,13 @@ export const routes = [
   //   userRoles: [ROLES.ADMIN],
   //   layout: "admin",
   // },
-  // {
-  //   name: "Admin Policies",
-  //   path: "/admin/policies",
-  //   component: AdminPoliciesPage,
-  //   userRoles: [ROLES.ADMIN],
-  //   layout: "admin",
-  // },
+  {
+    name: "Admin Policies",
+    path: "/admin/policies",
+    component: AdminPoliciesPage,
+    userRoles: [ROLES.ADMIN],
+    layout: "admin",
+  },
   // {
   //   name: "Admin Documents",
   //   path: "/admin/documents",

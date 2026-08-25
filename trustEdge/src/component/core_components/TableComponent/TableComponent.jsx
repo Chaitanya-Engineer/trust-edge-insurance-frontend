@@ -7,6 +7,7 @@ import {
   TableCell,
   tableCellClasses,
   TableContainer,
+  Collapse,
 } from "@mui/material";
 import moment from "moment";
 import {
@@ -14,12 +15,14 @@ import {
   Fragment,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import { TableVirtuoso } from "react-virtuoso";
 import TableHead from "./TableHead";
 import TableRow from "./TableRow";
+import TablePagination from "./TablePagination";
 import { checkObjectNotEmpty } from "../../../lib/constant/helperFunctions";
 import {
   tableComponentConstants,
@@ -71,7 +74,7 @@ function TBL(props) {
 
 const THead = Fragment;
 
-function TRow({ item, ...props }) {
+const TRow = forwardRef(({ item, ...props }, ref) => {
   const { ROW_STYLE } = tableComponentStyleConstants;
 
   const { ROW_ROLE, TAB_INDEX } = tableComponentConstants;
@@ -85,23 +88,49 @@ function TRow({ item, ...props }) {
       setRadioChecked,
       setSelection,
       onRowClick,
+      collapsible,
+      renderExpandedRow,
+      expandedRows,
+      displayData,
+      headerLength,
+      isSelection,
+      isHash,
+      clickable,
+      id,
     },
   } = props;
 
-  const isItemSelected = isSelected(item);
+  const index = props["data-index"];
+  const rowItem = item || displayData?.[index];
+  const rowKey = rowItem?.[id] ?? rowItem?.id ?? index;
+  const isExpanded = collapsible && !!expandedRows?.[rowKey];
+  const isItemSelected = isSelected ? isSelected(rowItem) : false;
+
+  const totalCols =
+    (headerLength || 0) +
+    (isSelection ? 1 : 0) +
+    (isHash ? 1 : 0) +
+    (clickable ? 1 : 0) +
+    (collapsible ? 1 : 0);
 
   const rowSelect = () => {
     if (isRadio) {
-      setRadioChecked(item);
-      setSelection([item]);
+      setRadioChecked(rowItem);
+      setSelection([rowItem]);
     } else {
-      onRowClick && onRowClick(item);
+      onRowClick && onRowClick(rowItem);
     }
   };
+
+  const rowBgColor =
+    index % 2 === 0
+      ? tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[0] ?? "var(--calender-bg)"
+      : tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[1] ?? "var(--calender-bg)";
 
   return (
     <>
       <Row
+        ref={ref}
         hover
         onClick={rowSelect}
         role={ROW_ROLE}
@@ -110,16 +139,36 @@ function TRow({ item, ...props }) {
         selected={isItemSelected}
         sx={{
           ...ROW_STYLE(rowColor),
-          backgroundColor:
-            props["data-index"] % 2 == 0
-              ? tableComponentConstants?.ROW_ALTERNATE_COLORS[theme][0]
-              : tableComponentConstants?.ROW_ALTERNATE_COLORS[theme][1],
+          backgroundColor: rowBgColor,
         }}
         {...props}
       />
+      {collapsible && isExpanded && renderExpandedRow && (
+        <Row
+          sx={{
+            backgroundColor: "#F8FAF9",
+            "&:hover": { backgroundColor: "#F8FAF9 !important" },
+          }}
+        >
+          <TableCell
+            colSpan={totalCols}
+            sx={{
+              p: 0,
+              borderBottom: "1px solid #E5E9E7 !important",
+              backgroundColor: "#F8FAF9 !important",
+            }}
+          >
+            <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+              <Box className="p-4 sm:p-5 bg-[#F8FAF9] border-t border-b border-[#E5E9E7] shadow-inner">
+                {renderExpandedRow(rowItem)}
+              </Box>
+            </Collapse>
+          </TableCell>
+        </Row>
+      )}
     </>
   );
-}
+});
 
 const TBody = forwardRef(({ children, ...rest }, ref) => {
   const {
@@ -202,9 +251,9 @@ const TableComponent = forwardRef(
       defaultSelected,
       radioChecked: propRadioChecked,
       headColor = tableComponentConstants.HEAD_THEME_COLOR ??
-        tableComponentConstants.HEAD_COLOR,
+      tableComponentConstants.HEAD_COLOR,
       dataSource: propDataSource,
-      selection = () => {},
+      selection = () => { },
       // tableStyle = {},
       isCheckbox = true,
       isHash = false,
@@ -212,14 +261,23 @@ const TableComponent = forwardRef(
       isRadio = false,
       borderRadius = "4px",
       onRowClick,
-      specialCellStyleFunction = () => {},
+      specialCellStyleFunction = () => { },
       className = "",
       loading = false,
       endReached,
       fixed = false,
       auto = false,
       stickyColumns = false,
-      onCellClick = () => {},
+      onCellClick = () => { },
+      pagination = false,
+      page: propPage = 1,
+      pageSize: propPageSize = 5,
+      totalCount: propTotalCount,
+      onPageChange: propOnPageChange,
+      onPageSizeChange: propOnPageSizeChange,
+      pageSizeOptions = [5, 10, 25, { value: -1, label: "All" }],
+      collapsible = false,
+      renderExpandedRow = null,
     },
     ref
   ) => {
@@ -227,10 +285,57 @@ const TableComponent = forwardRef(
 
     const { ARRAY, DATE, BOOLEAN } = tableDataTypes;
 
+    const [expandedRows, setExpandedRows] = useState({});
+
+    const toggleRowExpand = (rowKey) => {
+      setExpandedRows((prev) => ({
+        ...prev,
+        [rowKey]: !prev[rowKey],
+      }));
+    };
+
     const [selected, setSelected] = useState([]);
     const [dataSource, setDataSource] = useState([]);
     const [headCells, setHeadCells] = useState([]);
     const [radioChecked, setRadioChecked] = useState({});
+
+    const [page, setPage] = useState(propPage);
+    const [pageSize, setPageSize] = useState(propPageSize);
+
+    useEffect(() => {
+      setPage(propPage);
+    }, [propPage]);
+
+    useEffect(() => {
+      setPageSize(propPageSize);
+    }, [propPageSize]);
+
+    const isPaginationActive = pagination;
+    const totalRecords = propTotalCount !== undefined ? propTotalCount : (dataSource?.length || 0);
+
+    const displayData = useMemo(() => {
+      if (!isPaginationActive || propOnPageChange) {
+        return dataSource;
+      }
+      if (pageSize === -1 || pageSize >= totalRecords) {
+        return dataSource;
+      }
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      return dataSource.slice(start, end);
+    }, [dataSource, isPaginationActive, page, pageSize, totalRecords, propOnPageChange]);
+
+    const handlePageChange = (newPage) => {
+      setPage(newPage);
+      propOnPageChange?.(newPage, pageSize);
+    };
+
+    const handlePageSizeChange = (newSize) => {
+      setPageSize(newSize);
+      setPage(1);
+      propOnPageSizeChange?.(newSize);
+      propOnPageChange?.(1, newSize);
+    };
 
     const headerRef = useRef();
     const tableVirtuosoRef = useRef(null);
@@ -550,11 +655,15 @@ const TableComponent = forwardRef(
           order={order}
           clickable={onRowClick ? true : false}
           stickyColumns={stickyColumns}
+          collapsible={collapsible}
         />
       );
     }
 
     function itemContent(index, row) {
+      const rowKey = row?.[id] ?? row?.id ?? index;
+      const isExpanded = collapsible && !!expandedRows[rowKey];
+
       return (
         <TableRow
           row={row}
@@ -572,44 +681,68 @@ const TableComponent = forwardRef(
           specialCellStyleFunction={specialCellStyleFunction}
           onCellClick={onCellClick}
           stickyColumns={stickyColumns}
+          collapsible={collapsible}
+          isExpanded={isExpanded}
+          onToggleExpand={() => toggleRowExpand(rowKey)}
         />
       );
     }
 
     return (
       <Box
-        className={`mb-0 h-full w-full !overflow-hidden border-none bg-tablebg shadow-none ${className}`}
+        className={`mb-0 flex flex-col h-full w-full !overflow-hidden border border-[rgba(11,37,69,0.05)] rounded-[14px] shadow-[0_4px_20px_rgba(11,37,69,0.04)] bg-white ${className}`}
       >
-        <TableVirtuoso
-          ref={tableVirtuosoRef}
-          data={dataSource}
-          endReached={endReached}
-          style={{ background: "var(--calender-bg)" }}
-          components={{
-            Scroller,
-            Table: TBL,
-            TableHead: THead,
-            TableRow: TRow,
-            TableBody: TBody,
-          }}
-          fixedHeaderContent={fixedHeaderContent}
-          itemContent={itemContent}
-          context={{
-            theme,
-            type: auto ? "auto" : fixed ? "fixed" : "auto",
-            isSelected,
-            rowColor,
-            isRadio,
-            setRadioChecked,
-            setSelection,
-            onRowClick,
-            loading,
-            endReached,
-            dataLength: dataSource?.length > 0,
-            headerLength: defaultHeaders?.length,
-            borderRadius: borderRadius,
-          }}
-        />
+        <Box className="flex-1 w-full min-h-0">
+          <TableVirtuoso
+            ref={tableVirtuosoRef}
+            data={displayData}
+            endReached={endReached}
+            computeItemKey={(index, item) => item?.[id] ?? item?.id ?? index}
+            increaseViewportBy={{ top: 600, bottom: 600 }}
+            style={{ height: "100%", minHeight: "400px", background: "var(--calender-bg)" }}
+            components={{
+              Scroller,
+              Table: TBL,
+              TableHead: THead,
+              TableRow: TRow,
+              TableBody: TBody,
+            }}
+            fixedHeaderContent={fixedHeaderContent}
+            itemContent={itemContent}
+            context={{
+              theme,
+              type: auto ? "auto" : fixed ? "fixed" : "auto",
+              isSelected,
+              rowColor,
+              isRadio,
+              setRadioChecked,
+              setSelection,
+              onRowClick,
+              loading,
+              endReached,
+              dataLength: displayData?.length > 0,
+              headerLength: defaultHeaders?.length,
+              borderRadius: borderRadius,
+              collapsible,
+              renderExpandedRow,
+              expandedRows,
+              displayData,
+              clickable: onRowClick ? true : false,
+              id,
+            }}
+          />
+        </Box>
+
+        {isPaginationActive && (
+          <TablePagination
+            page={page}
+            pageSize={pageSize}
+            totalCount={totalRecords}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            pageSizeOptions={pageSizeOptions}
+          />
+        )}
       </Box>
     );
   }

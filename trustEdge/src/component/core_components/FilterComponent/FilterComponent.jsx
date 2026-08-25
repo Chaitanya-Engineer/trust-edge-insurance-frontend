@@ -22,6 +22,7 @@ import {
   tableComponentConstants,
   tableDataTypes,
 } from "../TableComponent/Constant";
+import { showToast } from "../CustomToast/CustomToast";
 
 function FilterComponent(
   {
@@ -35,6 +36,7 @@ function FilterComponent(
   const [list, setList] = useState([]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState([]);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   useImperativeHandle(ref, () => ({ setQuery, setSelected }), [
     query,
@@ -154,7 +156,9 @@ function FilterComponent(
 
   function clearFilter() {
     setSelected([]);
+    setQuery("");
     filterEvent([], column);
+    showToast.info("Filter Reset", `Cleared filters for ${column?.title || "column"}`);
     if (column?.is_filter_with_api) {
       column?.on_clear_filter(column);
     }
@@ -186,63 +190,106 @@ function FilterComponent(
             </IconButton>
           </Tooltip>
           <Menu
+            disableAutoFocusItem
+            autoFocus={false}
             sx={{
               "& .MuiMenu-paper": {
-                backgroundColor: "#ffff !important",
+                backgroundColor: "#ffffff !important",
+                boxShadow: "0px 8px 24px rgba(0,0,0,0.08) !important",
+                border: "1px solid #E5E9E7 !important",
+                borderRadius: "8px !important",
+                padding: "4px 0 !important",
               },
             }}
             {...bindMenu(popupState)}
           >
-            <div className="">
-              <div className="flex h-14 w-full flex-col items-center justify-center">
-                <div className="flex h-10 w-56 items-center justify-around rounded-[5px] border border-solid border-[lightgray] bg-calender-header-bg 2k:h-14 2k:w-80 4k:h-16 4k:w-96">
-                  <input
-                    className="h-9 w-48 border-none bg-calender-header-bg pl-5 text-fluid-table-cell text-paper-txt outline-none 2k:h-12 2k:w-72 4k:h-14 4k:w-80"
-                    type={TEXT}
-                    onChange={({ target: { value } }) => setQuery(value)}
-                  />
-                  <Search className="text-table-filter-txt 4k:!size-10" />
-                </div>
+            {/* Search Input Box */}
+            <div className="px-4 py-2">
+              <div
+                className={`relative flex items-center w-[215px] h-9 border rounded-[6px] bg-white transition-all duration-150 ${
+                  searchFocused
+                    ? "border-[#0B2545] ring-2 ring-[rgba(11,37,69,0.08)]"
+                    : "border-[#DADCE0]"
+                } 2k:h-12 2k:w-72 4k:h-14 4k:w-80`}
+              >
+                <Search className="absolute left-2.5 text-[#718096] w-4 h-4 4k:!size-8 flex-shrink-0" />
+                <input
+                  className="w-full h-full pl-8 pr-7 border-none !bg-transparent !text-[13px] !text-[#17212B] !text-left outline-none !placeholder-[#667085]"
+                  type="text"
+                  value={query}
+                  placeholder="Search..."
+                  onChange={(e) => setQuery(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      let finalSelected = selected;
+                      if (query && selected.length === 0) {
+                        const normalFiltered = list.filter((item) =>
+                          String(item)
+                            .toLowerCase()
+                            .includes(query.toLowerCase().trim())
+                        );
+                        finalSelected = normalFiltered;
+                        setSelected(normalFiltered);
+                        filterEvent(normalFiltered, column);
+                      } else {
+                        filterEvent(selected, column);
+                      }
+                      popupState.close();
+                    }
+                  }}
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setQuery("");
+                    }}
+                    className="absolute right-2.5 p-0.5 rounded-full text-[#667085] hover:bg-[#F4F7F6] transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
 
+            {/* Quick Links (Select All) */}
+            <div className="flex items-center px-4 py-1 pb-2 border-b border-[#F4F7F6] select-none">
+              <button
+                type="button"
+                onClick={() => setSelected([...filterList])}
+                className="text-[12px] font-semibold text-[#0B2545] hover:underline cursor-pointer border-none bg-transparent p-0"
+              >
+                Select all
+              </button>
+            </div>
+
+            {/* List & MenuItems */}
             <div
               style={{ width: `${listStyle.listWidth + 10}px` }}
-              className="h-auto overflow-x-hidden"
+              className="h-auto overflow-x-hidden pt-1"
             >
-              <MenuItem
-                sx={{ height: `${listStyle.itemSize}px !important` }}
-                className="!font-sans !text-base !text-table-filter-txt 2k:!text-2xl 4k:!text-4xl"
-              >
-                <Checkbox
-                  size={
-                    (displayWidth <= 1920 && "small") ||
-                    (displayWidth > 1920 && displayWidth <= 2560 && "medium") ||
-                    (displayWidth > 2560 && "large") ||
-                    "small"
-                  }
-                  className="!text-checkbox-border"
-                  indeterminate={numSelected > 0 && numSelected < rowCount}
-                  checked={rowCount > 0 && numSelected === rowCount}
-                  onChange={handleSelectAllClick}
-                />
-                {SELECT_ALL}
-              </MenuItem>
               {column?.type === SPECIAL && (
                 <MenuItem
                   onClick={() => handleClick("__NULL__")}
-                  className="!font-sans !text-base !text-table-filter-txt 2k:!text-2xl 4k:!text-4xl"
+                  className="!font-['Lexend'] !text-[13px] !text-[#3C4043] hover:!bg-[#F8F9FA] !py-1 !px-4"
+                  sx={{ height: `${listStyle.itemSize}px !important` }}
                 >
                   <Checkbox
-                    size={
-                      (displayWidth <= 1920 && "small") ||
-                      (displayWidth > 1920 &&
-                        displayWidth <= 2560 &&
-                        "medium") ||
-                      (displayWidth > 2560 && "large") ||
-                      "small"
-                    }
-                    className="!text-checkbox-border"
+                    size="small"
+                    sx={{
+                      color: '#DADCE0',
+                      padding: '4px',
+                      '&.Mui-checked': {
+                        color: '#0B2545',
+                      },
+                    }}
                     checked={isSelected("__NULL__")}
                   />
                   {NULL}
@@ -259,22 +306,21 @@ function FilterComponent(
                     <Tooltip style={style} key={key} title={item}>
                       <MenuItem
                         onClick={() => handleClick(item)}
-                        className="!font-sans !text-base !text-table-filter-txt 2k:!text-2xl 4k:!text-4xl"
+                        className="!font-['Lexend'] !text-[13px] !text-[#3C4043] hover:!bg-[#F8F9FA] !py-1 !px-4"
                         key={`${FILER_MENU_ITEM}${index}`}
                       >
                         <Checkbox
-                          size={
-                            (displayWidth <= 1920 && "small") ||
-                            (displayWidth > 1920 &&
-                              displayWidth <= 2560 &&
-                              "medium") ||
-                            (displayWidth > 2560 && "large") ||
-                            "small"
-                          }
-                          className="!text-checkbox-border"
+                          size="small"
+                          sx={{
+                            color: '#DADCE0',
+                            padding: '4px',
+                            '&.Mui-checked': {
+                              color: '#0B2545',
+                            },
+                          }}
                           checked={isSelected(item)}
                         />
-                        {item}
+                        <span className="truncate">{item}</span>
                       </MenuItem>
                     </Tooltip>
                   );
@@ -282,10 +328,11 @@ function FilterComponent(
               />
             </div>
 
-            <div className="flex w-full items-center justify-around pt-2">
+            {/* Footer Buttons */}
+            <div className="flex w-full items-center justify-between px-4 pt-3 pb-2 border-t border-[#F4F7F6] mt-2">
               <span
                 className={clsx(
-                  "text-fluid-table-filter font-bold tracking-wide text-title-txt",
+                  "text-[12px] font-semibold text-[#B42318] hover:underline transition-all",
                   {
                     "cursor-not-allowed opacity-50": !selected.length,
                     "cursor-pointer opacity-100": selected.length,
@@ -293,17 +340,19 @@ function FilterComponent(
                 )}
                 onClick={clearFilter}
               >
-                {CLEAR}
+                Reset
               </span>
-              <div className="flex w-auto justify-between gap-4">
+              <div className="flex items-center gap-2">
                 <button
-                  className="rounded-sm bg-primary-normal px-3 py-1 text-fluid-table-filter text-calender-btn-txt"
+                  type="button"
+                  className="rounded-[6px] bg-white border border-[#DADCE0] px-3 py-1.5 text-[12px] font-semibold text-[#3C4043] hover:bg-[#F8F9FA] hover:text-[#0B2545] transition-colors cursor-pointer"
                   onClick={popupState.close}
                 >
                   Cancel
                 </button>
                 <button
-                  className="rounded-sm bg-primary-normal px-3 py-1 text-fluid-table-filter text-calender-btn-txt"
+                  type="button"
+                  className="rounded-[6px] bg-[#0B2545] px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#0E2F52] transition-colors cursor-pointer"
                   onClick={() => {
                     let finalSelected = selected;
                     if (query && selected.length === 0 && query.includes(",")) {
@@ -336,12 +385,15 @@ function FilterComponent(
 
                     setQuery("");
                     popupState.close();
+                    if (finalSelected.length > 0) {
+                      showToast.info("Filter Applied", `Filtering ${column?.title || "column"} (${finalSelected.length} items)`);
+                    }
                     if (column?.is_filter_with_api) {
                       column?.on_filter_click(finalSelected, column);
                     }
                   }}
                 >
-                  Ok
+                  OK
                 </button>
               </div>
             </div>

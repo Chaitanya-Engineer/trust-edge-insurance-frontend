@@ -18,6 +18,8 @@ import {
   validatePinCode,
 } from "../../../../lib/validation";
 
+import { showToast } from "../../../../component/core_components/CustomToast/CustomToast";
+
 const UserRegistrationForm = ({
   formData,
   onChange,
@@ -103,21 +105,39 @@ const UserRegistrationForm = ({
   };
 
   return (
-    <div className="w-full rounded-xl bg-white p-4 shadow-sm sm:p-6 lg:p-8">
-      <div
-        className="text-navy-light py-3 cursor-pointer hover:text-blue-600 transition-colors"
-        onClick={onClickBack}
-      >
-        Back
+    <div className="w-full bg-white border border-[#E5E9E7] rounded-xl p-6 sm:p-8 lg:p-10 shadow-lg max-w-4xl mx-auto">
+      {/* Navigation */}
+      <div className="mb-4">
+        <button
+          type="button"
+          className="flex items-center gap-1.5 text-[#0B2545] hover:text-[#0E2F52] bg-transparent border-none text-sm font-semibold transition-colors cursor-pointer p-0"
+          onClick={onClickBack}
+        >
+          ← Back to Directory
+        </button>
       </div>
+
+      {/* Page Title */}
+      <div className="border-b border-[#E5E9E7] pb-4 mb-8">
+        <h1 className="text-2xl font-bold text-[#0B2545]">Member Details</h1>
+      </div>
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
           if (validateForm()) {
+            showToast.success(
+              "User Registered Successfully!",
+              "New member account details have been saved."
+            );
             onSubmit?.(formData);
           } else {
+            showToast.error(
+              "Form Validation Failed",
+              "Please fill out all mandatory fields correctly."
+            );
             setTimeout(() => {
-              const firstErrorField = document.querySelector(".text-red-500");
+              const firstErrorField = document.querySelector(".text-[#B42318]");
               if (firstErrorField) {
                 firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
               }
@@ -126,16 +146,17 @@ const UserRegistrationForm = ({
         }}
         className="w-full"
       >
+        {/* ================= SECTION 1: Personal Information ================= */}
         <div className="mb-8">
-          <h2 className="mb-5 text-lg font-semibold text-gray-800 sm:text-xl">
+          <h2 className="mb-6 text-lg font-bold text-[#0B2545] border-b border-[#E5E9E7] pb-2 sm:text-xl">
             Personal Information
           </h2>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Full Name */}
             <div className="w-full">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Full Name
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                Full Name <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomInput
@@ -153,13 +174,14 @@ const UserRegistrationForm = ({
 
             {/* Date of Birth */}
             <div className="w-full">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Date of Birth
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                Date of Birth <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomDatePicker
                 value={formData?.dob || ""}
                 onChange={(value) => handleInputChange("dob", value)}
+                max={new Date().toISOString().split("T")[0]}
                 width="w-full"
                 error={!!errors.dob}
               />
@@ -170,8 +192,8 @@ const UserRegistrationForm = ({
 
             {/* Gender */}
             <div className="w-full">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Gender
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                Gender <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomSelect
@@ -195,8 +217,8 @@ const UserRegistrationForm = ({
 
             {/* Mobile Number */}
             <div className="w-full">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Mobile Number
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                Mobile Number <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomInput
@@ -215,8 +237,8 @@ const UserRegistrationForm = ({
 
             {/* Email Address */}
             <div className="w-full">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Email Address
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                Email Address <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomInput
@@ -234,8 +256,8 @@ const UserRegistrationForm = ({
 
             {/* PAN Number */}
             <div className="w-full">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                PAN Number
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                PAN Number <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomInput
@@ -256,8 +278,8 @@ const UserRegistrationForm = ({
 
             {/* Aadhaar Number */}
             <div className="w-full">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Aadhaar Number
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                Aadhaar Number <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomInput
@@ -276,17 +298,17 @@ const UserRegistrationForm = ({
           </div>
         </div>
 
-        {/* ================= Address Details ================= */}
-        <div className="mb-8">
-          <h2 className="mb-5 text-lg font-semibold text-gray-800 sm:text-xl">
+        {/* ================= SECTION 2: Address Details ================= */}
+        <div className="mb-8 mt-8">
+          <h2 className="mb-6 text-lg font-bold text-[#0B2545] border-b border-[#E5E9E7] pb-2 sm:text-xl">
             Address Details
           </h2>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            {/* Address */}
-            <div className="w-full md:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Address
+          <div className="space-y-6">
+            {/* Address (Full Row) */}
+            <div className="w-full">
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                Address <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomInput
@@ -302,77 +324,80 @@ const UserRegistrationForm = ({
               )}
             </div>
 
-            {/* City */}
-            <div className="w-full">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                City
-              </label>
+            {/* City, State, PIN Code (3-column grid) */}
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {/* City */}
+              <div className="w-full">
+                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                  City <span className="text-[#B42318] ml-0.5">*</span>
+                </label>
 
-              <CustomInput
-                value={formData?.city || ""}
-                onChange={(value) => handleInputChange("city", value)}
-                width="w-full"
-                type="text"
-                placeholder="Enter city"
-                error={!!errors.city}
-              />
-              {errors.city && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.city}</p>
-              )}
-            </div>
+                <CustomInput
+                  value={formData?.city || ""}
+                  onChange={(value) => handleInputChange("city", value)}
+                  width="w-full"
+                  type="text"
+                  placeholder="Enter city"
+                  error={!!errors.city}
+                />
+                {errors.city && (
+                  <p className="mt-1.5 text-xs text-red-500">{errors.city}</p>
+                )}
+              </div>
 
-            {/* State */}
-            <div className="w-full">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                State
-              </label>
+              {/* State */}
+              <div className="w-full">
+                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                  State <span className="text-[#B42318] ml-0.5">*</span>
+                </label>
 
-              <CustomInput
-                value={formData?.state || ""}
-                onChange={(value) => handleInputChange("state", value)}
-                width="w-full"
-                type="text"
-                placeholder="Enter state"
-                error={!!errors.state}
-              />
-              {errors.state && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.state}</p>
-              )}
-            </div>
+                <CustomInput
+                  value={formData?.state || ""}
+                  onChange={(value) => handleInputChange("state", value)}
+                  width="w-full"
+                  type="text"
+                  placeholder="Enter state"
+                  error={!!errors.state}
+                />
+                {errors.state && (
+                  <p className="mt-1.5 text-xs text-red-500">{errors.state}</p>
+                )}
+              </div>
 
-            {/* PIN Code */}
-            <div className="w-full">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                PIN Code
-              </label>
+              {/* PIN Code */}
+              <div className="w-full">
+                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                  PIN Code <span className="text-[#B42318] ml-0.5">*</span>
+                </label>
 
-              <CustomInput
-                value={formData?.pinCode || ""}
-                onChange={(value) => handleInputChange("pinCode", value)}
-                width="w-full"
-                type="numeric"
-                placeholder="Enter PIN code"
-                error={!!errors.pinCode}
-                maxLength={6}
-              />
-              {errors.pinCode && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.pinCode}</p>
-              )}
+                <CustomInput
+                  value={formData?.pinCode || ""}
+                  onChange={(value) => handleInputChange("pinCode", value)}
+                  width="w-full"
+                  type="numeric"
+                  placeholder="Enter PIN code"
+                  error={!!errors.pinCode}
+                  maxLength={6}
+                />
+                {errors.pinCode && (
+                  <p className="mt-1.5 text-xs text-red-500">{errors.pinCode}</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ================= Document Upload ================= */}
-        <div className="mb-8">
-          <h2 className="mb-5 text-lg font-semibold text-gray-800 sm:text-xl">
+        {/* ================= SECTION 3: Upload Documents ================= */}
+        <div className="mb-8 mt-8">
+          <h2 className="mb-6 text-lg font-bold text-[#0B2545] border-b border-[#E5E9E7] pb-2 sm:text-xl">
             Upload Documents
           </h2>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* PAN Card */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                PAN Card
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                PAN Card <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <DocumentUpload
@@ -388,8 +413,8 @@ const UserRegistrationForm = ({
 
             {/* Aadhaar Card */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Aadhaar Card
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                Aadhaar Card <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <DocumentUpload
@@ -405,19 +430,19 @@ const UserRegistrationForm = ({
           </div>
         </div>
 
-        {/* ================= Buttons ================= */}
-        <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:justify-end">
+        {/* ================= Action Buttons ================= */}
+        <div className="flex flex-col-reverse gap-4 border-t border-[#E5E9E7] pt-6 mt-8 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={onCancel}
-            className="w-full rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto"
+            className="w-full rounded-[9px] border border-[#E5E9E7] bg-white px-6 py-2.5 text-sm font-semibold text-[#0B2545] transition hover:bg-[#F4F7F6] sm:w-auto cursor-pointer"
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 sm:w-auto"
+            className="w-full rounded-[9px] bg-[#0B2545] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0E2F52] sm:w-auto cursor-pointer"
           >
             Submit
           </button>

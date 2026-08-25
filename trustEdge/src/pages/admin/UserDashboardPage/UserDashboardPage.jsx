@@ -2,12 +2,14 @@ import React from "react";
 import CustomizeBtn from "../../../component/core_components/CustomizeBtn/CustomizeBtn";
 import TableComponent from "../../../component/core_components/TableComponent/TableComponent";
 import { headers, users } from "./constant";
-import { useState } from "react";
-import UserRegistrationForm from "./helperComponent/UserRegistationForm";
+import { useState, useEffect } from "react";
+import LogoSpinner from "../../../component/core_components/LogoSpinner/LogoSpinner";
+import UserRegistrationForm from "./helperComponent/UserRegistrationForm";
 import PolicyRegistrationForm from "./helperComponent/PolicyRegistrationForm";
 import { Edit } from "lucide-react";
 
 const UserDashboardPage = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [isOpenForm, setIsOpenForm] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -64,6 +66,13 @@ const UserDashboardPage = () => {
     policyDoc: null,
   });
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const onNewRegisrationFormClick = () => {
     console.log("Click");
     setIsOpenForm(true);
@@ -91,6 +100,58 @@ const UserDashboardPage = () => {
     setSelectedUserForPolicy(null);
   };
 
+  const getStatusPill = (statusVal) => {
+    if (!statusVal) return null;
+    const lower = statusVal.toLowerCase().trim();
+
+    // 🟡 Pending (Yellow/Amber)
+    if (lower.includes("review") || lower === "pending" || lower === "new") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FBF5DF] text-[#C9A227]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#C9A227]"></span>
+          Pending
+        </span>
+      );
+    }
+
+    // 🟢 Verified (Green)
+    if (lower === "verified") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#EAF4EC] text-[#2F6F3E]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#2F6F3E]"></span>
+          Verified
+        </span>
+      );
+    }
+
+    // 🔵 Active (Blue)
+    if (lower === "active") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#EAF0F6] text-[#0B2545]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#0B2545]"></span>
+          Active
+        </span>
+      );
+    }
+
+    // 🟠 Expired (Orange)
+    if (lower === "expired" || lower === "error" || lower === "rejected" || lower === "failed" || lower === "inactive") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FFF4ED] text-[#B44C18]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#F76B15]"></span>
+          Expired
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#F2F4F7] text-[#344054]">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#667085]"></span>
+        {statusVal}
+      </span>
+    );
+  };
+
   // Dynamically attach the action cell row function to access local state handlers
   const tableHeaders = headers.map((header) => {
     if (header.accessor === "action") {
@@ -99,7 +160,7 @@ const UserDashboardPage = () => {
         specialCellRowFunction: (row) => (
           <button
             type="button"
-            className="flex items-center justify-center rounded bg-blue-50 border border-blue-200 px-3 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer"
+            className="flex items-center justify-center bg-[#EAF0F6] border border-[#D0DCEB] text-[#0B2545] hover:bg-[#0B2545] hover:text-white hover:border-[#0B2545] text-xs font-semibold rounded-[8px] px-3 py-1.5 transition-colors cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               handleEditButtonClick(row);
@@ -110,11 +171,18 @@ const UserDashboardPage = () => {
         ),
       };
     }
+    if (header.accessor === "status" || header.accessor === "verificationStatus") {
+      return {
+        ...header,
+        type: "special",
+        specialCellRowFunction: (row) => getStatusPill(row?.status || row?.verificationStatus),
+      };
+    }
     return header;
   });
 
   return (
-    <div className="h-full w-full bg-slate-50">
+    <div className="h-full w-full bg-transparent">
       {isOpenForm ? (
         // Registration Form
         <UserRegistrationForm
@@ -155,12 +223,13 @@ const UserDashboardPage = () => {
         />
       ) : (
         // Dashboard / Table
-        <div className="flex h-full w-full flex-col gap-2">
-          <div className="flex flex-row items-center justify-between p-3">
-            <h2 className="text-lg font-semibold">Register Member Directory</h2>
+        <div className="flex h-full w-full flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-1">
+            <h1 className="text-[26px] font-bold text-[#0B2545] font-sans tracking-tight">Register Member Directory</h1>
 
             <div className="flex items-center gap-3">
-              <CustomizeBtn
+              <button
+                type="button"
                 disabled={false}
                 onClick={() => {
                   setPolicyFormData({
@@ -199,22 +268,36 @@ const UserDashboardPage = () => {
                   setSelectedUserForPolicy(null);
                   setIsOpenPolicyForm(true);
                 }}
-                title="Add New Policy"
-              />
-              <CustomizeBtn
+                className="rounded-[9px] bg-white border border-[#0B2545] text-[#0B2545] hover:bg-[#EAF0F6] px-4 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer"
+              >
+                Add New Policy
+              </button>
+              <button
+                type="button"
                 disabled={false}
                 onClick={onNewRegisrationFormClick}
-                title="New Registration"
-              />
+                className="rounded-[9px] bg-[#0B2545] text-white hover:bg-[#0E2F52] px-4 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer"
+              >
+                New Registration
+              </button>
             </div>
           </div>
 
           <div className="min-h-[30vh] h-full w-full">
-            <TableComponent
-              theme="light"
-              defaultHeaders={tableHeaders}
-              dataSource={users}
-            />
+            {isLoading ? (
+              <div className="flex h-full min-h-[30vh] items-center justify-center bg-white rounded-xl border border-slate-100 shadow-sm">
+                <LogoSpinner type="spin" size="md" />
+              </div>
+            ) : (
+              <TableComponent
+                theme="light"
+                defaultHeaders={tableHeaders}
+                dataSource={users}
+                pagination={true}
+                pageSize={5}
+                pageSizeOptions={[5, 10, 25, { value: -1, label: "All" }]}
+              />
+            )}
           </div>
         </div>
       )}
