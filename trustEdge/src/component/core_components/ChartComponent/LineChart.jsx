@@ -30,30 +30,30 @@ export default function LineChart({
   const option = {
     tooltip: {
       trigger: "axis",
-      backgroundColor: "#1f2937",
-      borderColor: "#1f2937",
-      textStyle: { color: "#f9fafb", fontSize: 12 },
+      backgroundColor: "#0B2545",
+      borderColor: "#0B2545",
+      textStyle: { color: "#ffffff", fontSize: 12 },
       axisPointer: { type: "line" },
     },
     grid: {
-      top: 10,
-      right: 10,
+      top: 20,
+      right: 15,
       bottom: 30,
       left: 40,
     },
     xAxis: {
       type: "category",
       data: data.map((d) => d[xKey]),
-      axisLine: { lineStyle: { color: "#e5e7eb" } },
-      axisLabel: { color: "#6b7280", fontSize: 11 },
+      axisLine: { lineStyle: { color: "#E8ECEB" } },
+      axisLabel: { color: "#718096", fontSize: 11 },
       axisTick: { show: false },
     },
     yAxis: {
       type: "value",
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: "#f3f4f6" } },
-      axisLabel: { color: "#6b7280", fontSize: 11 },
+      splitLine: { lineStyle: { color: "#E8ECEB" } },
+      axisLabel: { color: "#718096", fontSize: 11 },
     },
     series: [
       {
@@ -69,7 +69,7 @@ export default function LineChart({
             type: "linear",
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: color + "33" },  // 20% opacity
+              { offset: 0, color: color + "20" },  // 12% opacity
               { offset: 1, color: color + "00" },  // 0% opacity
             ],
           },
@@ -79,9 +79,9 @@ export default function LineChart({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+    <div className="bg-white border border-[rgba(11,37,69,0.05)] rounded-[14px] shadow-[0_4px_20px_rgba(11,37,69,0.04)] p-[20px]">
       {title && (
-        <p className="text-sm font-semibold text-gray-700 mb-4">{title}</p>
+        <p className="text-[14px] font-semibold text-[#0B2545] mb-4">{title}</p>
       )}
       <ReactECharts
         option={option}
@@ -89,7 +89,7 @@ export default function LineChart({
         showLoading={loading}
         loadingOption={{
           text: "",
-          color: "#2563eb",
+          color: "#0B2545",
           maskColor: "rgba(255,255,255,0.8)",
         }}
       />

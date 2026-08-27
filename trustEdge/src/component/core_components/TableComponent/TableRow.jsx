@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Checkbox, Radio, TableCell, Tooltip } from "@mui/material";
+import { Checkbox, Radio, TableCell, Tooltip, IconButton } from "@mui/material";
 
 import {
   tableComponentConstants,
@@ -10,13 +10,14 @@ import {
 import clsx from "clsx";
 
 import { memo, useMemo } from "react";
-import { Info, ArrowUpRight } from "lucide-react";
+import { Info, ArrowUpRight, ChevronDown, ChevronRight } from "lucide-react";
 
 import {
   convertArrayToString,
   formatDate,
 } from "../../../lib/constant/helperFunctions";
 import { CopyIcon } from "../../../assets/icons/CopyIcon";
+import { showToast } from "../CustomToast/CustomToast";
 
 const TableRow = memo(
   ({
@@ -34,6 +35,9 @@ const TableRow = memo(
     clickable = false,
     specialCellStyleFunction,
     onCellClick = null,
+    collapsible = false,
+    isExpanded = false,
+    onToggleExpand = null,
   }) => {
     const { YES, NO } = tableComponentConstants;
 
@@ -55,9 +59,9 @@ const TableRow = memo(
     const rowBgColor =
       index % 2 === 0
         ? tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[0] ??
-          "var(--calender-bg)"
+        "var(--calender-bg)"
         : tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[1] ??
-          "var(--calender-bg)";
+        "var(--calender-bg)";
 
     const Hyphen = ({ position = "center" }) => {
       const style = {
@@ -90,8 +94,8 @@ const TableRow = memo(
           return cell ? (
             cell?.length !== 0 ? (
               isCopy &&
-              ((isCellHover.hover && isCellHover.cell === accessor) ||
-                displayWidth < 768) ? (
+                ((isCellHover.hover && isCellHover.cell === accessor) ||
+                  displayWidth < 768) ? (
                 <div
                   className={clsx(`flex items-center`, {
                     "gap-1": displayWidth > 768,
@@ -105,7 +109,9 @@ const TableRow = memo(
                       e.stopPropagation();
                       navigator.clipboard
                         .writeText(cell)
-                        .then(() => console.log(COPIED));
+                        .then(() => {
+                          showToast.success("Copied to Clipboard!", `${column?.title || "Text"}: ${cell}`);
+                        });
                     }}
                   />
                 </div>
@@ -207,6 +213,31 @@ const TableRow = memo(
             {index + 1}
           </TableCell>
         )}
+
+        {collapsible && (
+          <TableCell
+            sx={{ width: 60, minWidth: 60, p: "12px 8px !important", textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onToggleExpand && onToggleExpand();
+              }}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#EAF0F6] hover:bg-[#0B2545] text-[#0B2545] hover:text-white transition-all cursor-pointer border border-[#E5E9E7] shadow-xs"
+              title={isExpanded ? "Collapse Policy Details" : "Expand Policy Details"}
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+          </TableCell>
+        )}
+
         {headers?.map((key) => {
           const {
             accessor,
@@ -239,7 +270,7 @@ const TableRow = memo(
                   });
                 }}
                 className={clsx(
-                  "!select-none !py-3.5 !font-['Lexend'] !text-[12px] lg:!text-base 2k:!py-3 2k:!text-2xl 4k:!py-5 4k:!text-4xl",
+                  "!select-none !py-4 !font-['Lexend'] !text-[13px] !font-medium text-[#344054] 2k:!py-3.5 2k:!text-xl 4k:!py-6 4k:!text-3xl",
                   {
                     "cursor-pointer": clickable,
                     "text-nowrap": !text_wrap,

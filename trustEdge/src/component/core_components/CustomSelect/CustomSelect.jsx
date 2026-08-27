@@ -21,18 +21,42 @@ const CustomSelect = ({
   const customStyles = {
     control: (base, state) => ({
       ...base,
+      height: "44px",
+      minHeight: "44px",
+      borderRadius: "8px",
+      backgroundColor: "#FFFFFF",
       borderColor: error
-        ? "#ef4444"
+        ? "#B42318"
         : state.isFocused
-        ? "#3b82f6"
-        : "#d1d5db",
+        ? "#0B2545"
+        : "#D9E0DD",
       boxShadow: error
-        ? "0 0 0 1px #ef4444"
+        ? "0 0 0 3px rgba(180, 35, 24, 0.10)"
         : state.isFocused
-        ? "0 0 0 1px #3b82f6"
+        ? "0 0 0 3px rgba(11, 37, 69, 0.10)"
         : "none",
       "&:hover": {
-        borderColor: error ? "#dc2626" : "#9ca3af",
+        borderColor: error ? "#B42318" : "#0B2545",
+      },
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      padding: "0 12px",
+    }),
+    placeholder: (base) => ({
+      ...base,
+      color: "#98A2B3",
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? "#EAF0F6"
+        : state.isFocused
+        ? "#F4F7F6"
+        : "#FFFFFF",
+      color: "#17212B",
+      "&:active": {
+        backgroundColor: "#EAF0F6",
       },
     }),
   };

@@ -1,18 +1,12 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import justLogo from "../../assets/just_logo.svg";
 
-// ─── Nav Items ────────────────────────────────────────────────
 const navItems = [
   {
     label: "Dashboard",
     path: "/admin",
     icon: (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -26,12 +20,7 @@ const navItems = [
     label: "User Dashboard",
     path: "/admin/user-dashboard",
     icon: (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -45,12 +34,7 @@ const navItems = [
     label: "Plans",
     path: "/admin/plans",
     icon: (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -64,12 +48,7 @@ const navItems = [
     label: "Policies",
     path: "/admin/policies",
     icon: (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -83,12 +62,7 @@ const navItems = [
     label: "Documents",
     path: "/admin/documents",
     icon: (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -102,12 +76,7 @@ const navItems = [
     label: "Reports",
     path: "/admin/reports",
     icon: (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -121,12 +90,7 @@ const navItems = [
     label: "Settings",
     path: "/admin/settings",
     icon: (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -144,8 +108,7 @@ const navItems = [
   },
 ];
 
-// ─── Sidebar Component ────────────────────────────────────────
-export default function Sidebar({ isOpen, onClose }) {
+export default function Sidebar({ isOpen, isCollapsed, onClose }) {
   const location = useLocation();
 
   const isActive = (path) => {
@@ -155,74 +118,89 @@ export default function Sidebar({ isOpen, onClose }) {
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Mobile Drawer Backdrop (Google/Microsoft Standard) */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden transition-opacity duration-300"
           onClick={onClose}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar Container */}
       <aside
         className={`
-          fixed top-0 left-0 h-full w-64 bg-gray-900 z-30
-          transform transition-transform duration-300 ease-in-out
+          fixed top-0 left-0 h-full bg-white z-40 border-r border-[#E5E9E7]
+          transform transition-all duration-300 ease-in-out flex flex-col justify-between
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0 lg:static lg:z-auto
+          ${isCollapsed ? "lg:w-20 w-64" : "lg:w-64 w-64"}
         `}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-800">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg
-              className="w-5 h-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-              />
-            </svg>
+        <div>
+          {/* Logo Header */}
+          <div className="flex items-center gap-3 px-5 h-[72px] border-b border-[#E5E9E7] bg-white">
+            <img
+              src={justLogo}
+              alt="TrustEdge Logo"
+              className="w-9 h-9 object-contain flex-shrink-0"
+            />
+            {!isCollapsed && (
+              <div className="transition-opacity duration-200">
+                <p className="font-extrabold text-[16px] tracking-tight leading-none font-sans text-nowrap">
+                  <span className="text-[#0B2545]">Trust</span>
+                  <span className="text-[#2F6F3E]">Edge</span>
+                </p>
+                <p className="text-[#667085] text-[10px] tracking-wide uppercase font-semibold mt-1 text-nowrap">
+                  Admin Panel
+                </p>
+              </div>
+            )}
           </div>
-          <div>
-            <p className="text-white font-bold text-sm leading-tight">
-              TrustEdge
-            </p>
-            <p className="text-gray-400 text-xs">Admin Panel</p>
-          </div>
+
+          {/* Navigation Links */}
+          <nav className="px-3 py-4 flex flex-col gap-1 bg-white">
+            {navItems.map((item) => {
+              const active = isActive(item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={onClose}
+                  title={isCollapsed ? item.label : undefined}
+                  className={`
+                    relative flex items-center gap-3 px-3.5 py-3 rounded-[9px] text-[14px] font-medium
+                    transition-colors duration-150 overflow-hidden group
+                    ${
+                      active
+                        ? "bg-[#EAF0F6] text-[#0B2545]"
+                        : "text-[#52627A] hover:bg-[#F4F7F6] hover:text-[#0B2545]"
+                    }
+                    ${isCollapsed ? "lg:justify-center" : ""}
+                  `}
+                >
+                  {/* Left Active Indicator Bar (Microsoft Standard) */}
+                  {active && (
+                    <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#2F6F3E]" />
+                  )}
+                  <span
+                    className={`w-5 h-5 flex-shrink-0 transition-colors ${
+                      active ? "text-[#0B2545]" : "text-[#718096] group-hover:text-[#0B2545]"
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  {!isCollapsed && <span className="text-nowrap">{item.label}</span>}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Nav Links */}
-        <nav className="px-3 py-4 flex flex-col gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={onClose}
-              className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                transition-colors duration-150
-                ${
-                  isActive(item.path)
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-400 hover:bg-gray-800 hover:text-white"
-                }
-              `}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Bottom — Version */}
-        <div className="absolute bottom-0 left-0 right-0 px-6 py-4 border-t border-gray-800">
-          <p className="text-gray-600 text-xs">Version 1.0.0</p>
+        {/* Footer Version */}
+        <div className="px-4 py-4 border-t border-[#E5E9E7] bg-white text-center">
+          <p className="text-[#667085] text-xs font-medium">
+            {isCollapsed ? "v1.0" : "Version 1.0.0"}
+          </p>
         </div>
       </aside>
     </>

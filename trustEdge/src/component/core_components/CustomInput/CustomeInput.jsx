@@ -31,16 +31,17 @@ const CustomInput = ({
   return (
     <input
       name={name}
+      type={type === "numeric" || type === "alphanumeric" ? "text" : type}
       value={value}
       onChange={handleChange}
       placeholder={placeholder}
       disabled={disabled}
       maxLength={maxLength}
-      className={`${width} ${className} h-10 rounded-md border ${
+      className={`${width} ${className} h-11 rounded-lg border ${
         error
-          ? "border-red-500 focus:border-red-500 focus:ring-red-500 focus:ring-1"
-          : "border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-1"
-      } bg-white px-3 text-sm text-gray-800 outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100`}
+          ? "border-[#B42318] focus:border-[#B42318] focus:ring-[3px] focus:ring-[rgba(180,35,24,0.10)]"
+          : "border-[#D9E0DD] focus:border-[#0B2545] focus:ring-[3px] focus:ring-[rgba(11,37,69,0.10)]"
+      } bg-white px-3 text-sm text-[#17212B] placeholder-[#98A2B3] outline-none transition disabled:cursor-not-allowed disabled:bg-[#F4F7F6]`}
     />
   );
 };
