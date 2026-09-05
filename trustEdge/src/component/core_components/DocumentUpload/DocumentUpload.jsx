@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { showToast } from "../CustomToast/CustomToast";
 
 const DocumentUpload = ({
   onChange,
@@ -9,11 +10,12 @@ const DocumentUpload = ({
   width = "w-full",
   height = "h-40",
   placeholder = "Drag & drop your file here",
+  error = "",
 }) => {
   const inputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState([]);
-  const [error, setError] = useState("");
+  const [uploadError, setUploadError] = useState("");
 
   /*
    * Convert:
@@ -53,7 +55,7 @@ const DocumentUpload = ({
   };
 
   const processFiles = (selectedFiles) => {
-    setError("");
+    setUploadError("");
 
     const fileArray = Array.from(selectedFiles);
 
@@ -63,7 +65,8 @@ const DocumentUpload = ({
       const validationError = validateFile(file);
 
       if (validationError) {
-        setError(validationError);
+        setUploadError(validationError);
+        showToast.error("File Upload Failed", validationError);
         continue;
       }
 
@@ -77,6 +80,10 @@ const DocumentUpload = ({
     const finalFiles = multiple ? [...files, ...validFiles] : [validFiles[0]];
 
     setFiles(finalFiles);
+    showToast.success(
+      "Document Attached",
+      `${validFiles[0].name} selected.`
+    );
 
     onChange?.(multiple ? finalFiles : finalFiles[0]);
   };
@@ -139,16 +146,18 @@ const DocumentUpload = ({
           flex-col
           items-center
           justify-center
-          rounded-lg
-          border-2
+          rounded-[10px]
+          border
           border-dashed
           px-4
           text-center
-          transition
-          ${
-            isDragging
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-gray-100"
+          transition-all
+          duration-150
+          ${error
+            ? "border-[#B42318] bg-[#FDECEC] hover:border-[#B42318] hover:bg-[#FDECEC]"
+            : isDragging
+              ? "border-[#0B2545] bg-[#EAF0F6]"
+              : "border-[#C8D4CD] bg-[#F8FAF9] hover:border-[#0B2545] hover:bg-[#EAF0F6]"
           }
           ${disabled ? "cursor-not-allowed opacity-50" : ""}
         `}
@@ -163,36 +172,42 @@ const DocumentUpload = ({
           className="hidden"
         />
 
-        <div className="mb-2 text-3xl">📁</div>
+        <div className="mb-2 text-[#0B2545] p-2 bg-[#EAF0F6] rounded-full">
+          <svg className="w-6 h-6 text-[#0B2545]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
 
-        <p className="text-sm font-medium text-gray-700">
+        <p className="text-xs font-semibold text-[#17212B]">
           {isDragging ? "Drop your file here" : placeholder}
         </p>
 
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-[11px] text-[#667085]">
           {accept.length > 0
             ? `Allowed: ${accept.join(", ")}`
             : "All file types allowed"}
         </p>
 
-        <p className="mt-1 text-xs text-gray-500">Maximum size: {maxSize} MB</p>
+        <p className="mt-0.5 text-[11px] text-[#667085]">Maximum size: {maxSize} MB</p>
       </div>
 
-      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+      {(uploadError || error) && (
+        <p className="mt-2 text-xs text-[#B42318]">{uploadError || error}</p>
+      )}
 
       {files.length > 0 && (
         <div className="mt-3 space-y-2">
           {files.map((file, index) => (
             <div
               key={`${file.name}-${index}`}
-              className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2"
+              className="flex items-center justify-between rounded-[8px] border border-[#E5E9E7] bg-white px-3 py-2"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-gray-700">
+                <p className="truncate text-sm font-semibold text-[#17212B]">
                   {file.name}
                 </p>
 
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-[#667085]">
                   {(file.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
               </div>
@@ -203,7 +218,7 @@ const DocumentUpload = ({
                   event.stopPropagation();
                   handleRemove(index);
                 }}
-                className="ml-3 text-sm font-medium text-red-500 hover:text-red-700"
+                className="ml-3 text-xs font-semibold text-[#B42318] hover:text-[#B42318] bg-[#FDECEC] px-2.5 py-1 rounded-[6px] border border-[#FDECEC] transition-colors"
               >
                 Remove
               </button>

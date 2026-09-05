@@ -43,55 +43,55 @@ const DashboardPage = () => {
   return (
     <div className="space-y-6">
       {/* ── Page Title ─────────────────────────────────────── */}
-      <div>
-        <h2 className="text-xl font-bold text-gray-900">Dashboard</h2>
-        <p className="text-sm text-gray-500 mt-0.5">
+      <div className="mb-6">
+        <h2 className="text-[24px] font-bold text-[#0B2545] tracking-tight">Dashboard</h2>
+        <p className="text-[12px] text-[#667085] mt-1">
           Welcome back — here's what's happening today.
         </p>
       </div>
 
       {/* ── KPI Cards ──────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         <KPICard
           title="Total Users"
           value={stats.total_users}
           subtitle="↑ 12 registered today"
           color="blue"
-          icon={<Users className="w-5 h-5" />}
+          icon={<Users className="w-[18px] h-[18px]" />}
         />
         <KPICard
           title="Active Policies"
           value={stats.active_policies}
           subtitle="↑ 5 new this week"
           color="green"
-          icon={<ShieldCheck className="w-5 h-5" />}
+          icon={<ShieldCheck className="w-[18px] h-[18px]" />}
         />
         <KPICard
           title="Pending Documents"
           value={stats.pending_documents}
           subtitle="⚠ Review required"
           color="yellow"
-          icon={<FileWarning className="w-5 h-5" />}
+          icon={<FileWarning className="w-[18px] h-[18px]" />}
         />
         <KPICard
           title="Total Revenue"
           value={stats.total_revenue}
           subtitle="↑ 8% this month"
-          color="purple"
+          color="green"
           prefix="₹"
-          icon={<IndianRupee className="w-5 h-5" />}
+          icon={<IndianRupee className="w-[18px] h-[18px]" />}
         />
       </div>
 
       {/* ── Charts Row ─────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2">
           <LineChart
             title="New User Registrations"
             data={monthly_signups}
             xKey="month"
             yKey="users"
-            color="#2563eb"
+            color="#0B2545"
             height="280px"
           />
         </div>
@@ -105,27 +105,27 @@ const DashboardPage = () => {
       </div>
 
       {/* ── Bottom Row ─────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Recent Users */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <p className="text-sm font-semibold text-gray-700">Recent Users</p>
+        <div className="bg-white border border-[rgba(11,37,69,0.05)] rounded-[14px] shadow-[0_4px_20px_rgba(11,37,69,0.04)] overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(11,37,69,0.05)] bg-white rounded-t-[14px]">
+            <p className="text-[15px] font-semibold text-[#0B2545]">Recent Users</p>
             <a
-              href="/admin/users"
-              className="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium"
+              href="/admin/user-dashboard"
+              className="inline-flex items-center gap-1 text-[12px] font-medium text-[#0B2545] border border-[rgba(11,37,69,0.12)] rounded-[9px] px-3 py-1.5 bg-white hover:bg-[#f0f4f8] transition-colors"
             >
-              View all <ArrowUpRight className="w-3 h-3" />
+              View all <ArrowUpRight className="w-3 h-3 text-[#0B2545]" />
             </a>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[rgba(11,37,69,0.05)] bg-white">
             {recent_users.map((user) => (
               <div
                 key={user.id}
-                className="flex items-center justify-between px-5 py-3"
+                className="flex items-center justify-between px-5 py-3 hover:bg-[#f0f4f8] transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-blue-600 text-xs font-semibold">
+                  <div className="w-[34px] h-[34px] bg-[#EAF0F6] rounded-[9px] flex items-center justify-center flex-shrink-0">
+                    <span className="text-[#0B2545] text-xs font-semibold">
                       {user.name
                         .split(" ")
                         .map((n) => n[0])
@@ -134,13 +134,13 @@ const DashboardPage = () => {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">
+                    <p className="text-[13px] font-semibold text-[#0B2545]">
                       {user.name}
                     </p>
-                    <p className="text-xs text-gray-400">{user.email}</p>
+                    <p className="text-[11px] text-[#667085] font-normal">{user.email}</p>
                   </div>
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="text-[11px] text-[#667085] font-medium">
                   {timeAgo(user.created_at)}
                 </span>
               </div>
@@ -149,40 +149,40 @@ const DashboardPage = () => {
         </div>
 
         {/* Pending Documents */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <p className="text-sm font-semibold text-gray-700">
+        <div className="bg-white border border-[rgba(11,37,69,0.05)] rounded-[14px] shadow-[0_4px_20px_rgba(11,37,69,0.04)] overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(11,37,69,0.05)] bg-white rounded-t-[14px]">
+            <p className="text-[15px] font-semibold text-[#0B2545]">
               Pending Documents
             </p>
             <a
               href="/admin/documents"
-              className="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium"
+              className="inline-flex items-center gap-1 text-[12px] font-medium text-[#0B2545] border border-[rgba(11,37,69,0.12)] rounded-[9px] px-3 py-1.5 bg-white hover:bg-[#f0f4f8] transition-colors"
             >
-              View all <ArrowUpRight className="w-3 h-3" />
+              View all <ArrowUpRight className="w-3 h-3 text-[#0B2545]" />
             </a>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[rgba(11,37,69,0.05)] bg-white">
             {pending_documents.map((doc) => (
               <div
                 key={doc.id}
-                className="flex items-center justify-between px-5 py-3"
+                className="flex items-center justify-between px-5 py-3 hover:bg-[#f0f4f8] transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-4 h-4 text-yellow-600" />
+                  <div className="w-[34px] h-[34px] bg-[#FBF5DF] rounded-[9px] flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-4 h-4 text-[#C9A227]" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">
+                    <p className="text-[13px] font-semibold text-[#0B2545]">
                       {doc.user_name}
                     </p>
-                    <p className="text-xs text-gray-400">{doc.document_type}</p>
+                    <p className="text-[11px] text-[#667085] font-normal">{doc.document_type}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">
+                  <span className="text-[11px] text-[#667085] font-medium">
                     {formatDate(doc.uploaded_at)}
                   </span>
-                  <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">
+                  <span className="px-2.5 py-0.5 bg-[#FBF5DF] text-[#C9A227] text-[11px] rounded-full font-bold">
                     {doc.status}
                   </span>
                 </div>

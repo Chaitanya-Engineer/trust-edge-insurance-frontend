@@ -13,7 +13,7 @@
 
 import ReactECharts from "echarts-for-react";
 
-const COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#7c3aed", "#0891b2"];
+const COLORS = ["#0B2545", "#2F6F3E", "#C9A227", "#0E2F52", "#5FA968", "#E4C765"];
 
 export default function DonutChart({
   title,
@@ -26,15 +26,15 @@ export default function DonutChart({
   const option = {
     tooltip: {
       trigger: "item",
-      backgroundColor: "#1f2937",
-      borderColor: "#1f2937",
-      textStyle: { color: "#f9fafb", fontSize: 12 },
+      backgroundColor: "#0B2545",
+      borderColor: "#0B2545",
+      textStyle: { color: "#ffffff", fontSize: 12 },
       formatter: "{b}: {c} ({d}%)",
     },
     legend: {
       bottom: 0,
       left: "center",
-      textStyle: { color: "#6b7280", fontSize: 11 },
+      textStyle: { color: "#718096", fontSize: 11 },
       icon: "circle",
       itemWidth: 8,
       itemHeight: 8,
@@ -52,7 +52,7 @@ export default function DonutChart({
           formatter: centerText,
           fontSize: 14,
           fontWeight: "bold",
-          color: "#1f2937",
+          color: "#0B2545",
         },
         emphasis: {
           label: { show: true },
@@ -68,9 +68,9 @@ export default function DonutChart({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+    <div className="bg-white border border-[rgba(11,37,69,0.05)] rounded-[14px] shadow-[0_4px_20px_rgba(11,37,69,0.04)] p-[20px]">
       {title && (
-        <p className="text-sm font-semibold text-gray-700 mb-4">{title}</p>
+        <p className="text-[14px] font-semibold text-[#0B2545] mb-4">{title}</p>
       )}
       <ReactECharts
         option={option}
@@ -78,7 +78,7 @@ export default function DonutChart({
         showLoading={loading}
         loadingOption={{
           text: "",
-          color: "#2563eb",
+          color: "#0B2545",
           maskColor: "rgba(255,255,255,0.8)",
         }}
       />

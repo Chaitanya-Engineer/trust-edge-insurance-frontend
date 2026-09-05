@@ -31,6 +31,7 @@ const TableHead = forwardRef(
       orderBy,
       order,
       clickable = false,
+      collapsible = false,
     },
     ref
   ) => {
@@ -68,7 +69,7 @@ const TableHead = forwardRef(
       typeof headColor === typeof {} ? headColor[theme] : headColor;
 
     return (
-      <Head sx={{ backgroundColor: `${customHeadColor} !important` }}>
+      <Head sx={{ backgroundColor: `${customHeadColor} !important`, zIndex: 10, position: "sticky", top: 0 }}>
         <tr>
           {isSelection && (
             <TableCell
@@ -96,12 +97,18 @@ const TableHead = forwardRef(
             </TableCell>
           )}
 
-          {isHash && (
+          {collapsible && (
             <TableCell
-              sx={{ backgroundColor: `${customHeadColor} !important` }}
-              className="text-nowrap !py-3 !font-sans !text-lg !text-[#676792] 2k:!text-[1.75rem] 4k:!py-6 4k:!text-[2.50rem]"
+              sx={{
+                backgroundColor: `${customHeadColor} !important`,
+                width: "60px !important",
+                minWidth: "60px !important",
+                p: "14px 8px !important",
+                textAlign: "center",
+              }}
+              className="!py-3.5 !font-['Lexend'] !text-[11px] !font-bold !uppercase !tracking-wider text-[#667085]"
             >
-              {SRNO}
+              Expand
             </TableCell>
           )}
 
@@ -109,7 +116,7 @@ const TableHead = forwardRef(
             return (
               <TableCell
                 key={headCell.accessor + index}
-                className="!py-3 !font-sans !text-sm !font-medium lg:!text-lg 2k:!text-[1.75rem] 4k:!py-6 4k:!text-[2.50rem]"
+                className="!py-3.5 !font-['Lexend'] !text-[11px] !font-bold !uppercase !tracking-wider"
                 sx={{
                   backgroundColor: `${customHeadColor} !important`,
                   textAlign: headCell?.text_align,
@@ -152,28 +159,28 @@ const TableHead = forwardRef(
                   {("is_sortable" in headCell
                     ? headCell?.is_sortable
                     : true) && (
-                    <div onClick={() => handleSort(headCell)}>
-                      <TableSortLabel
-                        sx={{
-                          "& .MuiTableSortLabel-icon": {
-                            color:
-                              orderBy === headCell.accessor
-                                ? "var(--secondary-icon) !important"
-                                : "#918FD0 !important",
-                          },
-                        }}
-                        IconComponent={
-                          orderBy === headCell.accessor
-                            ? ArrowDown
-                            : ArrowUpDown
-                        }
-                        active={true}
-                        direction={
-                          orderBy === headCell.accessor ? order : "asc"
-                        }
-                      />
-                    </div>
-                  )}
+                      <div onClick={() => handleSort(headCell)}>
+                        <TableSortLabel
+                          sx={{
+                            "& .MuiTableSortLabel-icon": {
+                              color:
+                                orderBy === headCell.accessor
+                                  ? "var(--secondary-icon) !important"
+                                  : "#918FD0 !important",
+                            },
+                          }}
+                          IconComponent={
+                            orderBy === headCell.accessor
+                              ? ArrowDown
+                              : ArrowUpDown
+                          }
+                          active={true}
+                          direction={
+                            orderBy === headCell.accessor ? order : "asc"
+                          }
+                        />
+                      </div>
+                    )}
                 </div>
               </TableCell>
             );
