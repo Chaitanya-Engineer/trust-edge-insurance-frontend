@@ -10,7 +10,7 @@ import {
   MessageSquare,
   User,
   AtSign,
-  Car,
+  Shield,
   Loader2,
 } from "lucide-react";
 import WhatsAppIcon from "../../assets/WhatsappIcon";
@@ -48,12 +48,13 @@ const contactInfo = [
   },
 ];
 
-const vehicleTypes = [
-  "Private Car",
-  "Two-Wheeler / Bike",
-  "Commercial Vehicle",
-  "Truck / Tempo",
-  "Bus",
+const policyTypes = [
+  "Motor Insurance",
+  "Health Insurance",
+  "Personal Insurance",
+  "Property Insurance",
+  "Marine Insurance",
+  "Workmen Compensation",
   "Other",
 ];
 
@@ -65,7 +66,7 @@ const ContactPage = () => {
     name: "",
     phone: "",
     email: "",
-    vehicle: "",
+    policyType: "",
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
@@ -77,7 +78,7 @@ const ContactPage = () => {
     if (!form.name.trim()) e.name = "Name is required";
     if (!form.phone.trim() || !/^\d{10}$/.test(form.phone.trim()))
       e.phone = "Enter a valid 10-digit mobile number";
-    if (!form.vehicle) e.vehicle = "Please select a vehicle type";
+    if (!form.policyType) e.policyType = "Please select a policy type";
     return e;
   };
 
@@ -219,7 +220,7 @@ const ContactPage = () => {
                       name: "",
                       phone: "",
                       email: "",
-                      vehicle: "",
+                      policyType: "",
                       message: "",
                     });
                   }}
@@ -306,21 +307,21 @@ const ContactPage = () => {
                     </div>
                   </div>
 
-                  {/* Vehicle Type */}
+                  {/* Policy Type */}
                   <div>
                     <label className="block text-xs font-bold text-navy mb-1.5 uppercase tracking-wide">
-                      Vehicle Type *
+                      Policy Type *
                     </label>
                     <div className="relative">
-                      <Car className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Shield className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <select
-                        name="vehicle"
-                        value={form.vehicle}
+                        name="policyType"
+                        value={form.policyType}
                         onChange={handleChange}
-                        className={`w-full pl-10 pr-10 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-gold/40 transition-all appearance-none bg-no-repeat ${errors.vehicle
+                        className={`w-full pl-10 pr-10 py-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-gold/40 transition-all appearance-none bg-no-repeat ${errors.policyType
                             ? "border-red-400 bg-red-50 focus:border-red-400"
                             : "border-slate-200 bg-slate-50 focus:border-gold focus:bg-white"
-                          } ${form.vehicle === ""
+                          } ${form.policyType === ""
                             ? "text-slate-400"
                             : "text-slate-800 font-semibold"
                           }`}
@@ -330,16 +331,16 @@ const ContactPage = () => {
                           backgroundSize: "1.25rem",
                         }}
                       >
-                        <option value="">Select vehicle type</option>
-                        {vehicleTypes.map((v) => (
-                          <option key={v} value={v}>
-                            {v}
+                        <option value="">Select policy type</option>
+                        {policyTypes.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
                           </option>
                         ))}
                       </select>
                     </div>
-                    {errors.vehicle && (
-                      <p className="mt-1 text-xs text-red-500 font-semibold">{errors.vehicle}</p>
+                    {errors.policyType && (
+                      <p className="mt-1 text-xs text-red-500 font-semibold">{errors.policyType}</p>
                     )}
                   </div>
                 </div>
@@ -356,7 +357,7 @@ const ContactPage = () => {
                       value={form.message}
                       onChange={handleChange}
                       rows={4}
-                      placeholder="Tell us about your vehicle or any specific requirements..."
+                      placeholder="Tell us about your requirements or any specific policy needs..."
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold focus:bg-white transition-all resize-none"
                     />
                   </div>

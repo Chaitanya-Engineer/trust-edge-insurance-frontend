@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import familyHero from "../../assets/family_hero.jpg";
 import videoAd from "../../assets/video_ad.mp4";
+import PartnersMarquee from "../../component/core_components/PartnersMarquee/PartnersMarquee";
 import {
   Shield,
   CheckCircle2,
@@ -32,7 +33,7 @@ import {
 const stats = [
   { icon: Award, value: "22+", label: "Years of Experience" },
   { icon: Users, value: "10,000+", label: "Happy Clients" },
-  { icon: ShieldCheck, value: "6+", label: "Insurance Partners" },
+  { icon: ShieldCheck, value: "10+", label: "Insurance Partners" },
   { icon: TrendingUp, value: "98%", label: "Claim Success Rate" },
 ];
 
@@ -52,7 +53,7 @@ const whyUs = [
   {
     icon: BadgeCheck,
     title: "Best Premium",
-    desc: "We negotiate the best price across 6 leading insurers so you never overpay.",
+    desc: "We negotiate the best price across 10+ leading insurers so you never overpay.",
   },
   {
     icon: Globe2,
@@ -71,14 +72,6 @@ const whyUs = [
   },
 ];
 
-const insurers = [
-  { name: "Bajaj General Insurance", short: "Bajaj" },
-  { name: "Magma General Insurance", short: "Magma" },
-  { name: "Tata AIG General Insurance", short: "Tata AIG" },
-  { name: "Go Digit General Insurance", short: "Go Digit" },
-  { name: "Shriram General Insurance", short: "Shriram" },
-  { name: "Royal Sundaram General Insurance", short: "Royal Sundaram" },
-];
 
 const testimonials = [
   {
@@ -120,7 +113,7 @@ const steps = [
   {
     n: "02",
     title: "Get Instant Quotes",
-    desc: "We compare plans from 6+ insurers and show the best options.",
+    desc: "We compare plans from 10+ insurers and show the best options.",
   },
   {
     n: "03",
@@ -225,7 +218,7 @@ const HomePage = () => {
 
             {/* Quick trust row */}
             <div className="flex flex-wrap gap-5">
-              {["Instant Policy", "Cashless Claims", "6 Insurer Partners"].map(
+              {["Instant Policy", "Cashless Claims", "10+ Insurance Partners"].map(
                 (t, i) => (
                   <div
                     key={i}
@@ -346,7 +339,7 @@ const HomePage = () => {
             </p>
             <ul className="mt-6 space-y-3">
               {[
-                "Compare 6+ insurers in one place",
+                "Compare 10+ insurers in one place",
                 "Dedicated advisor — not a call center",
                 "Claim assistance from start to finish",
                 "Renewal reminders & policy tracking",
@@ -511,37 +504,9 @@ const HomePage = () => {
       </section>
 
       {/* ══════════════════════════════════════
-          INSURER PARTNERS
+          INSURER PARTNERS MARQUEE
       ══════════════════════════════════════ */}
-      <section className="py-20 px-6 bg-navy overflow-hidden relative">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-green-brand/10 via-transparent to-transparent" />
-        <div className="mx-auto max-w-6xl relative z-10">
-          <div className="text-center mb-12">
-            <span className="text-xs font-semibold uppercase tracking-widest text-gold-light">
-              Our Partners
-            </span>
-            <h2 className="mt-2 text-4xl font-bold text-white">
-              Backed by India's Best Insurers
-            </h2>
-            <div className="mx-auto mt-3 h-1 w-16 rounded-full bg-gold" />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {insurers.map(({ name, short }, i) => (
-              <div
-                key={i}
-                className="group flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] backdrop-blur-md px-5 py-4 hover:bg-white/10 hover:border-gold/30 transition-all duration-300 hover:-translate-y-1"
-              >
-                <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-light group-hover:scale-110 transition-transform" />
-                <div>
-                  <p className="text-sm font-semibold text-white">{short}</p>
-                  <p className="text-xs text-slate-400">{name}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PartnersMarquee />
 
       {/* ══════════════════════════════════════
           TESTIMONIALS

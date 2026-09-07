@@ -1,4 +1,5 @@
 import React from "react";
+import PartnersMarquee from "../../component/core_components/PartnersMarquee/PartnersMarquee";
 import {
   Globe2,
   ShieldCheck,
@@ -25,7 +26,7 @@ import {
 const stats = [
   { icon: Award, value: "22+", label: "Years of Experience" },
   { icon: Users, value: "10,000+", label: "Happy Clients" },
-  { icon: ShieldCheck, value: "6+", label: "Insurance Partners" },
+  { icon: ShieldCheck, value: "10+", label: "Insurance Partners" },
   { icon: Car, value: "All Vehicles", label: "Cars, Bikes & Commercial" },
 ];
 
@@ -58,14 +59,6 @@ const vehicleTypes = [
   { icon: Bike, label: "Two-Wheelers" },
 ];
 
-const insurers = [
-  "Bajaj General Insurance Ltd",
-  "Magma General Insurance Ltd",
-  "Tata AIG General Insurance Co Ltd",
-  "Go Digit General Insurance Ltd",
-  "Shriram General Insurance Co Ltd",
-  "Royal Sundaram General Insurance Co Ltd",
-];
 
 const AboutPage = () => {
   return (
@@ -246,34 +239,9 @@ const AboutPage = () => {
       </section>
 
       {/* ══════════════════════════════════════
-          INSURER PARTNERS
+          INSURER PARTNERS MARQUEE
       ══════════════════════════════════════ */}
-      <section className="py-24 px-6 bg-slate-50/50">
-        <div className="mx-auto max-w-6xl text-center">
-          <span className="text-xs font-semibold uppercase tracking-widest text-gold">
-            Authorized Agent
-          </span>
-          <h2 className="mt-2 text-3xl font-extrabold text-navy md:text-4xl">
-            Our Insurance Partners
-          </h2>
-          <div className="mx-auto mt-3 h-1 w-16 rounded-full bg-gold" />
-          <p className="mx-auto mt-4 max-w-2xl text-slate-500">
-            We work with India's leading general insurance companies so you can compare and choose with absolute confidence.
-          </p>
-
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {insurers?.map((name, i) => (
-              <div
-                key={i}
-                className="group flex items-center gap-3.5 rounded-xl border border-slate-200 bg-white px-5 py-4 text-left shadow-sm transition-all duration-300 hover:border-gold/50 hover:shadow-md hover:-translate-y-1"
-              >
-                <BadgeCheck className="h-5 w-5 flex-shrink-0 text-green-brand transition-transform duration-300 group-hover:scale-110" />
-                <span className="text-sm font-semibold text-navy group-hover:text-navy transition-colors">{name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PartnersMarquee />
 
       {/* ══════════════════════════════════════
           CONTACT / BUSINESS INFO
