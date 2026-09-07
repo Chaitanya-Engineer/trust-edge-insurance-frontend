@@ -146,3 +146,69 @@ button {
 .animate-fadeInUp {
   animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ─────────────────────────────────────────────
+   INFINITE MARQUEE ANIMATIONS (PARTNER LOGOS)
+───────────────────────────────────────────── */
+@keyframes marqueeLeft {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marqueeRight {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-marquee-left {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  animation: marqueeLeft 38s linear infinite;
+}
+
+.animate-marquee-right {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translate3d(-50%, 0, 0);
+  transform: translate3d(-50%, 0, 0);
+  animation: marqueeRight 38s linear infinite;
+}
+
+/* Pause on hover only on desktop pointer devices, avoiding sticky hover on mobile touch */
+@media (hover: hover) and (pointer: fine) {
+  .marquee-container:hover .animate-marquee-left,
+  .marquee-container:hover .animate-marquee-right {
+    animation-play-state: paused;
+  }
+}
+
+/* Pause when held down on touch / mobile devices */
+.marquee-container:active .animate-marquee-left,
+.marquee-container:active .animate-marquee-right {
+  animation-play-state: paused;
+}
+
+@media (max-width: 640px) {
+  .animate-marquee-left {
+    animation-duration: 26s;
+  }
+  .animate-marquee-right {
+    animation-duration: 26s;
+  }
+}
