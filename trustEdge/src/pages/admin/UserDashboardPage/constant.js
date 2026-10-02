@@ -210,19 +210,9 @@ export const users = [
     },
     {
       title: "Email Address",
-      accessor: "emailAddress",
+      accessor: "email",
       type: "string",
       isCopy: true,
-    },
-    {
-      title: "PAN Number",
-      accessor: "panNumber",
-      type: "string",
-    },
-    {
-      title: "Aadhaar Number",
-      accessor: "aadhaarNumber",
-      type: "string",
     },
     {
       title: "Customer Type",

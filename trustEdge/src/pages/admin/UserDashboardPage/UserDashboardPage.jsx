@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import CustomizeBtn from "../../../component/core_components/CustomizeBtn/CustomizeBtn";
 import TableComponent from "../../../component/core_components/TableComponent/TableComponent";
 import { headers, users } from "./constant";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import LogoSpinner from "../../../component/core_components/LogoSpinner/LogoSpinner";
 import UserRegistrationForm from "./helperComponent/UserRegistrationForm";
 import PolicyRegistrationForm from "./helperComponent/PolicyRegistrationForm";
@@ -25,9 +25,7 @@ const UserDashboardPage = () => {
     pincode: "",
     pan_no: "",
     aadhar_no: "",
-    passportPhoto: null,
     panCard: null,
-    signature: null,
     aadhaarCard: null,
   });
 

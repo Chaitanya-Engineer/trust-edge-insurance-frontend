@@ -59,19 +59,19 @@ const UserRegistrationForm = ({
     }
 
     // Mobile Number
-    const mobileError = validateMobileNumber(formData?.mobileNumber);
+    const mobileError = validateMobileNumber(formData?.phone);
     if (mobileError) newErrors.mobileNumber = mobileError;
 
     // Email Address
-    const emailError = validateEmail(formData?.emailAddress);
+    const emailError = validateEmail(formData?.email);
     if (emailError) newErrors.emailAddress = emailError;
 
     // PAN Number
-    const panError = validatePanNumber(formData?.panNumber);
+    const panError = validatePanNumber(formData?.pan_no);
     if (panError) newErrors.panNumber = panError;
 
     // Aadhaar Number
-    const aadhaarError = validateAadhaarNumber(formData?.aadhaarNumber);
+    const aadhaarError = validateAadhaarNumber(formData?.aadhar_no);
     if (aadhaarError) newErrors.aadhaarNumber = aadhaarError;
 
     // Address
@@ -87,7 +87,7 @@ const UserRegistrationForm = ({
     if (stateError) newErrors.state = stateError;
 
     // PIN Code
-    const pinCodeError = validatePinCode(formData?.pinCode);
+    const pinCodeError = validatePinCode(formData?.pincode);
     if (pinCodeError) newErrors.pinCode = pinCodeError;
 
     // PAN Card Upload
@@ -139,7 +139,10 @@ const UserRegistrationForm = ({
             setTimeout(() => {
               const firstErrorField = document.querySelector(".text-[#B42318]");
               if (firstErrorField) {
-                firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
+                firstErrorField.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
               }
             }, 100);
           }
@@ -222,7 +225,7 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.mobileNumber || ""}
+                value={formData?.phone || ""}
                 onChange={(value) => handleInputChange("mobileNumber", value)}
                 width="w-full"
                 type="numeric"
@@ -231,7 +234,9 @@ const UserRegistrationForm = ({
                 maxLength={10}
               />
               {errors.mobileNumber && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.mobileNumber}</p>
+                <p className="mt-1.5 text-xs text-red-500">
+                  {errors.mobileNumber}
+                </p>
               )}
             </div>
 
@@ -242,7 +247,7 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.emailAddress || ""}
+                value={formData?.email || ""}
                 onChange={(value) => handleInputChange("emailAddress", value)}
                 width="w-full"
                 type="text"
@@ -250,7 +255,9 @@ const UserRegistrationForm = ({
                 error={!!errors.emailAddress}
               />
               {errors.emailAddress && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.emailAddress}</p>
+                <p className="mt-1.5 text-xs text-red-500">
+                  {errors.emailAddress}
+                </p>
               )}
             </div>
 
@@ -261,7 +268,7 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.panNumber || ""}
+                value={formData?.pan_no || ""}
                 onChange={(value) =>
                   handleInputChange("panNumber", value.toUpperCase())
                 }
@@ -272,7 +279,9 @@ const UserRegistrationForm = ({
                 maxLength={10}
               />
               {errors.panNumber && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.panNumber}</p>
+                <p className="mt-1.5 text-xs text-red-500">
+                  {errors.panNumber}
+                </p>
               )}
             </div>
 
@@ -283,7 +292,7 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.aadhaarNumber || ""}
+                value={formData?.aadhar_no || ""}
                 onChange={(value) => handleInputChange("aadhaarNumber", value)}
                 width="w-full"
                 type="numeric"
@@ -292,7 +301,9 @@ const UserRegistrationForm = ({
                 maxLength={12}
               />
               {errors.aadhaarNumber && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.aadhaarNumber}</p>
+                <p className="mt-1.5 text-xs text-red-500">
+                  {errors.aadhaarNumber}
+                </p>
               )}
             </div>
           </div>
@@ -371,7 +382,7 @@ const UserRegistrationForm = ({
                 </label>
 
                 <CustomInput
-                  value={formData?.pinCode || ""}
+                  value={formData?.pincode || ""}
                   onChange={(value) => handleInputChange("pinCode", value)}
                   width="w-full"
                   type="numeric"
@@ -380,7 +391,9 @@ const UserRegistrationForm = ({
                   maxLength={6}
                 />
                 {errors.pinCode && (
-                  <p className="mt-1.5 text-xs text-red-500">{errors.pinCode}</p>
+                  <p className="mt-1.5 text-xs text-red-500">
+                    {errors.pinCode}
+                  </p>
                 )}
               </div>
             </div>

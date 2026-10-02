@@ -1,23 +1,12 @@
 import { useRef, useState } from "react";
 import axios from "axios";
-import store from '../../store/index.js'
-// ─── useAPI Custom Hook ───────────────────────────────────────
-//
-// Usage:
-// const { data, isLoading, error, callApi } = useAPI("/api/auth/login/", {
-//   method: "POST",
-//   onSuccess: (data) => { console.log(data) },
-//   onFailure: (error) => { console.log(error) },
-// });
-//
-// onClick: callApi({ email: "a@b.com", password: "123" })
-// ─────────────────────────────────────────────────────────────
+import store from "../../store/index.js";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const useAPI = (url, options = {}) => {
   const [data, setData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const cancelTokenRef = useRef(null);
@@ -27,13 +16,15 @@ export const useAPI = (url, options = {}) => {
     baseURL: BASE_URL,
   });
 
-  // ─── Request Interceptor ─────────────────────────────────
+  // ─── Request Interceptor ────────────────────────
   axiosInstance.interceptors.request.use(
     (request) => {
       const token = reduxToken || localStorage.getItem("access_token");
       if (token) {
         request.headers["Authorization"] = `Bearer ${token}`;
       }
+      request.headers["ngrok-skip-browser-warning"] = "true";
+      request.headers["Content-Type"] = "application/json";
       return request;
     },
     (error) => Promise.reject(error)
@@ -75,10 +66,17 @@ export const useAPI = (url, options = {}) => {
       ...additionalParams,
     };
 
+    const isGet = options?.method?.toUpperCase() === "GET"
+                  || !options?.method;  // default GET
+
     try {
       const response = await axiosInstance(url, {
         ...options,
-        data: requestBody,
+        // GET → params (query string)
+        // POST/PUT/DELETE → data (body)
+        ...(isGet
+          ? { params: requestBody }
+          : { data: requestBody }),
         cancelToken: cancelTokenRef.current.token,
       });
 
