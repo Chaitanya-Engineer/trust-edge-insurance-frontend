@@ -30,65 +30,143 @@ const UserRegistrationForm = ({
   const [errors, setErrors] = useState({});
 
   const handleInputChange = (field, value) => {
-    onChange?.((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: null,
-      }));
-    }
+    onChange?.((prev) => {
+      const updated = { ...prev, [field]: value };
+      // Synchronize database schema names and camelCase aliases
+      if (field === "name" || field === "fullName") {
+        updated.name = value;
+        updated.fullName = value;
+      }
+      if (field === "date_of_birth" || field === "dob") {
+        updated.date_of_birth = value;
+        updated.dob = value;
+      }
+      if (field === "phone" || field === "mobileNumber") {
+        updated.phone = value;
+        updated.mobileNumber = value;
+      }
+      if (field === "email" || field === "emailAddress") {
+        updated.email = value;
+        updated.emailAddress = value;
+      }
+      if (field === "pan_no" || field === "panNumber") {
+        updated.pan_no = value;
+        updated.panNumber = value;
+      }
+      if (field === "aadhar_no" || field === "aadhaarNumber") {
+        updated.aadhar_no = value;
+        updated.aadhaarNumber = value;
+      }
+      if (field === "pincode" || field === "pinCode") {
+        updated.pincode = value;
+        updated.pinCode = value;
+      }
+      return updated;
+    });
+
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      if (field === "name" || field === "fullName") {
+        delete next.name;
+        delete next.fullName;
+      }
+      if (field === "date_of_birth" || field === "dob") {
+        delete next.date_of_birth;
+        delete next.dob;
+      }
+      if (field === "phone" || field === "mobileNumber") {
+        delete next.phone;
+        delete next.mobileNumber;
+      }
+      if (field === "email" || field === "emailAddress") {
+        delete next.email;
+        delete next.emailAddress;
+      }
+      if (field === "pan_no" || field === "panNumber") {
+        delete next.pan_no;
+        delete next.panNumber;
+      }
+      if (field === "aadhar_no" || field === "aadhaarNumber") {
+        delete next.aadhar_no;
+        delete next.aadhaarNumber;
+      }
+      if (field === "pincode" || field === "pinCode") {
+        delete next.pincode;
+        delete next.pinCode;
+      }
+      return next;
+    });
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    // Full Name
-    const fullNameError = validateFullName(formData?.fullName);
-    if (fullNameError) newErrors.fullName = fullNameError;
+    // Full Name (DB: name)
+    const fullNameError = validateFullName(formData?.name || formData?.fullName);
+    if (fullNameError) {
+      newErrors.name = fullNameError;
+      newErrors.fullName = fullNameError;
+    }
 
-    // Date of Birth
-    const dobError = validateDob(formData?.dob);
-    if (dobError) newErrors.dob = dobError;
+    // Date of Birth (DB: date_of_birth)
+    const dobError = validateDob(formData?.date_of_birth || formData?.dob);
+    if (dobError) {
+      newErrors.date_of_birth = dobError;
+      newErrors.dob = dobError;
+    }
 
-    // Gender
+    // Gender (DB: gender)
     if (!formData?.gender) {
       newErrors.gender = "Gender is required";
     }
 
-    // Mobile Number
-    const mobileError = validateMobileNumber(formData?.phone);
-    if (mobileError) newErrors.mobileNumber = mobileError;
+    // Mobile Number (DB: phone)
+    const mobileError = validateMobileNumber(formData?.phone || formData?.mobileNumber);
+    if (mobileError) {
+      newErrors.phone = mobileError;
+      newErrors.mobileNumber = mobileError;
+    }
 
-    // Email Address
-    const emailError = validateEmail(formData?.email);
-    if (emailError) newErrors.emailAddress = emailError;
+    // Email Address (DB: email)
+    const emailError = validateEmail(formData?.email || formData?.emailAddress);
+    if (emailError) {
+      newErrors.email = emailError;
+      newErrors.emailAddress = emailError;
+    }
 
-    // PAN Number
-    const panError = validatePanNumber(formData?.pan_no);
-    if (panError) newErrors.panNumber = panError;
+    // PAN Number (DB: pan_no)
+    const panError = validatePanNumber(formData?.pan_no || formData?.panNumber);
+    if (panError) {
+      newErrors.pan_no = panError;
+      newErrors.panNumber = panError;
+    }
 
-    // Aadhaar Number
-    const aadhaarError = validateAadhaarNumber(formData?.aadhar_no);
-    if (aadhaarError) newErrors.aadhaarNumber = aadhaarError;
+    // Aadhaar Number (DB: aadhar_no)
+    const aadhaarError = validateAadhaarNumber(formData?.aadhar_no || formData?.aadhaarNumber);
+    if (aadhaarError) {
+      newErrors.aadhar_no = aadhaarError;
+      newErrors.aadhaarNumber = aadhaarError;
+    }
 
-    // Address
+    // Address (DB: address)
     const addressError = validateAddress(formData?.address);
     if (addressError) newErrors.address = addressError;
 
-    // City
+    // City (DB: city)
     const cityError = validateCity(formData?.city);
     if (cityError) newErrors.city = cityError;
 
-    // State
+    // State (DB: state)
     const stateError = validateState(formData?.state);
     if (stateError) newErrors.state = stateError;
 
-    // PIN Code
-    const pinCodeError = validatePinCode(formData?.pincode);
-    if (pinCodeError) newErrors.pinCode = pinCodeError;
+    // PIN Code (DB: pincode)
+    const pinCodeError = validatePinCode(formData?.pincode || formData?.pinCode);
+    if (pinCodeError) {
+      newErrors.pincode = pinCodeError;
+      newErrors.pinCode = pinCodeError;
+    }
 
     // PAN Card Upload
     if (!formData?.panCard) {
@@ -126,18 +204,24 @@ const UserRegistrationForm = ({
         onSubmit={(e) => {
           e.preventDefault();
           if (validateForm()) {
-            showToast.success(
-              "User Registered Successfully!",
-              "New member account details have been saved."
-            );
-            onSubmit?.(formData);
+            const payload = {
+              ...formData,
+              name: formData?.name || formData?.fullName || "",
+              date_of_birth: formData?.date_of_birth || formData?.dob || "",
+              phone: formData?.phone || formData?.mobileNumber || "",
+              email: formData?.email || formData?.emailAddress || "",
+              pan_no: formData?.pan_no || formData?.panNumber || "",
+              aadhar_no: formData?.aadhar_no || formData?.aadhaarNumber || "",
+              pincode: formData?.pincode || formData?.pinCode || "",
+            };
+            onSubmit?.(payload);
           } else {
             showToast.error(
               "Form Validation Failed",
               "Please fill out all mandatory fields correctly."
             );
             setTimeout(() => {
-              const firstErrorField = document.querySelector(".text-[#B42318]");
+              const firstErrorField = document.querySelector(".text-[#B42318], .text-red-500");
               if (firstErrorField) {
                 firstErrorField.scrollIntoView({
                   behavior: "smooth",
@@ -163,15 +247,15 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.fullName || ""}
-                onChange={(value) => handleInputChange("fullName", value)}
+                value={formData?.name ?? formData?.fullName ?? ""}
+                onChange={(value) => handleInputChange("name", value)}
                 width="w-full"
                 type="text"
                 placeholder="Enter full name"
-                error={!!errors.fullName}
+                error={!!(errors.name || errors.fullName)}
               />
-              {errors.fullName && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.fullName}</p>
+              {(errors.name || errors.fullName) && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.name || errors.fullName}</p>
               )}
             </div>
 
@@ -182,14 +266,14 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomDatePicker
-                value={formData?.dob || ""}
-                onChange={(value) => handleInputChange("dob", value)}
+                value={formData?.date_of_birth ?? formData?.dob ?? ""}
+                onChange={(value) => handleInputChange("date_of_birth", value)}
                 max={new Date().toISOString().split("T")[0]}
                 width="w-full"
-                error={!!errors.dob}
+                error={!!(errors.date_of_birth || errors.dob)}
               />
-              {errors.dob && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.dob}</p>
+              {(errors.date_of_birth || errors.dob) && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.date_of_birth || errors.dob}</p>
               )}
             </div>
 
@@ -218,91 +302,91 @@ const UserRegistrationForm = ({
               )}
             </div>
 
-            {/* Mobile Number */}
+            {/* Mobile Number (DB: phone) */}
             <div className="w-full">
               <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
                 Mobile Number <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomInput
-                value={formData?.phone || ""}
-                onChange={(value) => handleInputChange("mobileNumber", value)}
+                value={formData?.phone ?? formData?.mobileNumber ?? ""}
+                onChange={(value) => handleInputChange("phone", value)}
                 width="w-full"
                 type="numeric"
                 placeholder="Enter mobile number"
-                error={!!errors.mobileNumber}
+                error={!!(errors.phone || errors.mobileNumber)}
                 maxLength={10}
               />
-              {errors.mobileNumber && (
+              {(errors.phone || errors.mobileNumber) && (
                 <p className="mt-1.5 text-xs text-red-500">
-                  {errors.mobileNumber}
+                  {errors.phone || errors.mobileNumber}
                 </p>
               )}
             </div>
 
-            {/* Email Address */}
+            {/* Email Address (DB: email) */}
             <div className="w-full">
               <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
                 Email Address <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomInput
-                value={formData?.email || ""}
-                onChange={(value) => handleInputChange("emailAddress", value)}
+                value={formData?.email ?? formData?.emailAddress ?? ""}
+                onChange={(value) => handleInputChange("email", value)}
                 width="w-full"
                 type="text"
                 placeholder="Enter email address"
-                error={!!errors.emailAddress}
+                error={!!(errors.email || errors.emailAddress)}
               />
-              {errors.emailAddress && (
+              {(errors.email || errors.emailAddress) && (
                 <p className="mt-1.5 text-xs text-red-500">
-                  {errors.emailAddress}
+                  {errors.email || errors.emailAddress}
                 </p>
               )}
             </div>
 
-            {/* PAN Number */}
+            {/* PAN Number (DB: pan_no) */}
             <div className="w-full">
               <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
                 PAN Number <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomInput
-                value={formData?.pan_no || ""}
+                value={formData?.pan_no ?? formData?.panNumber ?? ""}
                 onChange={(value) =>
-                  handleInputChange("panNumber", value.toUpperCase())
+                  handleInputChange("pan_no", value.toUpperCase())
                 }
                 width="w-full"
                 type="alphanumeric"
                 placeholder="Enter PAN number"
-                error={!!errors.panNumber}
+                error={!!(errors.pan_no || errors.panNumber)}
                 maxLength={10}
               />
-              {errors.panNumber && (
+              {(errors.pan_no || errors.panNumber) && (
                 <p className="mt-1.5 text-xs text-red-500">
-                  {errors.panNumber}
+                  {errors.pan_no || errors.panNumber}
                 </p>
               )}
             </div>
 
-            {/* Aadhaar Number */}
+            {/* Aadhaar Number (DB: aadhar_no) */}
             <div className="w-full">
               <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
                 Aadhaar Number <span className="text-[#B42318] ml-0.5">*</span>
               </label>
 
               <CustomInput
-                value={formData?.aadhar_no || ""}
-                onChange={(value) => handleInputChange("aadhaarNumber", value)}
+                value={formData?.aadhar_no ?? formData?.aadhaarNumber ?? ""}
+                onChange={(value) => handleInputChange("aadhar_no", value)}
                 width="w-full"
                 type="numeric"
                 placeholder="Enter Aadhaar number"
-                error={!!errors.aadhaarNumber}
+                error={!!(errors.aadhar_no || errors.aadhaarNumber)}
                 maxLength={12}
               />
-              {errors.aadhaarNumber && (
+              {(errors.aadhar_no || errors.aadhaarNumber) && (
                 <p className="mt-1.5 text-xs text-red-500">
-                  {errors.aadhaarNumber}
+                  {errors.aadhar_no || errors.aadhaarNumber}
                 </p>
               )}
             </div>
@@ -375,24 +459,24 @@ const UserRegistrationForm = ({
                 )}
               </div>
 
-              {/* PIN Code */}
+              {/* PIN Code (DB: pincode) */}
               <div className="w-full">
                 <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
                   PIN Code <span className="text-[#B42318] ml-0.5">*</span>
                 </label>
 
                 <CustomInput
-                  value={formData?.pincode || ""}
-                  onChange={(value) => handleInputChange("pinCode", value)}
+                  value={formData?.pincode ?? formData?.pinCode ?? ""}
+                  onChange={(value) => handleInputChange("pincode", value)}
                   width="w-full"
                   type="numeric"
                   placeholder="Enter PIN code"
-                  error={!!errors.pinCode}
+                  error={!!(errors.pincode || errors.pinCode)}
                   maxLength={6}
                 />
-                {errors.pinCode && (
+                {(errors.pincode || errors.pinCode) && (
                   <p className="mt-1.5 text-xs text-red-500">
-                    {errors.pinCode}
+                    {errors.pincode || errors.pinCode}
                   </p>
                 )}
               </div>

@@ -9,22 +9,30 @@ import PolicyRegistrationForm from "./helperComponent/PolicyRegistrationForm";
 import { Edit } from "lucide-react";
 import { API_ENDPOINTS } from "../../../lib/constant/ApiEndpoints";
 import { useAPI } from "../../../lib/hooks/useAPI";
+import { showToast } from "../../../component/core_components/CustomToast/CustomToast";
 
 const UserDashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isOpenForm, setIsOpenForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    fullName: "",
     date_of_birth: "",
+    dob: "",
     gender: "",
     phone: "",
+    mobileNumber: "",
     email: "",
+    emailAddress: "",
     address: "",
     city: "",
     state: "",
     pincode: "",
+    pinCode: "",
     pan_no: "",
+    panNumber: "",
     aadhar_no: "",
+    aadhaarNumber: "",
     panCard: null,
     aadhaarCard: null,
   });
@@ -74,11 +82,19 @@ const UserDashboardPage = () => {
     {
       method: "POST",
       onSuccess: (response) => {
-        console.log(response?.message);
+        showToast.success(
+          "Customer Registered Successfully!",
+          "New member account details have been saved."
+        );
         setIsOpenForm(false);
+        AllUsersList();
       },
       onFailure: (error) => {
-        console.log("Error", error);
+        console.log("Registration Error:", error);
+        showToast.error(
+          "Registration Failed",
+          error?.response?.data?.message || error?.message || "Please check details and try again."
+        );
       },
     }
   );
@@ -214,15 +230,11 @@ const UserDashboardPage = () => {
         ),
       };
     }
-    if (
-      header.accessor === "status" ||
-      header.accessor === "verificationStatus"
-    ) {
+    if (header.accessor === "status") {
       return {
         ...header,
         type: "special",
-        specialCellRowFunction: (row) =>
-          getStatusPill(row?.status || row?.verificationStatus),
+        specialCellRowFunction: (row) => getStatusPill(row?.status),
       };
     }
     return header;

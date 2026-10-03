@@ -215,16 +215,6 @@ export const users = [
       isCopy: true,
     },
     {
-      title: "Customer Type",
-      accessor: "customerType",
-      type: "string",
-    },
-    {
-      title: "Verification Status",
-      accessor: "verificationStatus",
-      type: "string",
-    },
-    {
       title: "Status",
       accessor: "status",
       type: "string",
