@@ -1,15 +1,16 @@
 import React, { useEffect } from "react";
 import CustomizeBtn from "../../../component/core_components/CustomizeBtn/CustomizeBtn";
 import TableComponent from "../../../component/core_components/TableComponent/TableComponent";
-import { headers, users } from "./constant";
+import { getStatusPill, headers, ModalHeader, users } from "./constant";
 import { useState } from "react";
 import LogoSpinner from "../../../component/core_components/LogoSpinner/LogoSpinner";
 import UserRegistrationForm from "./helperComponent/UserRegistrationForm";
 import PolicyRegistrationForm from "./helperComponent/PolicyRegistrationForm";
-import { Edit } from "lucide-react";
+import { ArrowUpRight, Edit } from "lucide-react";
 import { API_ENDPOINTS } from "../../../lib/constant/ApiEndpoints";
 import { useAPI } from "../../../lib/hooks/useAPI";
 import { showToast } from "../../../component/core_components/CustomToast/CustomToast";
+import ModalComponent from "../../../component/core_components/ModalComponent/ModalCommponent";
 
 const UserDashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +42,8 @@ const UserDashboardPage = () => {
   const [isOpenPolicyForm, setIsOpenPolicyForm] = useState(false);
   const [selectedUserForPolicy, setSelectedUserForPolicy] = useState(null);
   const [userList, setUserList] = useState([]);
+  const [openPolicyModal, setOpenPolicyModal] = useState(false);
+  const [modalDataSource, setModalDataSource] = useState([]);
   const [policyFormData, setPolicyFormData] = useState({
     policyName: "",
     category: "",
@@ -93,7 +96,9 @@ const UserDashboardPage = () => {
         console.log("Registration Error:", error);
         showToast.error(
           "Registration Failed",
-          error?.response?.data?.message || error?.message || "Please check details and try again."
+          error?.response?.data?.message ||
+            error?.message ||
+            "Please check details and try again."
         );
       },
     }
@@ -114,6 +119,21 @@ const UserDashboardPage = () => {
       setUserList([]);
     },
   });
+
+  const { callApi: viewPolicies } = useAPI(
+    API_ENDPOINTS?.ADMIN?.SHOW_POLICY_BY_CUSTOMER_ID,
+    {
+      method: "POST",
+      onSuccess: (response) => {
+        console.log("response.result", response);
+        setModalDataSource(response);
+      },
+      onFailure: () => {
+        setModalDataSource([]);
+      },
+    }
+  );
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -153,64 +173,16 @@ const UserDashboardPage = () => {
     setSelectedUserForPolicy(null);
   };
 
-  const getStatusPill = (statusVal) => {
-    if (!statusVal) return null;
-    const lower = statusVal.toLowerCase().trim();
-
-    // 🟡 Pending (Yellow/Amber)
-    if (lower.includes("review") || lower === "pending" || lower === "new") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FBF5DF] text-[#C9A227]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#C9A227]"></span>
-          Pending
-        </span>
-      );
-    }
-
-    // 🟢 Verified (Green)
-    if (lower === "verified") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#EAF4EC] text-[#2F6F3E]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#2F6F3E]"></span>
-          Verified
-        </span>
-      );
-    }
-
-    // 🔵 Active (Blue)
-    if (lower === "active") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#EAF0F6] text-[#0B2545]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#0B2545]"></span>
-          Active
-        </span>
-      );
-    }
-
-    // 🟠 Expired (Orange)
-    if (
-      lower === "expired" ||
-      lower === "error" ||
-      lower === "rejected" ||
-      lower === "failed" ||
-      lower === "inactive"
-    ) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FFF4ED] text-[#B44C18]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#F76B15]"></span>
-          Expired
-        </span>
-      );
-    }
-
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#F2F4F7] text-[#344054]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#667085]"></span>
-        {statusVal}
-      </span>
-    );
+  const onPolicyCountClick = (row) => {
+    console.log("row", row);
+    setOpenPolicyModal(true);
+    viewPolicies({ customer_id: row?.customer_id });
   };
 
+  const handleCloseModal = () => {
+    setOpenPolicyModal(false);
+    console.log("call");
+  };
   // Dynamically attach the action cell row function to access local state handlers
   const tableHeaders = headers.map((header) => {
     if (header.accessor === "action") {
@@ -230,11 +202,26 @@ const UserDashboardPage = () => {
         ),
       };
     }
-    if (header.accessor === "status") {
+    if (header.accessor === "policy_count") {
       return {
         ...header,
         type: "special",
-        specialCellRowFunction: (row) => getStatusPill(row?.status),
+        specialCellRowFunction: (row) => {
+          return (
+            <div className="flex flex-row gap-2 items-center justify-center">
+              <span>{row?.policy_count}</span>
+
+              {row?.policy_count > 0 && (
+                <span
+                  className="cursor-pointer text-blue-600 hover:text-blue-800"
+                  onClick={() => onPolicyCountClick(row)}
+                >
+                  <ArrowUpRight size={18} />
+                </span>
+              )}
+            </div>
+          );
+        },
       };
     }
     return header;
@@ -367,6 +354,17 @@ const UserDashboardPage = () => {
               />
             )}
           </div>
+          {openPolicyModal && (
+            <div>
+              <ModalComponent
+                title={"Policy Details"}
+                header={ModalHeader}
+                data={modalDataSource}
+                countName={"Policy Count"}
+                handleClose={handleCloseModal}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

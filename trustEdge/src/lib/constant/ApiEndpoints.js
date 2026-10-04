@@ -11,5 +11,6 @@ export const API_ENDPOINTS = {
     CUSTOMER_DROPDOWN: "/api/customers/dropdown/",
     CREATE_POLICY: "/api/policies/create_and_add_policy/",
     POLICIES_LIST: "/api/policies/",
+    SHOW_POLICY_BY_CUSTOMER_ID : "/api/policies/view_policy_by_customer/"
   },
 };
