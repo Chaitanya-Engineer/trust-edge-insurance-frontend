@@ -44,7 +44,9 @@ const DashboardPage = () => {
     <div className="space-y-6">
       {/* ── Page Title ─────────────────────────────────────── */}
       <div className="mb-6">
-        <h2 className="text-[24px] font-bold text-[#0B2545] tracking-tight">Dashboard</h2>
+        <h2 className="text-[24px] font-bold text-[#0B2545] tracking-tight">
+          Dashboard
+        </h2>
         <p className="text-[12px] text-[#667085] mt-1">
           Welcome back — here's what's happening today.
         </p>
@@ -67,15 +69,15 @@ const DashboardPage = () => {
           icon={<ShieldCheck className="w-[18px] h-[18px]" />}
         />
         <KPICard
-          title="Pending Documents"
-          value={stats.pending_documents}
+          title="Pending Policies"
+          value={stats.pending_policies}
           subtitle="⚠ Review required"
           color="yellow"
           icon={<FileWarning className="w-[18px] h-[18px]" />}
         />
         <KPICard
-          title="Total Revenue"
-          value={stats.total_revenue}
+          title="Expire Policies"
+          value={stats.expire_policies}
           subtitle="↑ 8% this month"
           color="green"
           prefix="₹"
@@ -109,7 +111,9 @@ const DashboardPage = () => {
         {/* Recent Users */}
         <div className="bg-white border border-[rgba(11,37,69,0.05)] rounded-[14px] shadow-[0_4px_20px_rgba(11,37,69,0.04)] overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(11,37,69,0.05)] bg-white rounded-t-[14px]">
-            <p className="text-[15px] font-semibold text-[#0B2545]">Recent Users</p>
+            <p className="text-[15px] font-semibold text-[#0B2545]">
+              Recent Users
+            </p>
             <a
               href="/admin/user-dashboard"
               className="inline-flex items-center gap-1 text-[12px] font-medium text-[#0B2545] border border-[rgba(11,37,69,0.12)] rounded-[9px] px-3 py-1.5 bg-white hover:bg-[#f0f4f8] transition-colors"
@@ -118,7 +122,7 @@ const DashboardPage = () => {
             </a>
           </div>
           <div className="divide-y divide-[rgba(11,37,69,0.05)] bg-white">
-            {recent_users.map((user) => (
+            {recent_users?.map((user) => (
               <div
                 key={user.id}
                 className="flex items-center justify-between px-5 py-3 hover:bg-[#f0f4f8] transition-colors"
@@ -137,7 +141,9 @@ const DashboardPage = () => {
                     <p className="text-[13px] font-semibold text-[#0B2545]">
                       {user.name}
                     </p>
-                    <p className="text-[11px] text-[#667085] font-normal">{user.email}</p>
+                    <p className="text-[11px] text-[#667085] font-normal">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
                 <span className="text-[11px] text-[#667085] font-medium">
@@ -162,7 +168,7 @@ const DashboardPage = () => {
             </a>
           </div>
           <div className="divide-y divide-[rgba(11,37,69,0.05)] bg-white">
-            {pending_documents.map((doc) => (
+            {pending_documents?.map((doc) => (
               <div
                 key={doc.id}
                 className="flex items-center justify-between px-5 py-3 hover:bg-[#f0f4f8] transition-colors"
@@ -175,7 +181,9 @@ const DashboardPage = () => {
                     <p className="text-[13px] font-semibold text-[#0B2545]">
                       {doc.user_name}
                     </p>
-                    <p className="text-[11px] text-[#667085] font-normal">{doc.document_type}</p>
+                    <p className="text-[11px] text-[#667085] font-normal">
+                      {doc.document_type}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
 import CustomInput from "../../../../component/core_components/CustomInput/CustomeInput";
 import CustomDatePicker from "../../../../component/core_components/DatePicker/CustomDatePicker";
@@ -17,11 +17,12 @@ import {
   transactionModeOptions,
   vehicleOwnerOptions,
   paymentStatusOptions,
-  users,
   CommissionStatusOptions,
   insuranceCompanyOptions,
 } from "../constant";
 import { showToast } from "../../../../component/core_components/CustomToast/CustomToast";
+import { API_ENDPOINTS } from "../../../../lib/constant/ApiEndpoints";
+import { useAPI } from "../../../../lib/hooks/useAPI";
 
 const chequeStatusOptions = [
   { value: "cleared", label: "Cleared" },
@@ -29,14 +30,8 @@ const chequeStatusOptions = [
   { value: "bounced", label: "Bounced" },
 ];
 
-// Pre-map static customer options for performance
-const customerOptions = users.map((u) => ({
-  value: u.id,
-  label: `${u.fullName} (${u.mobileNumber})`,
-  originalUser: u,
-}));
-
 const PolicyRegistrationForm = ({
+  customerList = [],
   formData,
   onChange,
   onClickBack,
@@ -46,6 +41,74 @@ const PolicyRegistrationForm = ({
   selectedCustomer = null,
   onSelectCustomer,
 }) => {
+  const [internalCustomer, setInternalCustomer] = useState(null);
+  const activeCustomer =
+    selectedCustomer !== undefined && selectedCustomer !== null
+      ? selectedCustomer
+      : internalCustomer;
+
+  const activeCustomerId = useMemo(() => {
+    if (!activeCustomer) return "";
+    if (typeof activeCustomer === "string" || typeof activeCustomer === "number") {
+      return String(activeCustomer);
+    }
+    return String(
+      activeCustomer.value ||
+      activeCustomer.customer_id ||
+      activeCustomer.id ||
+      ""
+    );
+  }, [activeCustomer]);
+
+  const handleCustomerSelect = (cust) => {
+    if (onSelectCustomer) {
+      onSelectCustomer(cust);
+    } else {
+      setInternalCustomer(cust);
+    }
+  };
+
+  const [dropdownOptions, setDropdownOptions] = useState([]);
+
+  // Fetch strictly { label, value } from the dedicated dropdown endpoint
+  const { callApi: fetchCustomerDropdown } = useAPI(
+    API_ENDPOINTS?.ADMIN?.CUSTOMER_DROPDOWN,
+    {
+      method: "GET",
+      onSuccess: (data) => {
+        if (data && Array.isArray(data)) {
+          setDropdownOptions(
+            data.map((item) => ({
+              label: item.label,
+              value: String(item.value),
+            }))
+          );
+        }
+      },
+      onFailure: () => {
+        setDropdownOptions([]);
+      },
+    }
+  );
+
+  useEffect(() => {
+    fetchCustomerDropdown();
+  }, []);
+
+  // Strict { label, value } options only - no extra data
+  const customerOptions = useMemo(() => {
+    if (dropdownOptions && dropdownOptions.length > 0) {
+      return dropdownOptions;
+    }
+    if (customerList && customerList.length > 0) {
+      return customerList.map((item) => ({
+        label: item.label || item.name || "Customer",
+        value: String(item.value || item.customer_id || item.id),
+      }));
+    }
+    return [];
+  }, [dropdownOptions, customerList]);
+
   const [errors, setErrors] = useState({});
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -59,10 +122,10 @@ const PolicyRegistrationForm = ({
   });
 
   useEffect(() => {
-    if (selectedCustomer && errors.selectedCustomer) {
+    if (activeCustomerId && errors.selectedCustomer) {
       setErrors((prev) => ({ ...prev, selectedCustomer: null }));
     }
-  }, [selectedCustomer, errors.selectedCustomer]);
+  }, [activeCustomerId, errors.selectedCustomer]);
 
   const handleInputChange = (field, value) => {
     onChange?.((prev) => ({
@@ -252,7 +315,7 @@ const PolicyRegistrationForm = ({
     const newErrors = {};
 
     // Customer Selection
-    if (!selectedCustomer) {
+    if (!activeCustomerId) {
       newErrors.selectedCustomer = "Please search and select a customer";
     }
 
@@ -451,44 +514,192 @@ const PolicyRegistrationForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isCanSubmit = !!formData.policyDoc;
 
+  const formatDate = (val) => {
+    if (!val) return "";
+    try {
+      const d = dayjs(val);
+      return d.isValid() ? d.format("YYYY-MM-DD") : String(val);
+    } catch {
+      return String(val);
+    }
+  };
+
+  const mapCategory = (cat) => {
+    if (!cat) return "OTHER";
+    const val = String(cat).toUpperCase().trim();
+    if (val === "MOTOR" || val === "VEHICLE") return "VEHICLE";
+    if (val === "HEALTH") return "HEALTH";
+    if (val === "PERSONAL" || val === "LIFE") return "LIFE";
+    return "OTHER";
+  };
+
+  const buildPolicyPayload = () => {
+    const policy_description = {
+      insurer: formData.policyName || "",
+      coverage: formData.subType || "",
+      ...(formData.vehicleNumber ? { vehicle_number: formData.vehicleNumber } : {}),
+      ...(formData.vehicleName ? { vehicle_name: formData.vehicleName } : {}),
+      ...(formData.vehicleOwner ? { vehicle_owner: formData.vehicleOwner } : {}),
+      ...(formData.gvw ? { gvw: formData.gvw } : {}),
+      ...(formData.members && formData.members.length > 0 ? { members: formData.members } : {}),
+    };
+
+    const payment_details = {
+      payment_mode: (formData.txMode || "ONLINE").toUpperCase(),
+      payment_status: (formData.payStatus === "done" ? "PAID" : (formData.payStatus || "PAID")).toUpperCase(),
+      ...(formData.chequeNum ? { transaction_id: formData.chequeNum, cheque_status: formData.chequeStatus } : {}),
+      ...(formData.txDate ? { transaction_date: formatDate(formData.txDate) } : {}),
+      ...(formData.txTime ? { transaction_time: formData.txTime } : {}),
+      ...(formData.txNote ? { transaction_note: formData.txNote } : {}),
+    };
+
+    const commAmount = parseFloat(formData.CommissionAmount) || 0;
+    const priceVal = parseFloat(formData.price) || 0;
+    const commPercentage = priceVal > 0 && commAmount > 0
+      ? Math.round((commAmount / priceVal) * 100)
+      : 0;
+
+    const commission_details = formData.showCommission
+      ? {
+          commission_percentage: commPercentage,
+          commission_amount: commAmount,
+          ...(formData.CommissionMode ? { commission_mode: formData.CommissionMode.toUpperCase() } : {}),
+          ...(formData.CommissionStatus ? { commission_status: formData.CommissionStatus.toUpperCase() } : {}),
+          ...(formData.CommissionDate ? { commission_date: formatDate(formData.CommissionDate) } : {}),
+          ...(formData.CommissionNote ? { commission_note: formData.CommissionNote } : {}),
+        }
+      : {};
+
+    const pdfUrl =
+      typeof formData.policyDoc === "string"
+        ? formData.policyDoc
+        : formData.policyDoc?.url || null;
+
+    return {
+      customer_id: activeCustomerId,
+      policy_name: formData.policyName || "",
+      category: mapCategory(formData.category),
+      sub_type: formData.subType || "",
+      issue_date: formatDate(formData.issueDate),
+      expiry_date: formatDate(formData.expiryDate),
+      premium_amount: (parseFloat(formData.price) || 0).toFixed(2),
+      policy_pdf_url: pdfUrl,
+      policy_description,
+      payment_details,
+      commission_details,
+    };
+  };
+
+  const { callApi: createPolicyApi } = useAPI(
+    API_ENDPOINTS?.ADMIN?.CREATE_POLICY || "/api/policies/create_and_add_policy/",
+    {
+      method: "POST",
+      onSuccess: (response) => {
+        setIsSubmitting(false);
+        setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        showToast.success(
+          "Policy Created Successfully!",
+          response?.policy_id
+            ? `Policy #${response.policy_id} has been created.`
+            : "The policy has been registered."
+        );
+        onSubmit?.(response);
+      },
+      onFailure: (err) => {
+        setIsSubmitting(false);
+        setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+
+        const status = err?.response?.status;
+        const data = err?.response?.data;
+
+        if (status === 400 && data) {
+          const serverErrors = {};
+          if (typeof data === "object") {
+            Object.entries(data).forEach(([key, val]) => {
+              const msg = Array.isArray(val) ? val.join(" ") : String(val);
+              if (key === "customer_id" || key === "customer") serverErrors.selectedCustomer = msg;
+              else if (key === "policy_name" || key === "name") serverErrors.policyName = msg;
+              else if (key === "category") serverErrors.category = msg;
+              else if (key === "sub_type" || key === "subtype") serverErrors.subType = msg;
+              else if (key === "issue_date") serverErrors.issueDate = msg;
+              else if (key === "expiry_date") serverErrors.expiryDate = msg;
+              else if (key === "premium_amount" || key === "price") serverErrors.price = msg;
+              else if (key === "policy_pdf_url" || key === "policyDoc") serverErrors.policyDoc = msg;
+              else serverErrors[key] = msg;
+            });
+            if (data?.detail && typeof data.detail === "string" && data.detail.toLowerCase().includes("customer")) {
+              serverErrors.selectedCustomer = data.detail;
+            }
+            if (data?.error && typeof data.error === "string" && data.error.toLowerCase().includes("customer")) {
+              serverErrors.selectedCustomer = data.error;
+            }
+            setErrors((prev) => ({ ...prev, ...serverErrors }));
+          }
+          const errorMessage =
+            data?.detail ||
+            data?.error ||
+            data?.message ||
+            (typeof data === "object"
+              ? Object.entries(data)
+                  .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+                  .join(" | ")
+              : "Please check the highlighted fields.");
+          showToast.error("Validation Error", errorMessage);
+        } else if (status === 403) {
+          showToast.error("Access Denied", "Only an authenticated admin can create policies.");
+        } else if (status === 500) {
+          showToast.error("Server Error", "Policy creation failed due to a server error. Please try again.");
+        } else {
+          showToast.error("Creation Failed", data?.message || err?.message || "Failed to create policy.");
+        }
+      },
+    }
+  );
+
   const handleSaveDraftClick = () => {
+    if (!activeCustomerId) {
+      showToast.error("Missing Customer", "Please select a customer before creating a draft policy.");
+      setErrors((prev) => ({ ...prev, selectedCustomer: "Customer is required" }));
+      return;
+    }
+
+    if (!validateForm(false)) {
+      showToast.error(
+        "Incomplete Details",
+        "Please resolve highlighted errors before saving draft."
+      );
+      return;
+    }
+
     setConfirmModal({
       isOpen: true,
       title: "Save Policy as Draft?",
-      description: "This policy will be saved as a draft and can be completed later.",
+      description: "This policy will be created and added to the policy registry.",
       confirmText: "Yes, Save Draft",
       cancelText: "Cancel",
       variant: "warning",
       onConfirm: async () => {
-        try {
-          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
-          const draftData = {
-            ...formData,
-            status: "Pending",
-          };
-
-          if (onSaveDraft) {
-            await onSaveDraft(draftData);
-          } else {
-            await onSubmit?.(draftData);
-          }
-
-          showToast.success("Policy saved as draft");
-          setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
-        } catch (error) {
-          console.error("Save Draft Error:", error);
-          showToast.error("Failed to save draft. Please try again.");
-          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
-        }
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+        const payload = buildPolicyPayload();
+        createPolicyApi(payload);
       },
-      isLoading: false,
+      isLoading: isSubmitting,
     });
   };
 
   const handleFinalSubmitClick = (e) => {
     if (e) e.preventDefault();
+
+    if (!activeCustomerId) {
+      showToast.error("Missing Customer", "Please select a customer before submitting the policy.");
+      setErrors((prev) => ({ ...prev, selectedCustomer: "Customer is required" }));
+      return;
+    }
 
     if (!validateForm(true)) {
       showToast.error(
@@ -508,36 +719,18 @@ const PolicyRegistrationForm = ({
       isOpen: true,
       title: "Confirm Policy Submission",
       description:
-        "Are you sure you want to submit this policy? Once submitted, the policy will be marked as Active.",
+        "Are you sure you want to submit this policy? Once submitted, the policy will be registered.",
       confirmText: "Yes, Submit Policy",
       cancelText: "Cancel",
       variant: "success",
       onConfirm: async () => {
-        try {
-          setConfirmModal((prev) => ({ ...prev, isLoading: true }));
-
-          if (!validateForm(true) || !formData.policyDoc) {
-            showToast.error("Failed to submit policy. Please try again.");
-            setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
-            return;
-          }
-
-          const finalData = {
-            ...formData,
-            status: "Active",
-          };
-
-          await onSubmit?.(finalData);
-
-          showToast.success("Policy submitted successfully");
-          setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
-        } catch (error) {
-          console.error("Final Submit Error:", error);
-          showToast.error("Failed to submit policy. Please try again.");
-          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
-        }
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        setConfirmModal((prev) => ({ ...prev, isLoading: true }));
+        const payload = buildPolicyPayload();
+        createPolicyApi(payload);
       },
-      isLoading: false,
+      isLoading: isSubmitting,
     });
   };
 
@@ -569,57 +762,40 @@ const PolicyRegistrationForm = ({
             Basic Details
           </h2>
 
-          {/* Customer Selection / Selected Customer Card */}
+          {/* Customer Selection Dropdown - strictly { label, value } */}
           <div className="mb-6 w-full">
-            {selectedCustomer ? (
-              <div>
-                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Selected Customer
-                </label>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-[#F8FAF9] border border-[#E5E9E7] rounded-xl p-4 shadow-sm gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0B2545] text-sm font-bold text-white uppercase shadow-sm">
-                      {selectedCustomer.fullName ? selectedCustomer.fullName.charAt(0) : "U"}
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-bold text-[#0B2545] truncate">
-                        {selectedCustomer.fullName}
-                      </span>
-                      <span className="text-xs text-gray-500 truncate">
-                        {selectedCustomer.mobileNumber} {selectedCustomer.emailAddress ? `· ${selectedCustomer.emailAddress}` : ""}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onSelectCustomer?.(null)}
-                    className="text-xs font-semibold text-[#B42318] hover:text-[#B42318] bg-white hover:bg-[#FDECEC] border border-[#E5E9E7] hover:border-[#FCD2D2] rounded-lg px-3 py-1.5 transition-all cursor-pointer shadow-xs shrink-0 self-start sm:self-auto"
-                  >
-                    Change Customer
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Search / Select Customer
-                </label>
-                <CustomSelect
-                  options={customerOptions}
-                  value={null}
-                  onChange={(opt) => {
-                    if (opt) {
-                      onSelectCustomer?.(opt.originalUser);
+            <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+              Select Customer <span className="text-[#B42318] ml-0.5">*</span>
+            </label>
+            <CustomSelect
+              options={customerOptions}
+              value={
+                activeCustomerId
+                  ? customerOptions.find(
+                      (opt) => String(opt.value) === String(activeCustomerId)
+                    ) || {
+                      label:
+                        activeCustomer?.label ||
+                        activeCustomer?.fullName ||
+                        activeCustomer?.name ||
+                        `Customer #${activeCustomerId}`,
+                      value: activeCustomerId,
                     }
-                  }}
-                  placeholder="Search customer by name or mobile..."
-                  width="w-full"
-                  error={!!errors.selectedCustomer}
-                />
-                {errors.selectedCustomer && (
-                  <p className="mt-1.5 text-xs text-red-500">{errors.selectedCustomer}</p>
-                )}
-              </div>
+                  : null
+              }
+              onChange={(opt) => {
+                handleCustomerSelect(
+                  opt ? { label: opt.label, value: String(opt.value) } : null
+                );
+              }}
+              placeholder="Select customer..."
+              width="w-full"
+              isClearable={true}
+              isSearchable={true}
+              error={!!errors.selectedCustomer}
+            />
+            {errors.selectedCustomer && (
+              <p className="mt-1.5 text-xs text-red-500">{errors.selectedCustomer}</p>
             )}
           </div>
 
@@ -1310,8 +1486,11 @@ const PolicyRegistrationForm = ({
 
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={handleSaveDraftClick}
-            className="w-full rounded-[9px] border border-[#0B2545] bg-[#F8FAFC] px-5 py-2.5 text-sm font-semibold text-[#0B2545] transition-all duration-200 hover:bg-[#0B2545] hover:text-white hover:shadow-md active:bg-[#061527] active:scale-[0.98] sm:w-auto cursor-pointer flex items-center justify-center gap-2 group"
+            className={`w-full rounded-[9px] border border-[#0B2545] bg-[#F8FAFC] px-5 py-2.5 text-sm font-semibold text-[#0B2545] transition-all duration-200 hover:bg-[#0B2545] hover:text-white hover:shadow-md active:bg-[#061527] active:scale-[0.98] sm:w-auto flex items-center justify-center gap-2 group ${
+              isSubmitting ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
+            }`}
           >
             <span className="w-2 h-2 rounded-full bg-[#C9A227] group-hover:bg-[#FCD34D] transition-colors"></span>
             Save Draft
@@ -1320,10 +1499,13 @@ const PolicyRegistrationForm = ({
           {isCanSubmit && (
             <button
               type="submit"
-              className="w-full rounded-[9px] bg-[#2F6F3E] hover:bg-[#235630] active:bg-[#1A4224] active:scale-[0.98] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 shadow-sm hover:shadow-md sm:w-auto cursor-pointer flex items-center justify-center gap-2 animate-fadeIn"
+              disabled={isSubmitting}
+              className={`w-full rounded-[9px] bg-[#2F6F3E] hover:bg-[#235630] active:bg-[#1A4224] active:scale-[0.98] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 shadow-sm hover:shadow-md sm:w-auto flex items-center justify-center gap-2 animate-fadeIn ${
+                isSubmitting ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
+              }`}
             >
               <span>✓</span>
-              Submit Policy
+              {isSubmitting ? "Submitting..." : "Submit Policy"}
             </button>
           )}
         </div>
@@ -1332,14 +1514,14 @@ const PolicyRegistrationForm = ({
       {/* Reusable Confirmation Modal */}
       <ConfirmationModal
         isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onClose={() => !isSubmitting && setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
         onConfirm={confirmModal.onConfirm}
         title={confirmModal.title}
         description={confirmModal.description}
         confirmText={confirmModal.confirmText}
         cancelText={confirmModal.cancelText}
         variant={confirmModal.variant}
-        isLoading={confirmModal.isLoading}
+        isLoading={confirmModal.isLoading || isSubmitting}
       />
     </div>
   );

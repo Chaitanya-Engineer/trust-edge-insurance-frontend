@@ -1,37 +1,49 @@
-import React from "react";
+import React, { useEffect } from "react";
 import CustomizeBtn from "../../../component/core_components/CustomizeBtn/CustomizeBtn";
 import TableComponent from "../../../component/core_components/TableComponent/TableComponent";
-import { headers, users } from "./constant";
-import { useState, useEffect } from "react";
+import { getStatusPill, headers, ModalHeader, users } from "./constant";
+import { useState } from "react";
 import LogoSpinner from "../../../component/core_components/LogoSpinner/LogoSpinner";
 import UserRegistrationForm from "./helperComponent/UserRegistrationForm";
 import PolicyRegistrationForm from "./helperComponent/PolicyRegistrationForm";
-import { Edit } from "lucide-react";
+import { ArrowUpRight, Edit } from "lucide-react";
+import { API_ENDPOINTS } from "../../../lib/constant/ApiEndpoints";
+import { useAPI } from "../../../lib/hooks/useAPI";
+import { showToast } from "../../../component/core_components/CustomToast/CustomToast";
+import ModalComponent from "../../../component/core_components/ModalComponent/ModalCommponent";
 
 const UserDashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isOpenForm, setIsOpenForm] = useState(false);
   const [formData, setFormData] = useState({
+    name: "",
     fullName: "",
+    date_of_birth: "",
     dob: "",
     gender: "",
+    phone: "",
     mobileNumber: "",
+    email: "",
     emailAddress: "",
-    panNumber: "",
-    aadhaarNumber: "",
     address: "",
     city: "",
     state: "",
+    pincode: "",
     pinCode: "",
-    passportPhoto: null,
+    pan_no: "",
+    panNumber: "",
+    aadhar_no: "",
+    aadhaarNumber: "",
     panCard: null,
-    signature: null,
     aadhaarCard: null,
   });
 
   // Policy Form States
   const [isOpenPolicyForm, setIsOpenPolicyForm] = useState(false);
   const [selectedUserForPolicy, setSelectedUserForPolicy] = useState(null);
+  const [userList, setUserList] = useState([]);
+  const [openPolicyModal, setOpenPolicyModal] = useState(false);
+  const [modalDataSource, setModalDataSource] = useState([]);
   const [policyFormData, setPolicyFormData] = useState({
     policyName: "",
     category: "",
@@ -66,6 +78,62 @@ const UserDashboardPage = () => {
     policyDoc: null,
   });
 
+  //-----------------API INTEGRATIONS------------------------
+
+  const { callApi: userRegistration } = useAPI(
+    API_ENDPOINTS?.ADMIN?.USER_REGISTRATION,
+    {
+      method: "POST",
+      onSuccess: (response) => {
+        showToast.success(
+          "Customer Registered Successfully!",
+          "New member account details have been saved."
+        );
+        setIsOpenForm(false);
+        AllUsersList();
+      },
+      onFailure: (error) => {
+        console.log("Registration Error:", error);
+        showToast.error(
+          "Registration Failed",
+          error?.response?.data?.message ||
+            error?.message ||
+            "Please check details and try again."
+        );
+      },
+    }
+  );
+
+  const { callApi: AllUsersList } = useAPI(API_ENDPOINTS?.ADMIN?.USERS_LIST, {
+    method: "GET",
+    onSuccess: (response) => {
+      console.log("resonse.result", response);
+      if (response && response.length > 0) {
+        setUserList(response);
+      } else {
+        setUserList([]);
+      }
+    },
+    onFailure: (error) => {
+      console.log("error", error);
+      setUserList([]);
+    },
+  });
+
+  const { callApi: viewPolicies } = useAPI(
+    API_ENDPOINTS?.ADMIN?.SHOW_POLICY_BY_CUSTOMER_ID,
+    {
+      method: "POST",
+      onSuccess: (response) => {
+        console.log("response.result", response);
+        setModalDataSource(response);
+      },
+      onFailure: () => {
+        setModalDataSource([]);
+      },
+    }
+  );
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -86,6 +154,11 @@ const UserDashboardPage = () => {
     setIsOpenForm(false);
   };
 
+  const handleSubitRegistration = (data) => {
+    console.log("data", data);
+    userRegistration(data);
+  };
+
   const handleEditButtonClick = (row) => {
     setSelectedUserForPolicy(row);
     setPolicyFormData((prev) => ({
@@ -100,58 +173,16 @@ const UserDashboardPage = () => {
     setSelectedUserForPolicy(null);
   };
 
-  const getStatusPill = (statusVal) => {
-    if (!statusVal) return null;
-    const lower = statusVal.toLowerCase().trim();
-
-    // 🟡 Pending (Yellow/Amber)
-    if (lower.includes("review") || lower === "pending" || lower === "new") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FBF5DF] text-[#C9A227]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#C9A227]"></span>
-          Pending
-        </span>
-      );
-    }
-
-    // 🟢 Verified (Green)
-    if (lower === "verified") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#EAF4EC] text-[#2F6F3E]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#2F6F3E]"></span>
-          Verified
-        </span>
-      );
-    }
-
-    // 🔵 Active (Blue)
-    if (lower === "active") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#EAF0F6] text-[#0B2545]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#0B2545]"></span>
-          Active
-        </span>
-      );
-    }
-
-    // 🟠 Expired (Orange)
-    if (lower === "expired" || lower === "error" || lower === "rejected" || lower === "failed" || lower === "inactive") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FFF4ED] text-[#B44C18]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#F76B15]"></span>
-          Expired
-        </span>
-      );
-    }
-
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#F2F4F7] text-[#344054]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#667085]"></span>
-        {statusVal}
-      </span>
-    );
+  const onPolicyCountClick = (row) => {
+    console.log("row", row);
+    setOpenPolicyModal(true);
+    viewPolicies({ customer_id: row?.customer_id });
   };
 
+  const handleCloseModal = () => {
+    setOpenPolicyModal(false);
+    console.log("call");
+  };
   // Dynamically attach the action cell row function to access local state handlers
   const tableHeaders = headers.map((header) => {
     if (header.accessor === "action") {
@@ -171,15 +202,37 @@ const UserDashboardPage = () => {
         ),
       };
     }
-    if (header.accessor === "status" || header.accessor === "verificationStatus") {
+    if (header.accessor === "policy_count") {
       return {
         ...header,
         type: "special",
-        specialCellRowFunction: (row) => getStatusPill(row?.status || row?.verificationStatus),
+        specialCellRowFunction: (row) => {
+          return (
+            <div className="flex flex-row gap-2 items-center justify-center">
+              <span>{row?.policy_count}</span>
+
+              {row?.policy_count > 0 && (
+                <span
+                  className="cursor-pointer text-blue-600 hover:text-blue-800"
+                  onClick={() => onPolicyCountClick(row)}
+                >
+                  <ArrowUpRight size={18} />
+                </span>
+              )}
+            </div>
+          );
+        },
       };
     }
     return header;
   });
+
+  // useEffect(() => {
+  //   // users();
+  // }, []);
+  useEffect(() => {
+    AllUsersList();
+  }, []);
 
   return (
     <div className="h-full w-full bg-transparent">
@@ -190,9 +243,7 @@ const UserDashboardPage = () => {
           formData={formData}
           onChange={setFormData}
           onCancel={handleCancelRegistration}
-          onSubmit={(data) => {
-            console.log("Registration Data:", data);
-          }}
+          onSubmit={handleSubitRegistration}
         />
       ) : isOpenPolicyForm ? (
         // Policy Registration Form
@@ -211,7 +262,9 @@ const UserDashboardPage = () => {
             if (cust) {
               setPolicyFormData((prev) => ({
                 ...prev,
-                members: [{ id: 1, name: cust.fullName, age: "", relation: "Self" }],
+                members: [
+                  { id: 1, name: cust.fullName, age: "", relation: "Self" },
+                ],
               }));
             } else {
               setPolicyFormData((prev) => ({
@@ -225,7 +278,9 @@ const UserDashboardPage = () => {
         // Dashboard / Table
         <div className="flex h-full w-full flex-col gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-1">
-            <h1 className="text-[26px] font-bold text-[#0B2545] font-sans tracking-tight">Register Member Directory</h1>
+            <h1 className="text-[26px] font-bold text-[#0B2545] font-sans tracking-tight">
+              Register Member Directory
+            </h1>
 
             <div className="flex items-center gap-3">
               <button
@@ -292,13 +347,24 @@ const UserDashboardPage = () => {
               <TableComponent
                 theme="light"
                 defaultHeaders={tableHeaders}
-                dataSource={users}
-                pagination={true}
+                dataSource={userList}
+                pagination={false}
                 pageSize={5}
                 pageSizeOptions={[5, 10, 25, { value: -1, label: "All" }]}
               />
             )}
           </div>
+          {openPolicyModal && (
+            <div>
+              <ModalComponent
+                title={"Policy Details"}
+                header={ModalHeader}
+                data={modalDataSource}
+                countName={"Policy Count"}
+                handleClose={handleCloseModal}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -306,4 +372,3 @@ const UserDashboardPage = () => {
 };
 
 export default UserDashboardPage;
-

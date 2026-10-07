@@ -8,8 +8,8 @@ export const DUMMY_DASHBOARD = {
   stats: {
     total_users: 248,
     active_policies: 183,
-    pending_documents: 12,
-    total_revenue: 482000,
+    pending_policies: 12,
+    expire_policies: 42,
   },
 
   // ── Line Chart — Monthly Signups ────────────────────────
