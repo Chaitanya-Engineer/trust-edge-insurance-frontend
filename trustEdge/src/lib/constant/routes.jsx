@@ -64,8 +64,12 @@ const AdminUsersDashboardPage = lazy(() =>
 const AdminPoliciesPage = lazy(() =>
   import("../../pages/admin/PolicyDashboardPage/PolicyDashboardPage")
 );
-// const AdminDocumentsPage = lazy(() => import("../pages/admin/DocumentsPage"));
-// const AdminReportsPage = lazy(() => import("../pages/admin/ReportsPage"));
+const AdminDocumentsPage = lazy(() =>
+  import("../../pages/admin/DocumentDashboardPage/DocumentDashboardPage")
+);
+const AdminReportsPage = lazy(() =>
+  import("../../pages/admin/ReportsPage/ReportsPage")
+);
 // const AdminSettingsPage = lazy(() => import("../pages/admin/SettingsPage"));
 
 // // User Pages
@@ -220,20 +224,20 @@ export const routes = [
     userRoles: [ROLES.ADMIN],
     layout: "admin",
   },
-  // {
-  //   name: "Admin Documents",
-  //   path: "/admin/documents",
-  //   component: AdminDocumentsPage,
-  //   userRoles: [ROLES.ADMIN],
-  //   layout: "admin",
-  // },
-  // {
-  //   name: "Admin Reports",
-  //   path: "/admin/reports",
-  //   component: AdminReportsPage,
-  //   userRoles: [ROLES.ADMIN],
-  //   layout: "admin",
-  // },
+  {
+    name: "Admin Documents",
+    path: "/admin/documents",
+    component: AdminDocumentsPage,
+    userRoles: [ROLES.ADMIN],
+    layout: "admin",
+  },
+  {
+    name: "Admin Reports",
+    path: "/admin/reports",
+    component: AdminReportsPage,
+    userRoles: [ROLES.ADMIN],
+    layout: "admin",
+  },
   // {
   //   name: "Admin Settings",
   //   path: "/admin/settings",

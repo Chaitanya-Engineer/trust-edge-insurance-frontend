@@ -23,6 +23,7 @@ import { TableVirtuoso } from "react-virtuoso";
 import TableHead from "./TableHead";
 import TableRow from "./TableRow";
 import TablePagination from "./TablePagination";
+import NoDataFound from "../NoDataFound/NoDataFound";
 import { checkObjectNotEmpty } from "../../../lib/constant/helperFunctions";
 import {
   tableComponentConstants,
@@ -172,8 +173,31 @@ const TRow = forwardRef(({ item, ...props }, ref) => {
 
 const TBody = forwardRef(({ children, ...rest }, ref) => {
   const {
-    context: { loading, dataLength, endReached, headerLength },
+    context: {
+      loading,
+      dataLength,
+      endReached,
+      headerLength,
+      isSelection,
+      isHash,
+      clickable,
+      collapsible,
+      error,
+      errorMessage,
+      onRetry,
+      emptyTitle,
+      emptyDescription,
+      emptyAction,
+      onClearFilters,
+    },
   } = rest;
+
+  const totalCols =
+    (headerLength || 0) +
+    (isSelection ? 1 : 0) +
+    (isHash ? 1 : 0) +
+    (clickable ? 1 : 0) +
+    (collapsible ? 1 : 0) || 10;
 
   return (
     <>
@@ -188,7 +212,7 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
               style={{
                 textAlign: "center",
               }}
-              colSpan={headerLength ? headerLength + 1 : 20}
+              colSpan={totalCols}
             >
               {/* <Loader height="5rem" width="5rem" /> */}
               Loading
@@ -204,7 +228,7 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
               style={{
                 textAlign: "center",
               }}
-              colSpan={headerLength ? headerLength + 1 : 20}
+              colSpan={totalCols}
             >
               {/* <Loader height="5rem" width="5rem" /> */}
               Loading
@@ -212,12 +236,12 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
           </Row>
         </TableBody>
       )}
-      {!loading && dataLength && (
+      {!loading && !error && dataLength && (
         <TableBody {...rest} ref={ref}>
           {children}
         </TableBody>
       )}
-      {!loading && !dataLength && (
+      {!loading && (!dataLength || error) && (
         <TableBody
           style={{
             width: "100%",
@@ -227,11 +251,21 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
             <TableCell
               style={{
                 textAlign: "center",
+                borderBottom: "none",
+                padding: "24px 16px",
+                backgroundColor: "transparent",
               }}
-              colSpan={headerLength ? headerLength + 1 : 10}
+              colSpan={totalCols}
             >
-              {/* <NoDataFound /> */}
-              NO DATA FOUND
+              <NoDataFound
+                title={emptyTitle}
+                description={emptyDescription}
+                isError={!!error}
+                errorMessage={errorMessage}
+                onRetry={onRetry}
+                onClearFilters={onClearFilters}
+                action={emptyAction}
+              />
             </TableCell>
           </Row>
         </TableBody>
@@ -278,6 +312,13 @@ const TableComponent = forwardRef(
       pageSizeOptions = [5, 10, 25, { value: -1, label: "All" }],
       collapsible = false,
       renderExpandedRow = null,
+      error = false,
+      errorMessage = "",
+      onRetry = null,
+      emptyTitle = "",
+      emptyDescription = "",
+      emptyAction = null,
+      onClearFilters = null,
     },
     ref
   ) => {
@@ -729,6 +770,17 @@ const TableComponent = forwardRef(
               displayData,
               clickable: onRowClick ? true : false,
               id,
+              isSelection,
+              isHash,
+              error,
+              errorMessage,
+              onRetry,
+              emptyTitle,
+              emptyDescription,
+              emptyAction,
+              onClearFilters:
+                onClearFilters ||
+                (selectedFilters?.length > 0 ? () => clearFilterValues() : null),
             }}
           />
         </Box>

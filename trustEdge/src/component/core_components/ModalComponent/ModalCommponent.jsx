@@ -38,6 +38,8 @@ const ModalComponent = ({
             defaultHeaders={header}
             dataSource={data}
             dataSourceSize={setDataSourceSize}
+            emptyTitle="No Policies Found"
+            emptyDescription="No registered policies were found for this customer."
           />
         </div>
       </div>

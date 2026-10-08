@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
 import { routes } from "../lib/constant/routes";
 import { ROLES } from "../lib/constant/roles";
@@ -44,25 +44,25 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      {/* <Suspense fallback={<PageLoader />}> */}
-      <Routes>
-        {routes.map((route) => {
-          const Component = route.component;
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {routes.map((route) => {
+            const Component = route.component;
 
-          return (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={
-                <LayoutWrapper layout={route.layout}>
-                  <Component />
-                </LayoutWrapper>
-              }
-            />
-          );
-        })}
-      </Routes>
-      {/* </Suspense> */}
+            return (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={
+                  <LayoutWrapper layout={route.layout}>
+                    <Component />
+                  </LayoutWrapper>
+                }
+              />
+            );
+          })}
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

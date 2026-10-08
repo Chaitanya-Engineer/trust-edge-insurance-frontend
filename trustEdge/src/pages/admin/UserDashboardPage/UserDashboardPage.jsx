@@ -104,7 +104,7 @@ const UserDashboardPage = () => {
     }
   );
 
-  const { callApi: AllUsersList } = useAPI(API_ENDPOINTS?.ADMIN?.USERS_LIST, {
+  const { callApi: AllUsersList, error: usersApiError } = useAPI(API_ENDPOINTS?.ADMIN?.USERS_LIST, {
     method: "GET",
     onSuccess: (response) => {
       console.log("resonse.result", response);
@@ -351,6 +351,13 @@ const UserDashboardPage = () => {
                 pagination={false}
                 pageSize={5}
                 pageSizeOptions={[5, 10, 25, { value: -1, label: "All" }]}
+                error={usersApiError}
+                errorMessage={
+                  usersApiError?.response?.data?.message ||
+                  usersApiError?.message ||
+                  "Unable to connect to the server. Please check your network and retry."
+                }
+                onRetry={AllUsersList}
               />
             )}
           </div>
