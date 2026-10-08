@@ -25,7 +25,6 @@ export default function LineChart({
   height = "300px",
   smooth = true,
 }) {
-
   // ECharts option object
   const option = {
     tooltip: {
@@ -43,7 +42,7 @@ export default function LineChart({
     },
     xAxis: {
       type: "category",
-      data: data.map((d) => d[xKey]),
+      data: data?.map((d) => d[xKey]),
       axisLine: { lineStyle: { color: "#E8ECEB" } },
       axisLabel: { color: "#718096", fontSize: 11 },
       axisTick: { show: false },
@@ -57,7 +56,7 @@ export default function LineChart({
     },
     series: [
       {
-        data: data.map((d) => d[yKey]),
+        data: data?.map((d) => d[yKey]),
         type: "line",
         smooth: smooth,
         symbol: "circle",
@@ -67,10 +66,13 @@ export default function LineChart({
         areaStyle: {
           color: {
             type: "linear",
-            x: 0, y: 0, x2: 0, y2: 1,
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
             colorStops: [
-              { offset: 0, color: color + "20" },  // 12% opacity
-              { offset: 1, color: color + "00" },  // 0% opacity
+              { offset: 0, color: color + "20" }, // 12% opacity
+              { offset: 1, color: color + "00" }, // 0% opacity
             ],
           },
         },

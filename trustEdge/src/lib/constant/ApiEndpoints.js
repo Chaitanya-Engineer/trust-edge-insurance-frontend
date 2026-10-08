@@ -6,11 +6,13 @@ export const API_ENDPOINTS = {
     ME: "/api/auth/me/",
   },
   ADMIN: {
+    ADMIN_DASHBOARD:"api/dashboard/",
     USER_REGISTRATION: "/api/customers/register/",
     USERS_LIST: "/api/customers/",
     CUSTOMER_DROPDOWN: "/api/customers/dropdown/",
     CREATE_POLICY: "/api/policies/create_and_add_policy/",
     POLICIES_LIST: "/api/policies/",
-    SHOW_POLICY_BY_CUSTOMER_ID : "/api/policies/view_policy_by_customer/"
+    SHOW_POLICY_BY_CUSTOMER_ID : "/api/policies/view_policy_by_customer/",
+    SHOW_PENDING_POLICY_USER: "/api/dashboard/pending-policies/"
   },
 };
