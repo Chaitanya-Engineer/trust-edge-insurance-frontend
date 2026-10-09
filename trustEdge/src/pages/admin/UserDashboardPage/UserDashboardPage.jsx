@@ -1,20 +1,24 @@
-import React, { useEffect } from "react";
-import CustomizeBtn from "../../../component/core_components/CustomizeBtn/CustomizeBtn";
+import React, { useEffect, useState, useMemo } from "react";
 import TableComponent from "../../../component/core_components/TableComponent/TableComponent";
-import { getStatusPill, headers, ModalHeader, users } from "./constant";
-import { useState } from "react";
+import { getStatusPill, headers, users } from "./constant";
 import LogoSpinner from "../../../component/core_components/LogoSpinner/LogoSpinner";
 import UserRegistrationForm from "./helperComponent/UserRegistrationForm";
 import PolicyRegistrationForm from "./helperComponent/PolicyRegistrationForm";
+import CustomDateRangePicker from "../../../component/core_components/DatePicker/CustomDateRangePicker";
+import CustomerPolicyDetailsView from "../../../component/shared/CustomerPolicyDetailsView/CustomerPolicyDetailsView";
 import { ArrowUpRight, Edit } from "lucide-react";
 import { API_ENDPOINTS } from "../../../lib/constant/ApiEndpoints";
 import { useAPI } from "../../../lib/hooks/useAPI";
 import { showToast } from "../../../component/core_components/CustomToast/CustomToast";
-import ModalComponent from "../../../component/core_components/ModalComponent/ModalCommponent";
 
 const UserDashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isOpenForm, setIsOpenForm] = useState(false);
+  const [selectedCustomerForView, setSelectedCustomerForView] = useState(null);
+  const [dateRange, setDateRange] = useState({
+    startDate: "",
+    endDate: "",
+  });
   const [formData, setFormData] = useState({
     name: "",
     fullName: "",
@@ -42,8 +46,6 @@ const UserDashboardPage = () => {
   const [isOpenPolicyForm, setIsOpenPolicyForm] = useState(false);
   const [selectedUserForPolicy, setSelectedUserForPolicy] = useState(null);
   const [userList, setUserList] = useState([]);
-  const [openPolicyModal, setOpenPolicyModal] = useState(false);
-  const [modalDataSource, setModalDataSource] = useState([]);
   const [policyFormData, setPolicyFormData] = useState({
     policyName: "",
     category: "",
@@ -120,20 +122,6 @@ const UserDashboardPage = () => {
     },
   });
 
-  const { callApi: viewPolicies } = useAPI(
-    API_ENDPOINTS?.ADMIN?.SHOW_POLICY_BY_CUSTOMER_ID,
-    {
-      method: "POST",
-      onSuccess: (response) => {
-        console.log("response.result", response);
-        setModalDataSource(response);
-      },
-      onFailure: () => {
-        setModalDataSource([]);
-      },
-    }
-  );
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -172,19 +160,30 @@ const UserDashboardPage = () => {
     setIsOpenPolicyForm(false);
     setSelectedUserForPolicy(null);
   };
-
-  const onPolicyCountClick = (row) => {
-    console.log("row", row);
-    setOpenPolicyModal(true);
-    viewPolicies({ customer_id: row?.customer_id });
-  };
-
-  const handleCloseModal = () => {
-    setOpenPolicyModal(false);
-    console.log("call");
-  };
-  // Dynamically attach the action cell row function to access local state handlers
+  // Dynamically attach interactive cell row functions to access local state handlers
   const tableHeaders = headers.map((header) => {
+    if (header.accessor === "customer_id") {
+      return {
+        ...header,
+        type: "special",
+        specialCellRowFunction: (row) => (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedCustomerForView({
+                customerId: row.customer_id,
+                initialTab: "personal",
+              });
+            }}
+            className="font-bold text-[#0B2545] hover:text-[#2F6F3E] hover:underline underline-offset-2 transition-colors cursor-pointer border-none bg-transparent p-0 text-xs text-left"
+            title="View Customer Profile & Policies"
+          >
+            {row.customer_id}
+          </button>
+        ),
+      };
+    }
     if (header.accessor === "action") {
       return {
         ...header,
@@ -209,15 +208,25 @@ const UserDashboardPage = () => {
         specialCellRowFunction: (row) => {
           return (
             <div className="flex flex-row gap-2 items-center justify-center">
-              <span>{row?.policy_count}</span>
+              <span className="font-semibold text-[#17212B]">
+                {row?.policy_count || 0}
+              </span>
 
-              {row?.policy_count > 0 && (
-                <span
-                  className="cursor-pointer text-blue-600 hover:text-blue-800"
-                  onClick={() => onPolicyCountClick(row)}
+              {Number(row?.policy_count) > 0 && (
+                <button
+                  type="button"
+                  className="p-1 hover:bg-[#EAF0F6] rounded text-[#0B2545] hover:text-[#2F6F3E] transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedCustomerForView({
+                      customerId: row.customer_id,
+                      initialTab: "policies",
+                    });
+                  }}
+                  title="View Policies for Customer"
                 >
-                  <ArrowUpRight size={18} />
-                </span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </button>
               )}
             </div>
           );
@@ -227,16 +236,35 @@ const UserDashboardPage = () => {
     return header;
   });
 
-  // useEffect(() => {
-  //   // users();
-  // }, []);
+  const filteredUserList = useMemo(() => {
+    if (!dateRange.startDate && !dateRange.endDate) {
+      return userList;
+    }
+    return userList.filter((user) => {
+      const userDate = user?.created_at || user?.date_of_birth;
+      if (!userDate) return true;
+      const d = String(userDate).split("T")[0];
+      if (dateRange.startDate && d < dateRange.startDate) return false;
+      if (dateRange.endDate && d > dateRange.endDate) return false;
+      return true;
+    });
+  }, [userList, dateRange]);
+
   useEffect(() => {
     AllUsersList();
   }, []);
 
   return (
     <div className="h-full w-full bg-transparent">
-      {isOpenForm ? (
+      {selectedCustomerForView ? (
+        // Shared Customer & Policy Details View
+        <CustomerPolicyDetailsView
+          customerId={selectedCustomerForView.customerId}
+          initialTab={selectedCustomerForView.initialTab || "personal"}
+          onBack={() => setSelectedCustomerForView(null)}
+          originatingDirectory="users"
+        />
+      ) : isOpenForm ? (
         // Registration Form
         <UserRegistrationForm
           onClickBack={handleClickBack}
@@ -277,12 +305,12 @@ const UserDashboardPage = () => {
       ) : (
         // Dashboard / Table
         <div className="flex h-full w-full flex-col gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-1">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-1">
             <h1 className="text-[26px] font-bold text-[#0B2545] font-sans tracking-tight">
               Register Member Directory
             </h1>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 disabled={false}
@@ -323,7 +351,7 @@ const UserDashboardPage = () => {
                   setSelectedUserForPolicy(null);
                   setIsOpenPolicyForm(true);
                 }}
-                className="rounded-[9px] bg-white border border-[#0B2545] text-[#0B2545] hover:bg-[#EAF0F6] px-4 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer"
+                className="h-[38px] flex items-center justify-center rounded-[8px] bg-white border border-[#0B2545] text-[#0B2545] hover:bg-[#EAF0F6] px-4 text-[13px] font-semibold transition-colors cursor-pointer shrink-0"
               >
                 Add New Policy
               </button>
@@ -331,10 +359,23 @@ const UserDashboardPage = () => {
                 type="button"
                 disabled={false}
                 onClick={onNewRegisrationFormClick}
-                className="rounded-[9px] bg-[#0B2545] text-white hover:bg-[#0E2F52] px-4 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer"
+                className="h-[38px] flex items-center justify-center rounded-[8px] bg-[#0B2545] text-white hover:bg-[#0E2F52] px-4 text-[13px] font-semibold transition-colors cursor-pointer shrink-0"
               >
                 New Registration
               </button>
+
+              <div className="w-48 sm:w-56 shrink-0">
+                <CustomDateRangePicker
+                  startDate={dateRange.startDate}
+                  endDate={dateRange.endDate}
+                  onChange={({ startDate, endDate }) => {
+                    setDateRange({ startDate, endDate });
+                  }}
+                  onApply={({ startDate, endDate }) => {
+                    setDateRange({ startDate, endDate });
+                  }}
+                />
+              </div>
             </div>
           </div>
 
@@ -347,24 +388,16 @@ const UserDashboardPage = () => {
               <TableComponent
                 theme="light"
                 defaultHeaders={tableHeaders}
-                dataSource={userList}
+                dataSource={filteredUserList}
                 pagination={false}
                 pageSize={5}
                 pageSizeOptions={[5, 10, 25, { value: -1, label: "All" }]}
+                emptyTitle="No Registered Members Found"
+                emptyDescription="There are currently no registered customers in the system."
+                onRetry={AllUsersList}
               />
             )}
           </div>
-          {openPolicyModal && (
-            <div>
-              <ModalComponent
-                title={"Policy Details"}
-                header={ModalHeader}
-                data={modalDataSource}
-                countName={"Policy Count"}
-                handleClose={handleCloseModal}
-              />
-            </div>
-          )}
         </div>
       )}
     </div>

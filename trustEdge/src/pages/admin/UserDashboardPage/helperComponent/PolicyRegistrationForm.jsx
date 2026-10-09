@@ -1013,9 +1013,11 @@ const PolicyRegistrationForm = ({
                 </label>
                 <DocumentUpload
                   accept={["jpg", "jpeg", "png", "pdf"]}
-                  maxSize={10}
-                  placeholder="Upload RC Document"
+                  maxSizeKB={1024}
+                  documentCategory="Policy Document"
+                  placeholder="Upload RC Document (Max 1 MB)"
                   onChange={(file) => handleInputChange("rcFile", file)}
+                  value={formData.rcFile}
                   width="w-full"
                   error={errors.rcFile}
                 />
@@ -1027,9 +1029,11 @@ const PolicyRegistrationForm = ({
                 </label>
                 <DocumentUpload
                   accept={["jpg", "jpeg", "png", "pdf"]}
-                  maxSize={10}
-                  placeholder="Upload DL Document"
+                  maxSizeKB={1024}
+                  documentCategory="Policy Document"
+                  placeholder="Upload DL Document (Max 1 MB)"
                   onChange={(file) => handleInputChange("dlFile", file)}
+                  value={formData.dlFile}
                   width="w-full"
                   error={errors.dlFile}
                 />
@@ -1042,9 +1046,11 @@ const PolicyRegistrationForm = ({
                   </label>
                   <DocumentUpload
                     accept={["jpg", "jpeg", "png", "pdf"]}
-                    maxSize={10}
-                    placeholder="Upload Previous Year Policy"
+                    maxSizeKB={1024}
+                    documentCategory="Policy Document"
+                    placeholder="Upload Previous Year Policy (Max 1 MB)"
                     onChange={(file) => handleInputChange("previousPolicyFile", file)}
+                    value={formData.previousPolicyFile}
                     width="w-full"
                     error={errors.previousPolicyFile}
                   />
@@ -1065,9 +1071,11 @@ const PolicyRegistrationForm = ({
                     </label>
                     <DocumentUpload
                       accept={["pdf", "jpg", "jpeg", "png"]}
-                      maxSize={10}
-                      placeholder="Upload GST"
+                      maxSizeKB={1024}
+                      documentCategory="Policy Document"
+                      placeholder="Upload GST (Max 1 MB)"
                       onChange={(file) => handleInputChange("gstFile", file)}
+                      value={formData.gstFile}
                       width="w-full"
                       error={errors.gstFile}
                     />
@@ -1079,9 +1087,11 @@ const PolicyRegistrationForm = ({
                     </label>
                     <DocumentUpload
                       accept={["pdf", "jpg", "jpeg", "png"]}
-                      maxSize={10}
-                      placeholder="Upload Gumasta"
+                      maxSizeKB={1024}
+                      documentCategory="Policy Document"
+                      placeholder="Upload Gumasta (Max 1 MB)"
                       onChange={(file) => handleInputChange("gumastaFile", file)}
+                      value={formData.gumastaFile}
                       width="w-full"
                       error={errors.gumastaFile}
                     />
@@ -1093,9 +1103,11 @@ const PolicyRegistrationForm = ({
                     </label>
                     <DocumentUpload
                       accept={["pdf", "jpg", "jpeg", "png"]}
-                      maxSize={10}
-                      placeholder="Upload Udyam"
+                      maxSizeKB={1024}
+                      documentCategory="Policy Document"
+                      placeholder="Upload Udyam (Max 1 MB)"
                       onChange={(file) => handleInputChange("udyamFile", file)}
+                      value={formData.udyamFile}
                       width="w-full"
                       error={errors.udyamFile}
                     />
@@ -1461,14 +1473,16 @@ const PolicyRegistrationForm = ({
 
           <DocumentUpload
             accept={["pdf", "jpg", "jpeg", "png"]}
-            maxSize={25}
-            placeholder="Drag and drop or browse to upload Policy PDF"
+            maxSizeKB={1024}
+            documentCategory="Policy Document"
+            placeholder="Drag and drop or browse to upload Policy PDF (Max 1 MB)"
             onChange={(file) => {
               handleInputChange("policyDoc", file);
               if (!file && errors.policyDoc) {
                 setErrors((prev) => ({ ...prev, policyDoc: null }));
               }
             }}
+            value={formData.policyDoc}
             width="w-full"
             error={errors.policyDoc}
           />

@@ -499,10 +499,12 @@ const UserRegistrationForm = ({
 
               <DocumentUpload
                 accept={["jpg", "jpeg", "png", "pdf"]}
-                maxSize={5}
+                maxSizeKB={320}
+                documentCategory="KYC Document"
                 multiple={false}
-                placeholder="Upload PAN card"
+                placeholder="Upload PAN card (Max 320 KB)"
                 onChange={(file) => handleInputChange("panCard", file)}
+                value={formData?.panCard}
                 width="w-full"
                 error={errors.panCard}
               />
@@ -516,10 +518,12 @@ const UserRegistrationForm = ({
 
               <DocumentUpload
                 accept={["jpg", "jpeg", "png", "pdf"]}
-                maxSize={5}
+                maxSizeKB={320}
+                documentCategory="KYC Document"
                 multiple={false}
-                placeholder="Upload Aadhaar card"
+                placeholder="Upload Aadhaar card (Max 320 KB)"
                 onChange={(file) => handleInputChange("aadhaarCard", file)}
+                value={formData?.aadhaarCard}
                 width="w-full"
                 error={errors.aadhaarCard}
               />

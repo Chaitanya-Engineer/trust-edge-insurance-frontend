@@ -46,12 +46,7 @@ const TableRow = memo(
 
     const { LABLED_BY, LABLE_ID, TEXT_ELLIPSIS, COPIED } = tableRowConstants;
 
-    const [isCellHover, setIsCellHover] = useState({
-      cell: null,
-      hover: false,
-    });
-
-    const displayWidth = useMemo(() => window.innerWidth, [window.innerWidth]);
+    const displayWidth = typeof window !== "undefined" ? window.innerWidth : 1024;
 
     const isItemSelected = isSelected(row);
     const labelId = `${LABLE_ID}${index}`;
@@ -93,27 +88,29 @@ const TableRow = memo(
         case STRING:
           return cell ? (
             cell?.length !== 0 ? (
-              isCopy &&
-                ((isCellHover.hover && isCellHover.cell === accessor) ||
-                  displayWidth < 768) ? (
-                <div
-                  className={clsx(`flex items-center`, {
-                    "gap-1": displayWidth > 768,
-                    "justify-between": displayWidth < 768,
-                  })}
-                >
-                  {cell}
-                  <CopyIcon
-                    fill="var(--title-txt)"
+              isCopy ? (
+                <div className="group/cell flex items-center justify-between gap-1.5 w-full min-w-0">
+                  <span className="truncate flex-1">{cell}</span>
+                  <button
+                    type="button"
+                    className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded hover:bg-black/5 text-[#667085] hover:text-[#0B2545] opacity-0 group-hover/cell:opacity-100 max-md:opacity-100 transition-opacity cursor-pointer border-none bg-transparent p-0"
+                    title={`Copy ${column?.title || "text"}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigator.clipboard
-                        .writeText(cell)
-                        .then(() => {
-                          showToast.success("Copied to Clipboard!", `${column?.title || "Text"}: ${cell}`);
-                        });
+                      navigator.clipboard.writeText(cell).then(() => {
+                        showToast.success(
+                          "Copied to Clipboard!",
+                          `${column?.title || "Text"}: ${cell}`
+                        );
+                      });
                     }}
-                  />
+                  >
+                    <CopyIcon
+                      fill="currentColor"
+                      width="14px"
+                      height="16px"
+                    />
+                  </button>
                 </div>
               ) : (
                 cell
@@ -256,18 +253,13 @@ const TableRow = memo(
                     tableComponentConstants?.ROW_TXT_THEME_COLOR[theme] ??
                     "#707070",
                 }}
-                onMouseEnter={() =>
-                  setIsCellHover({ cell: accessor, hover: true })
-                }
-                onMouseLeave={() =>
-                  setIsCellHover({ cell: null, hover: false })
-                }
                 key={accessor}
                 onClick={() => {
-                  onCellClick({
-                    headerKey: key,
-                    data: row,
-                  });
+                  onCellClick &&
+                    onCellClick({
+                      headerKey: key,
+                      data: row,
+                    });
                 }}
                 className={clsx(
                   "!select-none !py-4 !font-['Lexend'] !text-[13px] !font-medium text-[#344054] 2k:!py-3.5 2k:!text-xl 4k:!py-6 4k:!text-3xl",
@@ -278,9 +270,12 @@ const TableRow = memo(
                   }
                 )}
                 sx={{
-                  ...specialCellStyleFunction(row, accessor),
+                  ...(specialCellStyleFunction ? specialCellStyleFunction(row, accessor) : {}),
                   ...(width && !text_wrap ? TEXT_ELLIPSIS(width) : {}),
                   textAlign: text_align,
+                  width: width || undefined,
+                  minWidth: width || undefined,
+                  maxWidth: width || undefined,
                 }}
               >
                 {getColumnData(key, row)}

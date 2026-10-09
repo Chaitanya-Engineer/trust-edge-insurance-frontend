@@ -24,7 +24,11 @@ export const useAPI = (url, options = {}) => {
         request.headers["Authorization"] = `Bearer ${token}`;
       }
       request.headers["ngrok-skip-browser-warning"] = "true";
-      request.headers["Content-Type"] = "application/json";
+      if (request.data instanceof FormData) {
+        delete request.headers["Content-Type"];
+      } else if (!request.headers["Content-Type"]) {
+        request.headers["Content-Type"] = "application/json";
+      }
       return request;
     },
     (error) => Promise.reject(error)

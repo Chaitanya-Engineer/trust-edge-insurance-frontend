@@ -17,13 +17,13 @@ export const tableComponentConstants = {
     dark: '#32314f',
   },
   DEFAULT_ROW_COLOR: '#ffffff',
-  HEAD_COLOR: '#ffffff',
+  HEAD_COLOR: '#163a5a',
   HEAD_THEME_COLOR: {
-    light: '#F4F7F6',
+    light: '#163a5a',
     dark: '#0E2F52',
   },
   HEAD_TXT_THEME_COLOR: {
-    light: '#667085',
+    light: '#FFFFFF',
     dark: '#F5F2FF',
   },
   ROW_TXT_THEME_COLOR: {
@@ -72,7 +72,7 @@ export const tableComponentStyleConstants = {
     };
   },
 
-  TABLE_STYLE: (tableCellClasses, theme = 'light', tableLayout = 'auto') => {
+  TABLE_STYLE: (tableCellClasses, tableLayout = 'auto', theme = 'light') => {
     return {
       [`& .${tableCellClasses.root}`]: {
         borderBottom: "1px solid #E5E9E7",

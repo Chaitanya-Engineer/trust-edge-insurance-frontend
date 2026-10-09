@@ -29,6 +29,7 @@ import {
   tableComponentStyleConstants,
   tableDataTypes,
 } from "./Constant";
+import NoDataFound from "../NoDataFound/NoDataFound";
 
 const filterValues = {};
 
@@ -172,7 +173,18 @@ const TRow = forwardRef(({ item, ...props }, ref) => {
 
 const TBody = forwardRef(({ children, ...rest }, ref) => {
   const {
-    context: { loading, dataLength, endReached, headerLength },
+    context: {
+      loading,
+      dataLength,
+      endReached,
+      headerLength,
+      emptyTitle,
+      emptyDescription,
+      onClearFilters,
+      onRetry,
+      emptyAction,
+      noDataComponent,
+    },
   } = rest;
 
   return (
@@ -227,11 +239,21 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
             <TableCell
               style={{
                 textAlign: "center",
+                padding: "20px 16px",
+                borderBottom: "none",
               }}
-              colSpan={headerLength ? headerLength + 1 : 10}
+              colSpan={headerLength ? headerLength + 1 : 20}
             >
-              {/* <NoDataFound /> */}
-              NO DATA FOUND
+              {noDataComponent ? (
+                noDataComponent
+              ) : (
+                <NoDataFound
+                  title={emptyTitle}
+                  description={emptyDescription}
+                  onRetry={onRetry}
+                  action={emptyAction}
+                />
+              )}
             </TableCell>
           </Row>
         </TableBody>
@@ -278,6 +300,12 @@ const TableComponent = forwardRef(
       pageSizeOptions = [5, 10, 25, { value: -1, label: "All" }],
       collapsible = false,
       renderExpandedRow = null,
+      emptyTitle,
+      emptyDescription,
+      onClearFilters,
+      onRetry,
+      emptyAction,
+      noDataComponent,
     },
     ref
   ) => {
@@ -699,7 +727,11 @@ const TableComponent = forwardRef(
             endReached={endReached}
             computeItemKey={(index, item) => item?.[id] ?? item?.id ?? index}
             increaseViewportBy={{ top: 600, bottom: 600 }}
-            style={{ height: "100%", minHeight: "400px", background: "var(--calender-bg)" }}
+            style={{
+              height: "100%",
+              minHeight: displayData?.length > 0 ? "400px" : "500px",
+              background: "var(--calender-bg)",
+            }}
             components={{
               Scroller,
               Table: TBL,
@@ -729,6 +761,12 @@ const TableComponent = forwardRef(
               displayData,
               clickable: onRowClick ? true : false,
               id,
+              emptyTitle,
+              emptyDescription,
+              onClearFilters,
+              onRetry,
+              emptyAction,
+              noDataComponent,
             }}
           />
         </Box>

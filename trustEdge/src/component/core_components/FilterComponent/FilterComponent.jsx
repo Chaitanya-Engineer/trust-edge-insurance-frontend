@@ -175,14 +175,22 @@ function FilterComponent(
         <>
           <Tooltip title={TOOLTIP_TITLE}>
             <IconButton
-              className="!rounded-[5px] !p-0 opacity-90"
+              className="!rounded-[5px] !p-0.5 transition-all"
               sx={{
-                ...ICON_BUTTON(
-                  selected,
-                  selected.length
-                    ? "var(--btn-primary)"
-                    : "var(--secondary-icon)"
-                ),
+                color: selected.length
+                  ? "#2A843C !important"
+                  : popupState.isOpen
+                  ? "#2A843C !important"
+                  : "rgba(255, 255, 255, 0.9) !important",
+                backgroundColor: selected.length
+                  ? "#FFFFFF !important"
+                  : popupState.isOpen
+                  ? "#FFFFFF !important"
+                  : "transparent !important",
+                "&:hover": {
+                  color: "#FFFFFF !important",
+                  backgroundColor: "rgba(255, 255, 255, 0.2) !important",
+                },
               }}
               {...bindTrigger(popupState)}
             >
@@ -208,7 +216,7 @@ function FilterComponent(
               <div
                 className={`relative flex items-center w-[215px] h-9 border rounded-[6px] bg-white transition-all duration-150 ${
                   searchFocused
-                    ? "border-[#0B2545] ring-2 ring-[rgba(11,37,69,0.08)]"
+                    ? "border-[#0F4C3A] ring-2 ring-[rgba(15,76,58,0.12)]"
                     : "border-[#DADCE0]"
                 } 2k:h-12 2k:w-72 4k:h-14 4k:w-80`}
               >
@@ -352,7 +360,7 @@ function FilterComponent(
                 </button>
                 <button
                   type="button"
-                  className="rounded-[6px] bg-[#0B2545] px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#0E2F52] transition-colors cursor-pointer"
+                  className="rounded-[6px] bg-[#0F4C3A] px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#0A3629] transition-colors cursor-pointer"
                   onClick={() => {
                     let finalSelected = selected;
                     if (query && selected.length === 0 && query.includes(",")) {
