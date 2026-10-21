@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
     ME: "/api/auth/me/",
   },
   ADMIN: {
+    ADMIN_DASHBOARD:"api/dashboard/",
     USER_REGISTRATION: "/api/customers/register/",
     USERS_LIST: "/api/customers/",
     USERS_LIST_DROPDOWN: "/api/customers/dropdown/",
@@ -15,6 +16,7 @@ export const API_ENDPOINTS = {
     POLICIES_LIST: "/api/policies/",
     SHOW_POLICY_BY_CUSTOMER_ID : "/api/policies/view_policy_by_customer/",
     VIEW_AND_UPDATE_POLICY : "/api/policies/detail/",
-    EXPIRED_POLICIES: "/api/dashboard/policy-alerts/"
+    EXPIRED_POLICIES: "/api/dashboard/policy-alerts/",
+    SHOW_PENDING_POLICY_USER: "/api/dashboard/pending-policies/"
   },
 };
