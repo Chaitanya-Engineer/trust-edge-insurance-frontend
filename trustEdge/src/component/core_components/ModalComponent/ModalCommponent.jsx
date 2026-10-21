@@ -35,6 +35,8 @@ const ModalComponent = ({
         <div className="max-h-[65vh] overflow-auto p-6">
           <TableComponent
             fixed
+            isHash={false}
+            isCheckbox={false}
             defaultHeaders={header}
             dataSource={data}
             dataSourceSize={setDataSourceSize}

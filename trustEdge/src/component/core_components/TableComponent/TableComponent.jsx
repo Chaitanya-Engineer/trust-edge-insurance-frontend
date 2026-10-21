@@ -30,6 +30,7 @@ import {
   tableDataTypes,
 } from "./Constant";
 import NoDataFound from "../NoDataFound/NoDataFound";
+import LogoSpinner from "../LogoSpinner/LogoSpinner";
 
 const filterValues = {};
 
@@ -125,8 +126,10 @@ const TRow = forwardRef(({ item, ...props }, ref) => {
 
   const rowBgColor =
     index % 2 === 0
-      ? tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[0] ?? "var(--calender-bg)"
-      : tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[1] ?? "var(--calender-bg)";
+      ? tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[0] ??
+        "var(--calender-bg)"
+      : tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[1] ??
+        "var(--calender-bg)";
 
   return (
     <>
@@ -180,7 +183,6 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
       headerLength,
       emptyTitle,
       emptyDescription,
-      onClearFilters,
       onRetry,
       emptyAction,
       noDataComponent,
@@ -203,7 +205,7 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
               colSpan={headerLength ? headerLength + 1 : 20}
             >
               {/* <Loader height="5rem" width="5rem" /> */}
-              Loading
+              <LogoSpinner type="spin" size="md" />
             </TableCell>
           </Row>
         </TableBody>
@@ -219,7 +221,7 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
               colSpan={headerLength ? headerLength + 1 : 20}
             >
               {/* <Loader height="5rem" width="5rem" /> */}
-              Loading
+              <LogoSpinner type="spin" size="md" />
             </TableCell>
           </Row>
         </TableBody>
@@ -273,9 +275,9 @@ const TableComponent = forwardRef(
       defaultSelected,
       radioChecked: propRadioChecked,
       headColor = tableComponentConstants.HEAD_THEME_COLOR ??
-      tableComponentConstants.HEAD_COLOR,
+        tableComponentConstants.HEAD_COLOR,
       dataSource: propDataSource,
-      selection = () => { },
+      selection = () => {},
       // tableStyle = {},
       isCheckbox = true,
       isHash = false,
@@ -283,14 +285,14 @@ const TableComponent = forwardRef(
       isRadio = false,
       borderRadius = "4px",
       onRowClick,
-      specialCellStyleFunction = () => { },
+      specialCellStyleFunction = () => {},
       className = "",
       loading = false,
       endReached,
       fixed = false,
       auto = false,
       stickyColumns = false,
-      onCellClick = () => { },
+      onCellClick = () => {},
       pagination = false,
       page: propPage = 1,
       pageSize: propPageSize = 5,
@@ -339,7 +341,8 @@ const TableComponent = forwardRef(
     }, [propPageSize]);
 
     const isPaginationActive = pagination;
-    const totalRecords = propTotalCount !== undefined ? propTotalCount : (dataSource?.length || 0);
+    const totalRecords =
+      propTotalCount !== undefined ? propTotalCount : dataSource?.length || 0;
 
     const displayData = useMemo(() => {
       if (!isPaginationActive || propOnPageChange) {
@@ -351,7 +354,14 @@ const TableComponent = forwardRef(
       const start = (page - 1) * pageSize;
       const end = start + pageSize;
       return dataSource.slice(start, end);
-    }, [dataSource, isPaginationActive, page, pageSize, totalRecords, propOnPageChange]);
+    }, [
+      dataSource,
+      isPaginationActive,
+      page,
+      pageSize,
+      totalRecords,
+      propOnPageChange,
+    ]);
 
     const handlePageChange = (newPage) => {
       setPage(newPage);

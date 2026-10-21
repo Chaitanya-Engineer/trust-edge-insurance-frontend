@@ -12,9 +12,6 @@ import {
   validateEmail,
   validatePanNumber,
   validateAadhaarNumber,
-  validateAddress,
-  validateCity,
-  validateState,
   validatePinCode,
 } from "../../../../lib/validation";
 
@@ -26,75 +23,20 @@ const UserRegistrationForm = ({
   onClickBack,
   onSubmit,
   onCancel,
+  isEditMode = false,
+  customerId,
 }) => {
   const [errors, setErrors] = useState({});
 
   const handleInputChange = (field, value) => {
-    onChange?.((prev) => {
-      const updated = { ...prev, [field]: value };
-      // Synchronize database schema names and camelCase aliases
-      if (field === "name" || field === "fullName") {
-        updated.name = value;
-        updated.fullName = value;
-      }
-      if (field === "date_of_birth" || field === "dob") {
-        updated.date_of_birth = value;
-        updated.dob = value;
-      }
-      if (field === "phone" || field === "mobileNumber") {
-        updated.phone = value;
-        updated.mobileNumber = value;
-      }
-      if (field === "email" || field === "emailAddress") {
-        updated.email = value;
-        updated.emailAddress = value;
-      }
-      if (field === "pan_no" || field === "panNumber") {
-        updated.pan_no = value;
-        updated.panNumber = value;
-      }
-      if (field === "aadhar_no" || field === "aadhaarNumber") {
-        updated.aadhar_no = value;
-        updated.aadhaarNumber = value;
-      }
-      if (field === "pincode" || field === "pinCode") {
-        updated.pincode = value;
-        updated.pinCode = value;
-      }
-      return updated;
-    });
+    onChange?.((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
 
     setErrors((prev) => {
       const next = { ...prev };
       delete next[field];
-      if (field === "name" || field === "fullName") {
-        delete next.name;
-        delete next.fullName;
-      }
-      if (field === "date_of_birth" || field === "dob") {
-        delete next.date_of_birth;
-        delete next.dob;
-      }
-      if (field === "phone" || field === "mobileNumber") {
-        delete next.phone;
-        delete next.mobileNumber;
-      }
-      if (field === "email" || field === "emailAddress") {
-        delete next.email;
-        delete next.emailAddress;
-      }
-      if (field === "pan_no" || field === "panNumber") {
-        delete next.pan_no;
-        delete next.panNumber;
-      }
-      if (field === "aadhar_no" || field === "aadhaarNumber") {
-        delete next.aadhar_no;
-        delete next.aadhaarNumber;
-      }
-      if (field === "pincode" || field === "pinCode") {
-        delete next.pincode;
-        delete next.pinCode;
-      }
       return next;
     });
   };
@@ -103,81 +45,35 @@ const UserRegistrationForm = ({
     const newErrors = {};
 
     // Full Name (DB: name)
-    const fullNameError = validateFullName(formData?.name || formData?.fullName);
-    if (fullNameError) {
-      newErrors.name = fullNameError;
-      newErrors.fullName = fullNameError;
-    }
+    const fullNameError = validateFullName(formData?.name);
+    if (fullNameError) newErrors.name = fullNameError;
 
-    // Date of Birth (DB: date_of_birth)
-    const dobError = validateDob(formData?.date_of_birth || formData?.dob);
-    if (dobError) {
-      newErrors.date_of_birth = dobError;
-      newErrors.dob = dobError;
-    }
+    const dobError = validateDob(formData?.date_of_birth);
+    if (dobError) newErrors.date_of_birth = dobError;
 
-    // Gender (DB: gender)
-    if (!formData?.gender) {
-      newErrors.gender = "Gender is required";
-    }
+    const mobileError = validateMobileNumber(formData?.phone);
+    if (mobileError) newErrors.phone = mobileError;
 
-    // Mobile Number (DB: phone)
-    const mobileError = validateMobileNumber(formData?.phone || formData?.mobileNumber);
-    if (mobileError) {
-      newErrors.phone = mobileError;
-      newErrors.mobileNumber = mobileError;
-    }
+    const emailError = validateEmail(formData?.email);
+    if (emailError) newErrors.email = emailError;
 
-    // Email Address (DB: email)
-    const emailError = validateEmail(formData?.email || formData?.emailAddress);
-    if (emailError) {
-      newErrors.email = emailError;
-      newErrors.emailAddress = emailError;
-    }
+    const panError = validatePanNumber(formData?.pan_no);
+    if (panError) newErrors.pan_no = panError;
 
-    // PAN Number (DB: pan_no)
-    const panError = validatePanNumber(formData?.pan_no || formData?.panNumber);
-    if (panError) {
-      newErrors.pan_no = panError;
-      newErrors.panNumber = panError;
-    }
+    const aadhaarError = validateAadhaarNumber(formData?.aadhar_no);
+    if (aadhaarError) newErrors.aadhar_no = aadhaarError;
 
-    // Aadhaar Number (DB: aadhar_no)
-    const aadhaarError = validateAadhaarNumber(formData?.aadhar_no || formData?.aadhaarNumber);
-    if (aadhaarError) {
-      newErrors.aadhar_no = aadhaarError;
-      newErrors.aadhaarNumber = aadhaarError;
-    }
-
-    // Address (DB: address)
-    const addressError = validateAddress(formData?.address);
-    if (addressError) newErrors.address = addressError;
-
-    // City (DB: city)
-    const cityError = validateCity(formData?.city);
-    if (cityError) newErrors.city = cityError;
-
-    // State (DB: state)
-    const stateError = validateState(formData?.state);
-    if (stateError) newErrors.state = stateError;
-
-    // PIN Code (DB: pincode)
-    const pinCodeError = validatePinCode(formData?.pincode || formData?.pinCode);
-    if (pinCodeError) {
-      newErrors.pincode = pinCodeError;
-      newErrors.pinCode = pinCodeError;
-    }
+    const pinCodeError = validatePinCode(formData?.pincode);
+    if (pinCodeError) newErrors.pincode = pinCodeError;
 
     // PAN Card Upload
-    if (!formData?.panCard) {
+    if (!isEditMode && !formData?.panCard) {
       newErrors.panCard = "Please upload PAN Card document";
     }
 
-    // Aadhaar Card Upload
-    if (!formData?.aadhaarCard) {
+    if (!isEditMode && !formData?.aadhaarCard) {
       newErrors.aadhaarCard = "Please upload Aadhaar Card document";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -205,15 +101,23 @@ const UserRegistrationForm = ({
           e.preventDefault();
           if (validateForm()) {
             const payload = {
-              ...formData,
-              name: formData?.name || formData?.fullName || "",
-              date_of_birth: formData?.date_of_birth || formData?.dob || "",
-              phone: formData?.phone || formData?.mobileNumber || "",
-              email: formData?.email || formData?.emailAddress || "",
-              pan_no: formData?.pan_no || formData?.panNumber || "",
-              aadhar_no: formData?.aadhar_no || formData?.aadhaarNumber || "",
-              pincode: formData?.pincode || formData?.pinCode || "",
+              name: formData?.name,
+              date_of_birth: formData?.date_of_birth,
+              gender: formData?.gender,
+              phone: formData?.phone,
+              email: formData?.email,
+              address: formData?.address,
+              city: formData?.city,
+              state: formData?.state,
+              pincode: formData?.pincode,
+              pan_no: formData?.pan_no,
+              aadhar_no: formData?.aadhar_no,
+              gst_no: formData?.gst_no,
+              panCard: formData?.panCard,
+              aadhaarCard: formData?.aadhaarCard,
+              customer_id: customerId,
             };
+
             onSubmit?.(payload);
           } else {
             showToast.error(
@@ -221,7 +125,9 @@ const UserRegistrationForm = ({
               "Please fill out all mandatory fields correctly."
             );
             setTimeout(() => {
-              const firstErrorField = document.querySelector(".text-[#B42318], .text-red-500");
+              const firstErrorField = document.querySelector(
+                ".text-[#B42318], .text-red-500"
+              );
               if (firstErrorField) {
                 firstErrorField.scrollIntoView({
                   behavior: "smooth",
@@ -247,15 +153,17 @@ const UserRegistrationForm = ({
               </label>
 
               <CustomInput
-                value={formData?.name ?? formData?.fullName ?? ""}
+                value={formData?.name ?? ""}
                 onChange={(value) => handleInputChange("name", value)}
                 width="w-full"
                 type="text"
                 placeholder="Enter full name"
-                error={!!(errors.name || errors.fullName)}
+                error={!!errors.name}
               />
               {(errors.name || errors.fullName) && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.name || errors.fullName}</p>
+                <p className="mt-1.5 text-xs text-red-500">
+                  {errors.name || errors.fullName}
+                </p>
               )}
             </div>
 
@@ -270,10 +178,12 @@ const UserRegistrationForm = ({
                 onChange={(value) => handleInputChange("date_of_birth", value)}
                 max={new Date().toISOString().split("T")[0]}
                 width="w-full"
-                error={!!(errors.date_of_birth || errors.dob)}
+                error={!!(errors?.date_of_birth || errors?.dob)}
               />
-              {(errors.date_of_birth || errors.dob) && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.date_of_birth || errors.dob}</p>
+              {(errors?.date_of_birth || errors?.dob) && (
+                <p className="mt-1.5 text-xs text-red-500">
+                  {errors?.date_of_birth || errors?.dob}
+                </p>
               )}
             </div>
 
@@ -474,9 +384,9 @@ const UserRegistrationForm = ({
                   error={!!(errors.pincode || errors.pinCode)}
                   maxLength={6}
                 />
-                {(errors.pincode || errors.pinCode) && (
+                {(errors?.pincode || errors?.pinCode) && (
                   <p className="mt-1.5 text-xs text-red-500">
-                    {errors.pincode || errors.pinCode}
+                    {errors?.pincode || errors?.pinCode}
                   </p>
                 )}
               </div>
@@ -485,6 +395,34 @@ const UserRegistrationForm = ({
         </div>
 
         {/* ================= SECTION 3: Upload Documents ================= */}
+        {isEditMode && formData?.documents?.length > 0 && (
+          <div className="mb-6">
+            <h3 className="mb-3 text-sm font-semibold text-[#344054]">
+              Existing Documents
+            </h3>
+
+            <div className="space-y-2">
+              {formData?.documents.map((document) => (
+                <div
+                  key={document?.id}
+                  className="flex items-center justify-between rounded-lg border border-[#E5E9E7] p-3"
+                >
+                  <span className="text-sm text-[#344054]">
+                    {document?.document_type}
+                  </span>
+                  <a
+                    href={document?.file_url} // ← direct public URL
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-blue-600 hover:underline"
+                  >
+                    View Document
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="mb-8 mt-8">
           <h2 className="mb-6 text-lg font-bold text-[#0B2545] border-b border-[#E5E9E7] pb-2 sm:text-xl">
             Upload Documents
@@ -506,7 +444,7 @@ const UserRegistrationForm = ({
                 onChange={(file) => handleInputChange("panCard", file)}
                 value={formData?.panCard}
                 width="w-full"
-                error={errors.panCard}
+                error={errors?.panCard}
               />
             </div>
 
@@ -525,7 +463,7 @@ const UserRegistrationForm = ({
                 onChange={(file) => handleInputChange("aadhaarCard", file)}
                 value={formData?.aadhaarCard}
                 width="w-full"
-                error={errors.aadhaarCard}
+                error={errors?.aadhaarCard}
               />
             </div>
           </div>
@@ -543,9 +481,11 @@ const UserRegistrationForm = ({
 
           <button
             type="submit"
-            className="w-full rounded-[9px] bg-[#0B2545] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0E2F52] sm:w-auto cursor-pointer"
+            className="w-full rounded-[9px] bg-[#0B2545] px-6 py-2.5
+             text-sm font-semibold text-white transition
+             hover:bg-[#0E2F52] sm:w-auto cursor-pointer"
           >
-            Submit
+            {isEditMode ? "Update Customer" : "Register Customer"}
           </button>
         </div>
       </form>

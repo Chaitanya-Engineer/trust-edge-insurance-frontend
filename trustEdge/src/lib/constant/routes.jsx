@@ -58,6 +58,9 @@ const AdminUsersDashboardPage = lazy(() =>
 const AdminPoliciesPage = lazy(() =>
   import("../../pages/admin/PolicyDashboardPage/PolicyDashboardPage")
 );
+const ExpiredNotificationReport = lazy(() =>
+  import("../../pages/admin/ExpiryNotificationReport/ExpiryNotificationReport")
+);
 
 export const routes = [
   // ── Public Routes ─────────────────────────────────────────
@@ -160,6 +163,13 @@ export const routes = [
     name: "Admin Policies",
     path: "/admin/policies",
     component: AdminPoliciesPage,
+    userRoles: [ROLES.ADMIN],
+    layout: "admin",
+  },
+  {
+    name: "Expiry Notification Report",
+    path: "/admin/expiry-notification",
+    component: ExpiredNotificationReport,
     userRoles: [ROLES.ADMIN],
     layout: "admin",
   },
