@@ -13,9 +13,12 @@ import {
   AlertCircle,
   ExternalLink,
 } from "lucide-react";
-import { mockSupportInfo, mockCustomerProfile } from "./constant";
+import { mockSupportInfo } from "./constant";
+import { useCustomer } from "./CustomerContext";
+import CustomerAuthGuard from "./CustomerAuthGuard";
 
-export default function CustomerSupportPage() {
+function SupportContent() {
+  const { customerProfile } = useCustomer();
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
   const toggleFaq = (index) => {
@@ -82,7 +85,7 @@ export default function CustomerSupportPage() {
         </div>
 
         <div className="mt-4 pt-3.5 border-t border-white/10 text-xs text-slate-300 leading-relaxed">
-          Assigned to manage policy renewals, endorsements, claims coordination, and coverage questions for {mockCustomerProfile.name}.
+          Assigned to manage policy renewals, endorsements, claims coordination, and coverage questions for {customerProfile?.name || "your account"}.
         </div>
       </div>
 
@@ -265,5 +268,13 @@ export default function CustomerSupportPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CustomerSupportPage() {
+  return (
+    <CustomerAuthGuard>
+      <SupportContent />
+    </CustomerAuthGuard>
   );
 }

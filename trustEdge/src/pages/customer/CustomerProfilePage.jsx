@@ -7,57 +7,106 @@ import {
   Phone,
   Calendar,
   MapPin,
-  CreditCard,
   Eye,
   EyeOff,
   Headphones,
   ArrowRight,
-  Info,
   CheckCircle2,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
-import { mockCustomerProfile } from "./constant";
+import { useCustomer } from "./CustomerContext";
+import CustomerAuthGuard from "./CustomerAuthGuard";
 
-export default function CustomerProfilePage() {
+function ProfileContent() {
+  const { customerProfile, isLoadingProfile, profileError, refreshProfile } =
+    useCustomer();
+
   const [showPan, setShowPan] = useState(false);
   const [showAadhaar, setShowAadhaar] = useState(false);
 
-  // Masking helpers
+  // Masking helpers with safe empty handling
   const maskPan = (pan) => {
-    if (!pan) return "—";
-    return showPan ? pan : `••••••${pan.slice(-4)}`;
+    if (!pan || String(pan).trim() === "") return "Not provided";
+    return showPan ? pan : `••••••${String(pan).slice(-4)}`;
   };
 
   const maskAadhaar = (aadhaar) => {
-    if (!aadhaar) return "—";
-    return showAadhaar ? aadhaar : `•••• •••• ${aadhaar.slice(-4)}`;
+    if (!aadhaar || String(aadhaar).trim() === "") return "Not provided";
+    return showAadhaar ? aadhaar : `•••• •••• ${String(aadhaar).slice(-4)}`;
   };
+
+  const getInitials = (name) => {
+    if (!name) return "TE";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const customerName = customerProfile?.name || "Valued Customer";
+  const customerId = customerProfile?.customer_id || customerProfile?.customerId || "—";
+  const memberSince = customerProfile?.created_at
+    ? new Date(customerProfile.created_at).toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "Verified Member";
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fadeIn max-w-5xl mx-auto">
       {/* ── Page Header ───────────────────────────────────────────── */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#0B2545] tracking-tight">
-          Customer Profile
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Review your verified personal details and communication address registered with TrustEdge.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#0B2545] tracking-tight">
+            Customer Profile
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Review your verified personal details and communication address registered with TrustEdge.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={refreshProfile}
+          disabled={isLoadingProfile}
+          className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold shadow-2xs transition-colors"
+          title="Refresh verified profile"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isLoadingProfile ? "animate-spin text-[#C9A227]" : ""}`} />
+          <span>Sync Profile</span>
+        </button>
       </div>
 
-      {/* ── Profile Top Identity Card (Properly Styled Customer Logo & Name) ── */}
+      {profileError && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-3 text-amber-800 text-xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>{profileError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={refreshProfile}
+            className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* ── Profile Top Identity Card ─────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5">
         <div className="flex items-center gap-3.5 sm:gap-4">
           <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-[#0B2545] to-[#123E68] text-white flex items-center justify-center font-bold text-base sm:text-lg shadow-xs shrink-0 ring-4 ring-slate-100">
-            {mockCustomerProfile.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")}
+            {getInitials(customerName)}
           </div>
 
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-lg sm:text-2xl font-bold text-[#0B2545]">
-                {mockCustomerProfile.name}
+                {customerName}
               </h2>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -68,9 +117,9 @@ export default function CustomerProfilePage() {
             <p className="text-xs text-slate-500 mt-1">
               Customer ID:{" "}
               <span className="font-mono font-bold text-slate-800">
-                {mockCustomerProfile.customer_id}
+                {customerId}
               </span>{" "}
-              • Registered Member Since: {mockCustomerProfile.created_at}
+              • Registered: {memberSince}
             </p>
           </div>
         </div>
@@ -99,7 +148,7 @@ export default function CustomerProfilePage() {
               Full Name
             </span>
             <span className="font-bold text-slate-800 mt-1 block">
-              {mockCustomerProfile.name}
+              {customerProfile?.name || "—"}
             </span>
           </div>
 
@@ -109,7 +158,7 @@ export default function CustomerProfilePage() {
               Date of Birth
             </span>
             <span className="font-semibold text-slate-800 mt-1 block">
-              {mockCustomerProfile.date_of_birth}
+              {customerProfile?.date_of_birth || "—"}
             </span>
           </div>
 
@@ -118,8 +167,8 @@ export default function CustomerProfilePage() {
             <span className="text-xs text-slate-500 block font-medium">
               Gender
             </span>
-            <span className="font-semibold text-slate-800 mt-1 block">
-              {mockCustomerProfile.gender}
+            <span className="font-semibold text-slate-800 mt-1 block capitalize">
+              {customerProfile?.gender || "—"}
             </span>
           </div>
 
@@ -129,7 +178,7 @@ export default function CustomerProfilePage() {
               Mobile Number
             </span>
             <span className="font-semibold text-slate-800 mt-1 block font-mono">
-              {mockCustomerProfile.phone}
+              {customerProfile?.phone || "—"}
             </span>
           </div>
 
@@ -139,7 +188,7 @@ export default function CustomerProfilePage() {
               Email Address
             </span>
             <span className="font-semibold text-slate-800 mt-1 block font-mono text-xs sm:text-sm truncate">
-              {mockCustomerProfile.email}
+              {customerProfile?.email || "—"}
             </span>
           </div>
 
@@ -149,21 +198,23 @@ export default function CustomerProfilePage() {
               <span className="text-xs text-slate-500 font-medium">
                 PAN Card Number
               </span>
-              <button
-                type="button"
-                onClick={() => setShowPan(!showPan)}
-                className="text-slate-500 hover:text-[#0B2545] text-xs font-semibold flex items-center gap-1 transition-colors"
-              >
-                {showPan ? (
-                  <EyeOff className="w-3.5 h-3.5" />
-                ) : (
-                  <Eye className="w-3.5 h-3.5 text-blue-600" />
-                )}
-                <span>{showPan ? "Hide" : "Reveal"}</span>
-              </button>
+              {customerProfile?.pan_no && (
+                <button
+                  type="button"
+                  onClick={() => setShowPan(!showPan)}
+                  className="text-slate-500 hover:text-[#0B2545] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  {showPan ? (
+                    <EyeOff className="w-3.5 h-3.5" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5 text-blue-600" />
+                  )}
+                  <span>{showPan ? "Hide" : "Reveal"}</span>
+                </button>
+              )}
             </div>
             <span className="font-mono font-bold text-slate-800 mt-1 block">
-              {maskPan(mockCustomerProfile.pan_no)}
+              {maskPan(customerProfile?.pan_no)}
             </span>
           </div>
 
@@ -173,21 +224,23 @@ export default function CustomerProfilePage() {
               <span className="text-xs text-slate-500 font-medium">
                 Aadhaar Number
               </span>
-              <button
-                type="button"
-                onClick={() => setShowAadhaar(!showAadhaar)}
-                className="text-slate-500 hover:text-[#0B2545] text-xs font-semibold flex items-center gap-1 transition-colors"
-              >
-                {showAadhaar ? (
-                  <EyeOff className="w-3.5 h-3.5" />
-                ) : (
-                  <Eye className="w-3.5 h-3.5 text-blue-600" />
-                )}
-                <span>{showAadhaar ? "Hide" : "Reveal"}</span>
-              </button>
+              {customerProfile?.aadhar_no && (
+                <button
+                  type="button"
+                  onClick={() => setShowAadhaar(!showAadhaar)}
+                  className="text-slate-500 hover:text-[#0B2545] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  {showAadhaar ? (
+                    <EyeOff className="w-3.5 h-3.5" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5 text-blue-600" />
+                  )}
+                  <span>{showAadhaar ? "Hide" : "Reveal"}</span>
+                </button>
+              )}
             </div>
             <span className="font-mono font-bold text-slate-800 mt-1 block">
-              {maskAadhaar(mockCustomerProfile.aadhar_no)}
+              {maskAadhaar(customerProfile?.aadhar_no)}
             </span>
           </div>
         </div>
@@ -216,7 +269,7 @@ export default function CustomerProfilePage() {
               Residential Address
             </span>
             <span className="font-semibold text-slate-800 mt-1 block">
-              {mockCustomerProfile.address}
+              {customerProfile?.address || "—"}
             </span>
           </div>
 
@@ -226,7 +279,7 @@ export default function CustomerProfilePage() {
               City
             </span>
             <span className="font-semibold text-slate-800 mt-1 block">
-              {mockCustomerProfile.city}
+              {customerProfile?.city || "—"}
             </span>
           </div>
 
@@ -236,7 +289,7 @@ export default function CustomerProfilePage() {
               State
             </span>
             <span className="font-semibold text-slate-800 mt-1 block">
-              {mockCustomerProfile.state}
+              {customerProfile?.state || "—"}
             </span>
           </div>
 
@@ -246,7 +299,7 @@ export default function CustomerProfilePage() {
               Pincode
             </span>
             <span className="font-mono font-bold text-[#0B2545] mt-1 block">
-              {mockCustomerProfile.pincode}
+              {customerProfile?.pincode || "—"}
             </span>
           </div>
         </div>
@@ -277,5 +330,13 @@ export default function CustomerProfilePage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function CustomerProfilePage() {
+  return (
+    <CustomerAuthGuard>
+      <ProfileContent />
+    </CustomerAuthGuard>
   );
 }
