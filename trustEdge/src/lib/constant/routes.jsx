@@ -62,6 +62,20 @@ const ExpiredNotificationReport = lazy(() =>
   import("../../pages/admin/ExpiryNotificationReport/ExpiryNotificationReport")
 );
 
+// Customer Pages
+const CustomerDashboardPage = lazy(() =>
+  import("../../pages/customer/CustomerDashboardPage")
+);
+const MyPolicyPage = lazy(() =>
+  import("../../pages/customer/MyPolicyPage")
+);
+const CustomerProfilePage = lazy(() =>
+  import("../../pages/customer/CustomerProfilePage")
+);
+const CustomerSupportPage = lazy(() =>
+  import("../../pages/customer/CustomerSupportPage")
+);
+
 export const routes = [
   // ── Public Routes ─────────────────────────────────────────
   {
@@ -172,5 +186,42 @@ export const routes = [
     component: ExpiredNotificationReport,
     userRoles: [ROLES.ADMIN],
     layout: "admin",
+  },
+
+  // ── Customer Portal Routes (Direct Access / No Login Required) ──
+  {
+    name: "Customer Dashboard",
+    path: "/customer",
+    component: CustomerDashboardPage,
+    userRoles: [ROLES.ALL],
+    layout: "customer",
+  },
+  {
+    name: "Customer Dashboard",
+    path: "/customer/dashboard",
+    component: CustomerDashboardPage,
+    userRoles: [ROLES.ALL],
+    layout: "customer",
+  },
+  {
+    name: "My Policy",
+    path: "/customer/policies",
+    component: MyPolicyPage,
+    userRoles: [ROLES.ALL],
+    layout: "customer",
+  },
+  {
+    name: "Customer Profile",
+    path: "/customer/profile",
+    component: CustomerProfilePage,
+    userRoles: [ROLES.ALL],
+    layout: "customer",
+  },
+  {
+    name: "Customer Support",
+    path: "/customer/support",
+    component: CustomerSupportPage,
+    userRoles: [ROLES.ALL],
+    layout: "customer",
   },
 ];

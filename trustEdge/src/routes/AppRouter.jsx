@@ -17,6 +17,7 @@ function ScrollToTop() {
 
 import PublicLayout from "../component/layout/PublicLayout";
 import AdminLayout from "../component/layout/AdminLayout";
+import CustomerLayout from "../component/layout/CustomerLayout";
 // import UserLayout from "../component/layout/UserLayout";
 
 // ─── Loading Spinner ──────────────────────────────────────────
@@ -34,7 +35,8 @@ function PageLoader() {
 // ─── Layout Wrapper ───────────────────────────────────────────
 function LayoutWrapper({ layout, children }) {
   if (layout === "admin") return <AdminLayout>{children}</AdminLayout>;
-  //   if (layout === "user") return <UserLayout>{children}</UserLayout>;
+  if (layout === "customer" || layout === "user")
+    return <CustomerLayout>{children}</CustomerLayout>;
   if (layout === "auth") return <>{children}</>; // no header/footer
   return <PublicLayout>{children}</PublicLayout>; // default
 }
