@@ -139,12 +139,12 @@ export default function CustomerLayout({ children }) {
 
   const renderDropdownMenu = (alignClass = "right-0") => (
     <div
-      className={`absolute ${alignClass} top-full mt-2 w-64 sm:w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150`}
+      className={`absolute ${alignClass} top-full mt-2 w-64 sm:w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150`}
       role="menu"
       aria-orientation="vertical"
     >
       {/* Header Info */}
-      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/60 rounded-t-2xl">
+      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/70">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#0B2545] to-[#123E68] text-white flex items-center justify-center font-bold text-sm ring-2 ring-slate-100 shadow-xs flex-shrink-0">
             {customerInitials}
@@ -158,85 +158,10 @@ export default function CustomerLayout({ children }) {
             </p>
           </div>
         </div>
-        <div className="mt-2.5 flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 border border-emerald-100 rounded-md w-fit">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wide">
-            Verified Customer
-          </span>
-        </div>
-      </div>
-
-      {/* Menu Actions */}
-      <div className="p-1.5 space-y-0.5">
-        <button
-          type="button"
-          onClick={() => {
-            setDropdownOpen(false);
-            navigate("/customer/profile");
-          }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-slate-700 hover:text-[#0B2545] hover:bg-[#EAF0F6]/70 transition-all cursor-pointer group"
-          role="menuitem"
-        >
-          <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-white text-slate-600 group-hover:text-[#0B2545] flex items-center justify-center transition-colors shadow-2xs">
-            <User className="w-4 h-4" />
-          </div>
-          <div className="flex-1">
-            <p className="text-xs font-semibold text-slate-800 group-hover:text-[#0B2545]">
-              My Profile
-            </p>
-            <p className="text-[11px] text-slate-500">
-              Personal details & KYC status
-            </p>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setDropdownOpen(false);
-            navigate("/customer/policies");
-          }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-slate-700 hover:text-[#0B2545] hover:bg-[#EAF0F6]/70 transition-all cursor-pointer group"
-          role="menuitem"
-        >
-          <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-white text-slate-600 group-hover:text-[#0B2545] flex items-center justify-center transition-colors shadow-2xs">
-            <ShieldCheck className="w-4 h-4" />
-          </div>
-          <div className="flex-1">
-            <p className="text-xs font-semibold text-slate-800 group-hover:text-[#0B2545]">
-              My Policies
-            </p>
-            <p className="text-[11px] text-slate-500">
-              Active insurance & documents
-            </p>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setDropdownOpen(false);
-            navigate("/customer/support");
-          }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-slate-700 hover:text-[#0B2545] hover:bg-[#EAF0F6]/70 transition-all cursor-pointer group"
-          role="menuitem"
-        >
-          <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-white text-slate-600 group-hover:text-[#0B2545] flex items-center justify-center transition-colors shadow-2xs">
-            <Headphones className="w-4 h-4" />
-          </div>
-          <div className="flex-1">
-            <p className="text-xs font-semibold text-slate-800 group-hover:text-[#0B2545]">
-              Help & Support
-            </p>
-            <p className="text-[11px] text-slate-500">
-              24/7 dedicated helpline
-            </p>
-          </div>
-        </button>
       </div>
 
       {/* Logout Action */}
-      <div className="p-1.5 pt-1 border-t border-slate-100">
+      <div className="p-1.5 bg-white">
         <button
           type="button"
           onClick={handleLogout}
@@ -248,9 +173,6 @@ export default function CustomerLayout({ children }) {
           </div>
           <div className="flex-1">
             <p className="text-xs font-bold text-rose-600">Log Out</p>
-            <p className="text-[11px] text-rose-400">
-              End your customer session
-            </p>
           </div>
         </button>
       </div>

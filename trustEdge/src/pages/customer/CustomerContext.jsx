@@ -35,6 +35,52 @@ export const normalizeProfile = (raw) => {
   };
 };
 
+export const calculatePolicyTenure = (issueDate, expiryDate) => {
+  if (!issueDate || !expiryDate || issueDate === "—" || expiryDate === "—") return null;
+  const start = new Date(issueDate);
+  const end = new Date(expiryDate);
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) return null;
+
+  // Align standard inclusive insurance end-date (+1 day to end)
+  const adjustedEnd = new Date(end.getTime());
+  adjustedEnd.setDate(adjustedEnd.getDate() + 1);
+
+  let years = adjustedEnd.getFullYear() - start.getFullYear();
+  let months = adjustedEnd.getMonth() - start.getMonth();
+  let days = adjustedEnd.getDate() - start.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    const prevMonthDays = new Date(adjustedEnd.getFullYear(), adjustedEnd.getMonth(), 0).getDate();
+    days += prevMonthDays;
+  }
+
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  // If days close to a full month boundary
+  if (days >= 28) {
+    months += 1;
+    days = 0;
+    if (months >= 12) {
+      years += 1;
+      months -= 12;
+    }
+  } else if (days <= 2 && (years > 0 || months > 0)) {
+    // Negligible 1-2 day boundary variance
+    days = 0;
+  }
+
+  const parts = [];
+  if (years > 0) parts.push(`${years} ${years === 1 ? "Year" : "Years"}`);
+  if (months > 0) parts.push(`${months} ${months === 1 ? "Month" : "Months"}`);
+  if (days > 0) parts.push(`${days} ${days === 1 ? "Day" : "Days"}`);
+
+  return parts.length > 0 ? parts.join(" ") : "1 Year";
+};
+
 export const normalizePolicy = (p) => {
   if (!p) return null;
   const policyId = p.policy_id || p.policyId || p.id || "—";
@@ -44,6 +90,21 @@ export const normalizePolicy = (p) => {
   const pdfUrl = p.policy_pdf_url || p.policyPdfUrl || null;
   const desc = p.policy_description || {};
   const pay = p.payment_details || {};
+
+  const issueDate = p.issue_date || p.issueDate || "—";
+  const expiryDate = p.expiry_date || p.expiryDate || "—";
+  const calculatedTenure = calculatePolicyTenure(issueDate, expiryDate);
+
+  // Dynamic tenure priority: calculated from dates > backend tenure if non-generic > default
+  const dynamicTenure =
+    calculatedTenure ||
+    p.policy_tenure ||
+    p.tenure ||
+    (desc.policy_tenure && desc.policy_tenure !== "1 Year" ? desc.policy_tenure : null) ||
+    (desc.policy_term && desc.policy_term !== "1 Year" ? desc.policy_term : null) ||
+    desc.policy_tenure ||
+    desc.policy_term ||
+    "1 Year";
 
   return {
     id: p.id || policyId,
@@ -55,17 +116,25 @@ export const normalizePolicy = (p) => {
     sub_type: p.sub_type || p.subType || "Standard",
     subType: p.sub_type || p.subType || "Standard",
     status: p.status || "Active",
-    issue_date: p.issue_date || p.issueDate || "—",
-    issueDate: p.issue_date || p.issueDate || "—",
-    expiry_date: p.expiry_date || p.expiryDate || "—",
-    expiryDate: p.expiry_date || p.expiryDate || "—",
+    issue_date: issueDate,
+    issueDate: issueDate,
+    expiry_date: expiryDate,
+    expiryDate: expiryDate,
+    policy_tenure: dynamicTenure,
+    policyTenure: dynamicTenure,
+    tenure: dynamicTenure,
     price: rawPrice ? String(rawPrice) : "0",
     premium_amount: rawPrice,
     formattedPremium,
     policy_pdf_url: pdfUrl,
-    policyPdfUrl: pdfUrl,
-    policy_description: desc,
+    policy_description: {
+      ...desc,
+      policy_tenure: dynamicTenure,
+      policy_term: dynamicTenure,
+    },
     payment_details: pay,
+    customer_name: p.customer_name || p.customerName || p.policyHolderName || "",
+    customer_id: p.customer_id || p.customerId || "",
     isRenewalUpcoming:
       p.status === "Renewal Due" ||
       Boolean(p.isRenewalUpcoming) ||

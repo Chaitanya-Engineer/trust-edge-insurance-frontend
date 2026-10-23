@@ -5,28 +5,22 @@ import {
   ShieldCheck,
   FileText,
   Download,
-  ExternalLink,
   Calendar,
   CreditCard,
   HeartPulse,
   Car,
   Shield,
-  CheckCircle2,
-  Clock,
+  Building2,
   PhoneCall,
   MessageCircle,
-  User,
-  Users,
-  Building2,
-  AlertCircle,
-  HelpCircle,
 } from "lucide-react";
 import { mockSupportInfo } from "./constant";
+import { calculatePolicyTenure } from "./CustomerContext";
 
 export default function MyPolicyView({ policy, onBack }) {
   if (!policy) return null;
 
-  const isActive = policy.status === "Active";
+  const isActive = policy.status?.toLowerCase() === "active";
 
   const getCategoryConfig = (category) => {
     const cat = String(category || "").toLowerCase();
@@ -56,6 +50,31 @@ export default function MyPolicyView({ policy, onBack }) {
   const desc = policy.policy_description || {};
   const payment = policy.payment_details || {};
 
+  const customerName =
+    policy.customer_name ||
+    policy.customerName ||
+    policy.policyHolderName ||
+    "Valued Customer";
+
+  const effectiveTenure =
+    policy.policy_tenure ||
+    policy.tenure ||
+    calculatePolicyTenure(policy.issue_date, policy.expiry_date) ||
+    desc.policy_tenure ||
+    desc.policy_term ||
+    "1 Year";
+
+  const hasHealthMembers =
+    Array.isArray(desc.members) && desc.members.length > 0;
+
+  const hasVehicleInfo = Boolean(
+    desc.vehicle_name || desc.vehicleName || desc.vehicle_number || desc.vehicleNumber
+  );
+
+  const hasLifeInfo = Boolean(
+    desc.sum_assured || desc.sumAssured || desc.nominee || desc.nominee_name
+  );
+
   return (
     <div className="space-y-6 sm:space-y-8 animate-fadeIn max-w-5xl mx-auto">
       {/* ── Top Navigation Bar ─────────────────────────────────────── */}
@@ -63,7 +82,7 @@ export default function MyPolicyView({ policy, onBack }) {
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-[#0B2545] font-semibold text-xs sm:text-sm border border-slate-200 shadow-2xs transition-colors"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-[#0B2545] font-semibold text-xs sm:text-sm border border-slate-200 shadow-2xs transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to All Policies</span>
@@ -120,7 +139,12 @@ export default function MyPolicyView({ policy, onBack }) {
 
               <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1.5">
                 <Building2 className="w-4 h-4 text-slate-400" />
-                <span>Insurer Partner: <strong className="text-slate-800">{desc.insurer || "TrustEdge Insurance"}</strong></span>
+                <span>
+                  Insurer Partner:{" "}
+                  <strong className="text-slate-800">
+                    {desc.insurer || "TrustEdge Insurance Partner"}
+                  </strong>
+                </span>
               </p>
             </div>
           </div>
@@ -128,14 +152,16 @@ export default function MyPolicyView({ policy, onBack }) {
           <div className="flex flex-col sm:flex-row md:flex-col items-start md:items-end justify-between border-t md:border-t-0 pt-4 md:pt-0 border-slate-100 gap-1 shrink-0">
             <span className="text-xs text-slate-400 font-medium">Annual Premium</span>
             <span className="text-2xl sm:text-3xl font-extrabold text-[#0B2545]">
-              ₹{policy.price}
+              {policy.formattedPremium || `₹${policy.price}`}
             </span>
-            <span className="text-[11px] text-emerald-600 font-medium">Active Coverage Schedule</span>
+            <span className="text-[11px] text-emerald-600 font-medium">
+              Registered Schedule
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ── Section 1: Key Policy Schedule (Readable Card Grid) ────── */}
+      {/* ── Section 1: Key Policy Schedule ─────────────────────────── */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
         <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -152,9 +178,9 @@ export default function MyPolicyView({ policy, onBack }) {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-sm">
           {/* Issue Date */}
           <div className="bg-slate-50/70 p-3 sm:p-3.5 rounded-xl border border-slate-100">
-            <span className="text-xs text-slate-500 block font-medium">Effective Date</span>
+            <span className="text-xs text-slate-500 block font-medium">Issue Date</span>
             <span className="font-bold text-slate-800 mt-1 block font-mono">
-              {policy.issue_date}
+              {policy.issue_date || "—"}
             </span>
           </div>
 
@@ -166,7 +192,7 @@ export default function MyPolicyView({ policy, onBack }) {
                 isActive ? "text-slate-800" : "text-rose-600 font-extrabold"
               }`}
             >
-              {policy.expiry_date}
+              {policy.expiry_date || "—"}
             </span>
           </div>
 
@@ -174,7 +200,7 @@ export default function MyPolicyView({ policy, onBack }) {
           <div className="bg-slate-50/70 p-3 sm:p-3.5 rounded-xl border border-slate-100">
             <span className="text-xs text-slate-500 block font-medium">Policy Tenure</span>
             <span className="font-semibold text-slate-800 mt-1 block">
-              {desc.policy_tenure || desc.policy_term || "1 Year"}
+              {effectiveTenure}
             </span>
           </div>
 
@@ -182,7 +208,7 @@ export default function MyPolicyView({ policy, onBack }) {
           <div className="bg-slate-50/70 p-3 sm:p-3.5 rounded-xl border border-slate-100">
             <span className="text-xs text-slate-500 block font-medium">Policy Holder</span>
             <span className="font-semibold text-slate-800 mt-1 block truncate">
-              {policy.customer_name}
+              {customerName}
             </span>
           </div>
         </div>
@@ -203,25 +229,25 @@ export default function MyPolicyView({ policy, onBack }) {
         </div>
 
         {/* Health Insurance Specifics */}
-        {desc.members && (
+        {hasHealthMembers ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
               <div className="bg-emerald-50/50 p-3.5 rounded-xl border border-emerald-100">
                 <span className="text-xs text-emerald-800 font-semibold block">Total Sum Insured</span>
                 <span className="text-base font-extrabold text-[#0B2545] mt-1 block">
-                  {desc.coverage}
+                  {desc.coverage || "Floater Cover"}
                 </span>
               </div>
               <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
                 <span className="text-xs text-slate-500 font-medium block">Room Rent Limit</span>
                 <span className="font-semibold text-slate-800 mt-1 block">
-                  {desc.room_rent_limit}
+                  {desc.room_rent_limit || "Single Private Room"}
                 </span>
               </div>
               <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
                 <span className="text-xs text-slate-500 font-medium block">Copay Terms</span>
                 <span className="font-semibold text-slate-800 mt-1 block">
-                  {desc.copay}
+                  {desc.copay || "0% Copayment"}
                 </span>
               </div>
             </div>
@@ -232,18 +258,18 @@ export default function MyPolicyView({ policy, onBack }) {
                 Covered Family Members ({desc.members.length})
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {desc.members.map((member) => (
+                {desc.members.map((member, index) => (
                   <div
-                    key={member.id}
+                    key={member.id || index}
                     className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-3"
                   >
                     <div className="w-8 h-8 rounded-full bg-slate-200 text-[#0B2545] flex items-center justify-center font-bold text-xs shrink-0">
-                      {member.name[0]}
+                      {member.name ? member.name[0]?.toUpperCase() : "M"}
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-800">{member.name}</p>
+                      <p className="text-xs font-bold text-slate-800">{member.name || `Member ${index + 1}`}</p>
                       <p className="text-[11px] text-slate-500">
-                        {member.relation} • {member.age} yrs
+                        {member.relation || "Dependent"} • {member.age || "—"} yrs
                       </p>
                     </div>
                   </div>
@@ -251,59 +277,69 @@ export default function MyPolicyView({ policy, onBack }) {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Motor Insurance Specifics */}
-        {desc.vehicle_name && (
+        ) : hasVehicleInfo ? (
+          /* Motor Insurance Specifics */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
             <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-100 sm:col-span-2">
               <span className="text-xs text-slate-500 font-medium block">Vehicle Make & Model</span>
               <span className="font-bold text-slate-900 mt-1 block">
-                {desc.vehicle_name}
+                {desc.vehicle_name || desc.vehicleName || "Vehicle Schedule"}
               </span>
             </div>
             <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
               <span className="text-xs text-slate-500 font-medium block">Registration Number</span>
               <span className="font-mono font-bold text-slate-900 mt-1 block">
-                {desc.vehicle_number}
+                {desc.vehicle_number || desc.vehicleNumber || "—"}
               </span>
             </div>
             <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
               <span className="text-xs text-slate-500 font-medium block">Insured Declared Value (IDV)</span>
               <span className="font-bold text-[#0B2545] mt-1 block">
-                {desc.idv}
+                {desc.idv || "Comprehensive"}
               </span>
             </div>
-            <div className="bg-sky-50/60 p-3 rounded-xl border border-sky-100 sm:col-span-2">
-              <span className="text-xs text-sky-800 font-semibold block">Add-on Coverage</span>
-              <span className="text-xs text-slate-800 mt-0.5 block">
-                {desc.zero_dep} • {desc.roadside_assistance}
-              </span>
-            </div>
+            {(desc.zero_dep || desc.roadside_assistance) && (
+              <div className="bg-sky-50/60 p-3 rounded-xl border border-sky-100 sm:col-span-2">
+                <span className="text-xs text-sky-800 font-semibold block">Add-on Coverage</span>
+                <span className="text-xs text-slate-800 mt-0.5 block">
+                  {[desc.zero_dep, desc.roadside_assistance].filter(Boolean).join(" • ")}
+                </span>
+              </div>
+            )}
           </div>
-        )}
-
-        {/* Term Life Specifics */}
-        {desc.sum_assured && (
+        ) : hasLifeInfo ? (
+          /* Term Life Specifics */
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
             <div className="bg-purple-50/60 p-3.5 rounded-xl border border-purple-100">
               <span className="text-xs text-purple-800 font-semibold block">Life Sum Assured</span>
               <span className="text-base font-extrabold text-[#0B2545] mt-1 block">
-                {desc.sum_assured}
+                {desc.sum_assured || desc.sumAssured || desc.coverage || "Comprehensive"}
               </span>
             </div>
             <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
               <span className="text-xs text-slate-500 font-medium block">Nominee Details</span>
               <span className="font-bold text-slate-800 mt-1 block">
-                {desc.nominee_name} ({desc.nominee_relation})
+                {desc.nominee_name || desc.nominee || "Registered Nominee"}
               </span>
             </div>
             <div className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
               <span className="text-xs text-slate-500 font-medium block">Policy Term</span>
               <span className="font-semibold text-slate-800 mt-1 block">
-                {desc.policy_term}
+                {effectiveTenure}
               </span>
             </div>
+          </div>
+        ) : (
+          /* General / Property / Marine Scope */
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs sm:text-sm text-slate-700">
+            <span className="font-bold block text-[#0B2545] mb-1">
+              Coverage Scope
+            </span>
+            <span>
+              {desc.coverage ||
+                desc.description ||
+                "Standard insurance coverage under registered schedule terms."}
+            </span>
           </div>
         )}
       </div>
@@ -322,32 +358,25 @@ export default function MyPolicyView({ policy, onBack }) {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
           <div className="bg-slate-50/70 p-3 sm:p-3.5 rounded-xl border border-slate-100">
             <span className="text-xs text-slate-500 block font-medium">Payment Mode</span>
             <span className="font-bold text-slate-800 mt-1 block">
-              {payment.payment_mode || "Online"}
+              {payment.payment_mode || payment.txMode || "Online"}
             </span>
           </div>
 
           <div className="bg-slate-50/70 p-3 sm:p-3.5 rounded-xl border border-slate-100">
             <span className="text-xs text-slate-500 block font-medium">Payment Status</span>
             <span className="font-bold text-emerald-700 mt-1 block">
-              {payment.payment_status || "PAID"}
+              {payment.payment_status || payment.payStatus || "PAID"}
             </span>
           </div>
 
           <div className="bg-slate-50/70 p-3 sm:p-3.5 rounded-xl border border-slate-100">
-            <span className="text-xs text-slate-500 block font-medium">Transaction Date</span>
+            <span className="text-xs text-slate-500 block font-medium">Payment Date</span>
             <span className="font-mono text-slate-800 mt-1 block">
-              {payment.transaction_date || policy.issue_date}
-            </span>
-          </div>
-
-          <div className="bg-slate-50/70 p-3 sm:p-3.5 rounded-xl border border-slate-100">
-            <span className="text-xs text-slate-500 block font-medium">Transaction Reference</span>
-            <span className="font-mono text-xs font-bold text-slate-700 mt-1 block truncate">
-              {payment.transaction_id || "TXN-CONFIRMED"}
+              {payment.transaction_date || payment.txDate || policy.issue_date || "—"}
             </span>
           </div>
         </div>

@@ -361,6 +361,14 @@ function DashboardContent() {
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+                      {policy.policy_tenure && (
+                        <div className="flex items-center justify-between text-slate-500">
+                          <span>Tenure:</span>
+                          <span className="font-semibold text-slate-700">
+                            {policy.policy_tenure}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between text-slate-500">
                         <span>Expires On:</span>
                         <span className="font-bold text-slate-800">
