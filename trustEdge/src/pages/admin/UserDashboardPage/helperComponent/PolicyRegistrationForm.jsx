@@ -21,6 +21,8 @@ import {
   insuranceCompanyOptions,
 } from "../constant";
 import { showToast } from "../../../../component/core_components/CustomToast/CustomToast";
+import { API_ENDPOINTS } from "../../../../lib/constant/ApiEndpoints";
+import { useAPI } from "../../../../lib/hooks/useAPI";
 
 const chequeStatusOptions = [
   { value: "cleared", label: "Cleared" },
@@ -44,6 +46,46 @@ const PolicyRegistrationForm = ({
   isSubmitting = false,
 }) => {
   const [internalCustomer, setInternalCustomer] = useState(null);
+  const [internalDropdownOptions, setInternalDropdownOptions] = useState([]);
+
+  const { callApi: fetchDropdownFallback } = useAPI(
+    API_ENDPOINTS?.ADMIN?.CUSTOMER_DROPDOWN,
+    {
+      method: "GET",
+      onSuccess: (data) => {
+        const list = Array.isArray(data) ? data : data?.results || [];
+        if (list.length > 0) {
+          setInternalDropdownOptions(list);
+        } else {
+          fetchUsersFallback();
+        }
+      },
+      onFailure: () => {
+        fetchUsersFallback();
+      },
+    }
+  );
+
+  const { callApi: fetchUsersFallback } = useAPI(
+    API_ENDPOINTS?.ADMIN?.USERS_LIST,
+    {
+      method: "GET",
+      onSuccess: (data) => {
+        const list = Array.isArray(data) ? data : data?.results || [];
+        setInternalDropdownOptions(list);
+      },
+    }
+  );
+
+  useEffect(() => {
+    const hasProps =
+      (Array.isArray(suppliedCustomerOptions) && suppliedCustomerOptions.length > 0) ||
+      (Array.isArray(customerList) && customerList.length > 0);
+    if (!hasProps) {
+      fetchDropdownFallback();
+    }
+  }, [suppliedCustomerOptions, customerList]);
+
   const activeCustomer =
     selectedCustomer !== undefined && selectedCustomer !== null
       ? selectedCustomer
@@ -82,19 +124,39 @@ const PolicyRegistrationForm = ({
     }
   };
 
-  // Customer options are loaded by the parent. This component stays API-free.
+  // Robust customer options loaded from props or direct fallback API
   const customerOptions = useMemo(() => {
-    const source = suppliedCustomerOptions.length
-      ? suppliedCustomerOptions
-      : customerList;
+    const rawList =
+      (Array.isArray(suppliedCustomerOptions) && suppliedCustomerOptions.length > 0)
+        ? suppliedCustomerOptions
+        : suppliedCustomerOptions?.results ||
+          (Array.isArray(customerList) && customerList.length > 0
+            ? customerList
+            : customerList?.results ||
+              (Array.isArray(internalDropdownOptions) && internalDropdownOptions.length > 0
+                ? internalDropdownOptions
+                : internalDropdownOptions?.results || []));
+
+    const source = Array.isArray(rawList) ? rawList : [];
 
     return source
-      .map((item) => ({
-        label: item.label || item.name || item.fullName || "Customer",
-        value: String(item.value ?? item.customer_id ?? item.id ?? ""),
-      }))
+      .map((item) => {
+        const id = item.value ?? item.customer_id ?? item.id ?? "";
+        const name =
+          item.label ||
+          item.name ||
+          item.full_name ||
+          item.fullName ||
+          item.customer_name ||
+          (id ? `Customer #${id}` : "Customer");
+        const extra = item.phone ? ` (${item.phone})` : "";
+        return {
+          label: item.label ? item.label : `${name}${extra}`,
+          value: String(id),
+        };
+      })
       .filter((item) => item.value !== "");
-  }, [suppliedCustomerOptions, customerList]);
+  }, [suppliedCustomerOptions, customerList, internalDropdownOptions]);
 
   const [errors, setErrors] = useState({});
   const [confirmModal, setConfirmModal] = useState({

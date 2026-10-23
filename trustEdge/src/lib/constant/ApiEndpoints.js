@@ -6,7 +6,7 @@ export const API_ENDPOINTS = {
     ME: "/api/auth/me/",
   },
   ADMIN: {
-    ADMIN_DASHBOARD:"api/dashboard/",
+    ADMIN_DASHBOARD: "/api/dashboard/",
     USER_REGISTRATION: "/api/customers/register/",
     USERS_LIST: "/api/customers/",
     USERS_LIST_DROPDOWN: "/api/customers/dropdown/",

@@ -8,6 +8,7 @@ import CustomDateRangePicker from "../../../component/core_components/DatePicker
 import CustomerPolicyDetailsView from "../../../component/shared/CustomerPolicyDetailsView/CustomerPolicyDetailsView";
 import { API_ENDPOINTS } from "../../../lib/constant/ApiEndpoints";
 import { useAPI } from "../../../lib/hooks/useAPI";
+import { showToast } from "../../../component/core_components/CustomToast/CustomToast";
 import { rawPoliciesData, policyTableHeaders } from "./constant";
 import { getStatusPill } from "../UserDashboardPage/constant";
 
@@ -94,10 +95,32 @@ const PolicyDashboardPage = () => {
     {
       method: "GET",
       onSuccess: (data) => {
-        setCustomerOptions(data);
+        const list = Array.isArray(data) ? data : data?.results || [];
+        if (list.length > 0) {
+          setCustomerOptions(list);
+          setUserList(list);
+        } else {
+          fetchAllUsers();
+        }
+      },
+      onFailure: () => {
+        fetchAllUsers();
+      },
+    }
+  );
+
+  const { callApi: fetchAllUsers } = useAPI(
+    API_ENDPOINTS?.ADMIN?.USERS_LIST,
+    {
+      method: "GET",
+      onSuccess: (data) => {
+        const list = Array.isArray(data) ? data : data?.results || [];
+        setCustomerOptions(list);
+        setUserList(list);
       },
       onFailure: () => {
         setCustomerOptions([]);
+        setUserList([]);
       },
     }
   );
@@ -175,11 +198,40 @@ const PolicyDashboardPage = () => {
     }
   );
 
+  const { callApi: createPolicyApi } = useAPI(
+    API_ENDPOINTS?.ADMIN?.CREATE_POLICY,
+    {
+      method: "POST",
+      onSuccess: (res) => {
+        showToast.success(
+          "Policy Registered Successfully!",
+          "New policy has been added to the registry."
+        );
+        handlePolicyCreated(res);
+      },
+      onFailure: (err) => {
+        console.warn("Policy create API notice:", err);
+        const errData = err?.response?.data;
+        let errMsg = "Could not register policy. Please verify details.";
+        if (errData && typeof errData === "object") {
+          const fieldErrors = Object.entries(errData)
+            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
+            .join(" | ");
+          if (fieldErrors) errMsg = fieldErrors;
+        } else if (err?.message) {
+          errMsg = err.message;
+        }
+        showToast.error("Registration Failed", errMsg);
+      },
+    }
+  );
+
   useEffect(() => {
     setIsLoading(true);
     fetchPolicies({
       customer_id: null,
     });
+    fetchCustomerDropdown();
   }, []);
 
   const handlePolicyCreated = (newPolicy) => {
@@ -191,6 +243,88 @@ const PolicyDashboardPage = () => {
     }
     fetchPolicies();
     setIsOpenPolicyForm(false);
+  };
+
+  const handlePolicySubmit = async (submissionData) => {
+    setIsSubmitting(true);
+    try {
+      const rawData = submissionData?.formData || policyFormData;
+      const targetCustomerId = String(
+        submissionData?.customerId ||
+        selectedCustomer?.value ||
+        selectedCustomer?.customer_id ||
+        (typeof selectedCustomer === "string" ? selectedCustomer : "")
+      );
+
+      const payload = {
+        ...rawData,
+        customer_id: targetCustomerId,
+        policy_name: rawData.policyName || rawData.policy_name || "",
+        issue_date: rawData.issueDate || rawData.issue_date || "",
+        expiry_date: rawData.expiryDate || rawData.expiry_date || "",
+        premium_amount: rawData.price ?? rawData.premium_amount ?? "",
+        sub_type: rawData.subType || rawData.sub_type || "",
+        status: "Active",
+      };
+
+      if (isEditMode) {
+        viewAndUpdatePolicy({
+          action: "update",
+          policy_id: selectedPolicy?.policy_id || submissionData?.policyId,
+          ...payload,
+        });
+        showToast.success("Policy Updated", "Policy schedule updated successfully.");
+        handlePolicyCreated();
+      } else {
+        createPolicyApi(payload);
+      }
+    } catch (err) {
+      console.error("Policy submit error:", err);
+      showToast.error("Submission Error", err?.message || "Failed to submit policy.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveDraft = async (submissionData) => {
+    setIsSubmitting(true);
+    try {
+      const rawData = submissionData?.formData || policyFormData;
+      const targetCustomerId = String(
+        submissionData?.customerId ||
+        selectedCustomer?.value ||
+        selectedCustomer?.customer_id ||
+        (typeof selectedCustomer === "string" ? selectedCustomer : "")
+      );
+
+      const payload = {
+        ...rawData,
+        customer_id: targetCustomerId,
+        policy_name: rawData.policyName || rawData.policy_name || "",
+        issue_date: rawData.issueDate || rawData.issue_date || "",
+        expiry_date: rawData.expiryDate || rawData.expiry_date || "",
+        premium_amount: rawData.price ?? rawData.premium_amount ?? "",
+        sub_type: rawData.subType || rawData.sub_type || "",
+        status: "Pending",
+      };
+
+      if (isEditMode) {
+        viewAndUpdatePolicy({
+          action: "update",
+          policy_id: selectedPolicy?.policy_id || submissionData?.policyId,
+          ...payload,
+        });
+      } else {
+        createPolicyApi(payload);
+      }
+      showToast.info("Draft Saved", "Policy saved as Pending review.");
+      handlePolicyCreated();
+    } catch (err) {
+      console.error("Save draft error:", err);
+      showToast.error("Save Draft Error", err?.message || "Failed to save draft.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderDocumentBadge = (row) => {
@@ -226,7 +360,6 @@ const PolicyDashboardPage = () => {
       policy_id: policy?.policy_id,
       customer_id: policy?.customer_id,
     });
-    fetchUserList();
     setIsOpenPolicyForm(true);
   };
 
@@ -315,7 +448,8 @@ const PolicyDashboardPage = () => {
               <button
                 type="button"
                 onClick={() => {
-                  fetchUserList();
+                  fetchCustomerDropdown();
+                  setSelectedCustomer(null);
                   setPolicyFormData({
                     policyName: "",
                     category: "",

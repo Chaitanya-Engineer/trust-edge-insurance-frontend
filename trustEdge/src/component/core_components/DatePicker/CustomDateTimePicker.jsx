@@ -63,6 +63,10 @@ const CustomDateTimePicker = ({
             seconds: renderTimeViewClock,
           }}
           slotProps={{
+            htmlInput: {
+              readOnly: true,
+              style: { cursor: disabled ? "not-allowed" : "pointer" },
+            },
             popper: {
               sx: {
                 "& .MuiPaper-root": {
@@ -108,9 +112,11 @@ const CustomDateTimePicker = ({
                   setOpen(true);
                 }
               },
-              inputProps: {
-                readOnly: true,
-                style: { cursor: disabled ? "not-allowed" : "pointer" },
+              slotProps: {
+                htmlInput: {
+                  readOnly: true,
+                  style: { cursor: disabled ? "not-allowed" : "pointer" },
+                },
               },
               sx: {
                 cursor: disabled ? "not-allowed" : "pointer",

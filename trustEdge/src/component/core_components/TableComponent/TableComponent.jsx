@@ -74,7 +74,11 @@ function TBL(props) {
   );
 }
 
-const THead = Fragment;
+const THead = forwardRef(({ children, ...props }, ref) => (
+  <thead ref={ref} {...props}>
+    {children}
+  </thead>
+));
 
 const TRow = forwardRef(({ item, ...props }, ref) => {
   const { ROW_STYLE } = tableComponentStyleConstants;

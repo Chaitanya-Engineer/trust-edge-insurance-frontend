@@ -71,8 +71,7 @@ const TableHead = forwardRef(
       tableComponentConstants?.HEAD_TXT_THEME_COLOR[theme] ?? "#0E4B35";
 
     return (
-      <Head sx={{ backgroundColor: `${customHeadColor} !important`, zIndex: 10, position: "sticky", top: 0 }}>
-        <tr>
+      <tr style={{ backgroundColor: `${customHeadColor} !important` }}>
           {isSelection && (
             <TableCell
               className="pr-0"
@@ -207,7 +206,6 @@ const TableHead = forwardRef(
             </TableCell>
           )}
         </tr>
-      </Head>
     );
   }
 );

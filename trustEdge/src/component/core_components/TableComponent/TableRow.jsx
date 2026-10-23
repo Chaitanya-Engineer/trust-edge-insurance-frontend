@@ -186,8 +186,11 @@ const TableRow = memo(
                   e?.stopPropagation();
                 }}
                 checked={isItemSelected}
-                inputProps={{
-                  [LABLED_BY]: labelId,
+                slotProps={{
+                  input: {
+                    [LABLED_BY]: labelId,
+                    "aria-label": `Select row ${row?.id || index + 1}`,
+                  },
                 }}
               />
             )}

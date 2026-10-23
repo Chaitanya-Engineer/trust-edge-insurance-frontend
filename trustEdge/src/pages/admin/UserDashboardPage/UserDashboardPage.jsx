@@ -40,6 +40,7 @@ const UserDashboardPage = () => {
   const [isOpenPolicyForm, setIsOpenPolicyForm] = useState(false);
   const [selectedUserForPolicy, setSelectedUserForPolicy] = useState(null);
   const [userList, setUserList] = useState([]);
+  const [customerOptions, setCustomerOptions] = useState([]);
   const [openPolicyModal, setOpenPolicyModal] = useState(false);
   const [modalDataSource, setModalDataSource] = useState([]);
   const [policyFormData, setPolicyFormData] = useState({
@@ -102,20 +103,37 @@ const UserDashboardPage = () => {
     }
   );
 
+  const { callApi: fetchCustomerDropdown } = useAPI(
+    API_ENDPOINTS?.ADMIN?.CUSTOMER_DROPDOWN,
+    {
+      method: "GET",
+      onSuccess: (data) => {
+        const list = Array.isArray(data) ? data : data?.results || [];
+        if (list.length > 0) {
+          setCustomerOptions(list);
+        } else {
+          AllUsersList();
+        }
+      },
+      onFailure: () => {
+        AllUsersList();
+      },
+    }
+  );
+
   const { callApi: AllUsersList } = useAPI(API_ENDPOINTS?.ADMIN?.USERS_LIST, {
     method: "GET",
     onSuccess: (response) => {
       console.log("resonse.result", response);
-      if (response && response.length > 0) {
-        setUserList(response);
-      } else {
-        setUserList([]);
-      }
+      const list = Array.isArray(response) ? response : response?.results || [];
+      setUserList(list);
+      setCustomerOptions((prev) => (prev.length > 0 ? prev : list));
       setIsLoading(false);
     },
     onFailure: (error) => {
       console.log("error", error);
       setUserList([]);
+      setIsLoading(false);
     },
   });
 
@@ -129,6 +147,35 @@ const UserDashboardPage = () => {
       },
       onFailure: () => {
         setModalDataSource([]);
+      },
+    }
+  );
+
+  const { callApi: createPolicyApi } = useAPI(
+    API_ENDPOINTS?.ADMIN?.CREATE_POLICY,
+    {
+      method: "POST",
+      onSuccess: () => {
+        showToast.success(
+          "Policy Registered Successfully!",
+          "New policy has been added for member."
+        );
+        setIsOpenPolicyForm(false);
+        AllUsersList();
+      },
+      onFailure: (err) => {
+        console.warn("Policy registration error:", err);
+        const errData = err?.response?.data;
+        let errMsg = "Could not register policy. Please verify details.";
+        if (errData && typeof errData === "object") {
+          const fieldErrors = Object.entries(errData)
+            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
+            .join(" | ");
+          if (fieldErrors) errMsg = fieldErrors;
+        } else if (err?.message) {
+          errMsg = err.message;
+        }
+        showToast.error("Registration Failed", errMsg);
       },
     }
   );
@@ -217,12 +264,37 @@ const UserDashboardPage = () => {
   };
 
   const handleEditButtonClick = (row) => {
+    fetchCustomerDropdown();
     setSelectedUserForPolicy(row);
     setPolicyFormData((prev) => ({
       ...prev,
-      members: [{ id: 1, name: row.fullName, age: "", relation: "Self" }],
+      members: [{ id: 1, name: row.name || row.fullName || "", age: "", relation: "Self" }],
     }));
     setIsOpenPolicyForm(true);
+  };
+
+  const handlePolicySubmit = (submissionData) => {
+    const rawData = submissionData?.formData || policyFormData;
+    const targetCustomerId = String(
+      submissionData?.customerId ||
+      selectedUserForPolicy?.customer_id ||
+      selectedUserForPolicy?.id ||
+      selectedUserForPolicy?.value ||
+      ""
+    );
+
+    const payload = {
+      ...rawData,
+      customer_id: targetCustomerId,
+      policy_name: rawData.policyName || rawData.policy_name || "",
+      issue_date: rawData.issueDate || rawData.issue_date || "",
+      expiry_date: rawData.expiryDate || rawData.expiry_date || "",
+      premium_amount: rawData.price ?? rawData.premium_amount ?? "",
+      sub_type: rawData.subType || rawData.sub_type || "",
+      status: "Active",
+    };
+
+    createPolicyApi(payload);
   };
 
   const handleCancelPolicyRegistration = () => {
@@ -301,10 +373,9 @@ const UserDashboardPage = () => {
   });
 
   // useEffect(() => {
-  //   // users();
-  // }, []);
   useEffect(() => {
     AllUsersList();
+    fetchCustomerDropdown();
   }, []);
 
   return (
@@ -323,22 +394,22 @@ const UserDashboardPage = () => {
       ) : isOpenPolicyForm ? (
         // Policy Registration Form
         <PolicyRegistrationForm
+          customerList={userList}
+          customerOptions={customerOptions.length > 0 ? customerOptions : userList}
           selectedCustomer={selectedUserForPolicy}
           formData={policyFormData}
           onChange={setPolicyFormData}
           onClickBack={handleCancelPolicyRegistration}
           onCancel={handleCancelPolicyRegistration}
-          onSubmit={(data) => {
-            console.log("Policy Registration Data:", data);
-            handleCancelPolicyRegistration();
-          }}
+          onSubmitPolicy={handlePolicySubmit}
+          onSaveDraft={handlePolicySubmit}
           onSelectCustomer={(cust) => {
             setSelectedUserForPolicy(cust);
             if (cust) {
               setPolicyFormData((prev) => ({
                 ...prev,
                 members: [
-                  { id: 1, name: cust.fullName, age: "", relation: "Self" },
+                  { id: 1, name: cust.name || cust.fullName || cust.label || "", age: "", relation: "Self" },
                 ],
               }));
             } else {
@@ -362,6 +433,7 @@ const UserDashboardPage = () => {
                 type="button"
                 disabled={false}
                 onClick={() => {
+                  fetchCustomerDropdown();
                   setPolicyFormData({
                     policyName: "",
                     category: "",
