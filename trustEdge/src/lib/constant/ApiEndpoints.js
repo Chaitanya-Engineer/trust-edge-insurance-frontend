@@ -19,4 +19,10 @@ export const API_ENDPOINTS = {
     EXPIRED_POLICIES: "/api/dashboard/policy-alerts/",
     SHOW_PENDING_POLICY_USER: "/api/dashboard/pending-policies/"
   },
+  POLICIES: {
+  UPLOAD_PDF: (id) => `/api/policies/${id}/upload-pdf/`,
+},
+CUSTOMERS: {
+  DOCUMENT_UPLOAD: (customerId) => `/api/customers/${customerId}/documents/upload/`,
+},
 };

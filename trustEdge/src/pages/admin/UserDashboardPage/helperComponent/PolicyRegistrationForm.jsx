@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
 import CustomInput from "../../../../component/core_components/CustomInput/CustomeInput";
 import CustomDatePicker from "../../../../component/core_components/DatePicker/CustomDatePicker";
@@ -79,26 +79,30 @@ const PolicyRegistrationForm = ({
 
   useEffect(() => {
     const hasProps =
-      (Array.isArray(suppliedCustomerOptions) && suppliedCustomerOptions.length > 0) ||
+      (Array.isArray(suppliedCustomerOptions) &&
+        suppliedCustomerOptions.length > 0) ||
       (Array.isArray(customerList) && customerList.length > 0);
     if (!hasProps) {
       fetchDropdownFallback();
     }
   }, [suppliedCustomerOptions, customerList]);
 
-  const activeCustomer =
-    selectedCustomer !== undefined && selectedCustomer !== null
-      ? selectedCustomer
-      : internalCustomer ||
-        (selectedPolicy?.customer_id != null
-          ? {
-              label:
-                selectedPolicy.customer_name ||
-                selectedPolicy.customer?.name ||
-                `Customer #${selectedPolicy.customer_id}`,
-              value: String(selectedPolicy.customer_id),
-            }
-          : null);
+  const activeCustomer = useMemo(
+    () =>
+      selectedCustomer !== undefined && selectedCustomer !== null
+        ? selectedCustomer
+        : internalCustomer ||
+          (selectedPolicy?.customer_id != null
+            ? {
+                label:
+                  selectedPolicy.customer_name ||
+                  selectedPolicy.customer?.name ||
+                  `Customer #${selectedPolicy.customer_id}`,
+                value: String(selectedPolicy.customer_id),
+              }
+            : null),
+    [selectedCustomer, internalCustomer, selectedPolicy]
+  );
 
   const activeCustomerId = useMemo(() => {
     if (!activeCustomer) return "";
@@ -127,13 +131,15 @@ const PolicyRegistrationForm = ({
   // Robust customer options loaded from props or direct fallback API
   const customerOptions = useMemo(() => {
     const rawList =
-      (Array.isArray(suppliedCustomerOptions) && suppliedCustomerOptions.length > 0)
+      Array.isArray(suppliedCustomerOptions) &&
+      suppliedCustomerOptions.length > 0
         ? suppliedCustomerOptions
         : suppliedCustomerOptions?.results ||
           (Array.isArray(customerList) && customerList.length > 0
             ? customerList
             : customerList?.results ||
-              (Array.isArray(internalDropdownOptions) && internalDropdownOptions.length > 0
+              (Array.isArray(internalDropdownOptions) &&
+              internalDropdownOptions.length > 0
                 ? internalDropdownOptions
                 : internalDropdownOptions?.results || []));
 
@@ -1512,47 +1518,72 @@ const PolicyRegistrationForm = ({
         </div>
 
         {/* ================= Upload Policy Document ================= */}
-        <div className="mb-8 mt-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#E5E9E7] pb-2 mb-3">
-            <h2 className="text-lg font-bold text-[#0B2545] sm:text-xl">
-              Upload Policy Document{" "}
-              {formData.policyDoc && (
-                <span className="text-[#2F6F3E] text-xs font-semibold ml-2">
-                  ✓ Attached
+        {formData.policyDoc ? (
+          <div className="mb-6">
+            <h3 className="mb-3 text-sm font-semibold text-[#344054]">
+              Existing Documents
+            </h3>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-lg border border-[#E5E9E7] p-3">
+                <span className="text-sm text-[#344054]">
+                  {"Policy Document PDF"}
                 </span>
-              )}
-            </h2>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#EAF0F6] text-[#0B2545]">
-              Final Activation Requirement
-            </span>
+                <a
+                  href={formData.policyDoc} // ← direct public URL
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-blue-600 hover:underline"
+                >
+                  View Document
+                </a>
+              </div>
+            </div>
           </div>
+        ) : (
+          <div className="mb-8 mt-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#E5E9E7] pb-2 mb-3">
+              <h2 className="text-lg font-bold text-[#0B2545] sm:text-xl">
+                Upload Policy Document{" "}
+                {formData.policyDoc && (
+                  <span className="text-[#2F6F3E] text-xs font-semibold ml-2">
+                    ✓ Attached
+                  </span>
+                )}
+              </h2>
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#EAF0F6] text-[#0B2545]">
+                Final Activation Requirement
+              </span>
+            </div>
 
-          {/* Submission Guidance Callout */}
-          <div className="mb-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-2.5 flex items-center gap-2 text-xs text-[#475569]">
-            <span className="text-sm">💡</span>
-            <span>
-              <strong className="text-[#0B2545]">Save Draft</strong> keeps
-              policy <strong>Pending</strong>. Upload policy document to unlock{" "}
-              <strong>Submit Policy</strong> for <strong>Active</strong> status.
-            </span>
+            {/* Submission Guidance Callout */}
+            <div className="mb-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-2.5 flex items-center gap-2 text-xs text-[#475569]">
+              <span className="text-sm">💡</span>
+              <span>
+                <strong className="text-[#0B2545]">Save Draft</strong> keeps
+                policy <strong>Pending</strong>. Upload policy document to
+                unlock <strong>Submit Policy</strong> for{" "}
+                <strong>Active</strong> status.
+              </span>
+            </div>
+
+            <DocumentUpload
+              accept={["pdf", "jpg", "jpeg", "png"]}
+              maxSizeKB={1024}
+              documentCategory="Policy Document"
+              placeholder="Drag and drop or browse to upload Policy PDF (Max 1 MB)"
+              onChange={(file) => {
+                handleInputChange("policyDoc", file);
+                if (!file && errors.policyDoc) {
+                  setErrors((prev) => ({ ...prev, policyDoc: null }));
+                }
+              }}
+              value={formData.policyDoc}
+              width="w-full"
+              error={errors.policyDoc}
+            />
           </div>
-
-          <DocumentUpload
-            accept={["pdf", "jpg", "jpeg", "png"]}
-            maxSizeKB={1024}
-            documentCategory="Policy Document"
-            placeholder="Drag and drop or browse to upload Policy PDF (Max 1 MB)"
-            onChange={(file) => {
-              handleInputChange("policyDoc", file);
-              if (!file && errors.policyDoc) {
-                setErrors((prev) => ({ ...prev, policyDoc: null }));
-              }
-            }}
-            value={formData.policyDoc}
-            width="w-full"
-            error={errors.policyDoc}
-          />
-        </div>
+        )}
 
         {/* ================= Action Buttons ================= */}
         <div className="flex flex-col-reverse gap-3 border-t border-[#E5E9E7] pt-6 mt-8 sm:flex-row sm:justify-end">

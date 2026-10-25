@@ -423,51 +423,53 @@ const UserRegistrationForm = ({
             </div>
           </div>
         )}
-        <div className="mb-8 mt-8">
-          <h2 className="mb-6 text-lg font-bold text-[#0B2545] border-b border-[#E5E9E7] pb-2 sm:text-xl">
-            Upload Documents
-          </h2>
+        {!isEditMode && (
+          <div className="mb-8 mt-8">
+            <h2 className="mb-6 text-lg font-bold text-[#0B2545] border-b border-[#E5E9E7] pb-2 sm:text-xl">
+              Upload Documents
+            </h2>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* PAN Card */}
-            <div>
-              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                PAN Card <span className="text-[#B42318] ml-0.5">*</span>
-              </label>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {/* PAN Card */}
+              <div>
+                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                  PAN Card <span className="text-[#B42318] ml-0.5">*</span>
+                </label>
 
-              <DocumentUpload
-                accept={["jpg", "jpeg", "png", "pdf"]}
-                maxSizeKB={320}
-                documentCategory="KYC Document"
-                multiple={false}
-                placeholder="Upload PAN card (Max 320 KB)"
-                onChange={(file) => handleInputChange("panCard", file)}
-                value={formData?.panCard}
-                width="w-full"
-                error={errors?.panCard}
-              />
-            </div>
+                <DocumentUpload
+                  accept={["jpg", "jpeg", "png", "pdf"]}
+                  maxSizeKB={320}
+                  documentCategory="KYC Document"
+                  multiple={false}
+                  placeholder="Upload PAN card (Max 320 KB)"
+                  onChange={(file) => handleInputChange("panCard", file)}
+                  value={formData?.panCard}
+                  width="w-full"
+                  error={errors?.panCard}
+                />
+              </div>
 
-            {/* Aadhaar Card */}
-            <div>
-              <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                Aadhaar Card <span className="text-[#B42318] ml-0.5">*</span>
-              </label>
+              {/* Aadhaar Card */}
+              <div>
+                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                  Aadhaar Card <span className="text-[#B42318] ml-0.5">*</span>
+                </label>
 
-              <DocumentUpload
-                accept={["jpg", "jpeg", "png", "pdf"]}
-                maxSizeKB={320}
-                documentCategory="KYC Document"
-                multiple={false}
-                placeholder="Upload Aadhaar card (Max 320 KB)"
-                onChange={(file) => handleInputChange("aadhaarCard", file)}
-                value={formData?.aadhaarCard}
-                width="w-full"
-                error={errors?.aadhaarCard}
-              />
+                <DocumentUpload
+                  accept={["jpg", "jpeg", "png", "pdf"]}
+                  maxSizeKB={320}
+                  documentCategory="KYC Document"
+                  multiple={false}
+                  placeholder="Upload Aadhaar card (Max 320 KB)"
+                  onChange={(file) => handleInputChange("aadhaarCard", file)}
+                  value={formData?.aadhaarCard}
+                  width="w-full"
+                  error={errors?.aadhaarCard}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* ================= Action Buttons ================= */}
         <div className="flex flex-col-reverse gap-4 border-t border-[#E5E9E7] pt-6 mt-8 sm:flex-row sm:justify-end">

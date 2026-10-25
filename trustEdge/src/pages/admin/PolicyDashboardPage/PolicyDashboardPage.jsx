@@ -15,7 +15,6 @@ import { getStatusPill } from "../UserDashboardPage/constant";
 const PolicyDashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isOpenPolicyForm, setIsOpenPolicyForm] = useState(false);
-  const [selectedPolicyForView, setSelectedPolicyForView] = useState(null);
   const [userList, setUserList] = useState([]);
   const [policiesList, setPoliciesList] = useState(rawPoliciesData);
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
@@ -109,21 +108,18 @@ const PolicyDashboardPage = () => {
     }
   );
 
-  const { callApi: fetchAllUsers } = useAPI(
-    API_ENDPOINTS?.ADMIN?.USERS_LIST,
-    {
-      method: "GET",
-      onSuccess: (data) => {
-        const list = Array.isArray(data) ? data : data?.results || [];
-        setCustomerOptions(list);
-        setUserList(list);
-      },
-      onFailure: () => {
-        setCustomerOptions([]);
-        setUserList([]);
-      },
-    }
-  );
+  const { callApi: fetchAllUsers } = useAPI(API_ENDPOINTS?.ADMIN?.USERS_LIST, {
+    method: "GET",
+    onSuccess: (data) => {
+      const list = Array.isArray(data) ? data : data?.results || [];
+      setCustomerOptions(list);
+      setUserList(list);
+    },
+    onFailure: () => {
+      setCustomerOptions([]);
+      setUserList([]);
+    },
+  });
 
   const { callApi: viewAndUpdatePolicy } = useAPI(
     API_ENDPOINTS?.ADMIN?.VIEW_AND_UPDATE_POLICY,
@@ -215,7 +211,10 @@ const PolicyDashboardPage = () => {
         let errMsg = "Could not register policy. Please verify details.";
         if (errData && typeof errData === "object") {
           const fieldErrors = Object.entries(errData)
-            .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`)
+            .map(
+              ([field, msgs]) =>
+                `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`
+            )
             .join(" | ");
           if (fieldErrors) errMsg = fieldErrors;
         } else if (err?.message) {
@@ -245,42 +244,256 @@ const PolicyDashboardPage = () => {
     setIsOpenPolicyForm(false);
   };
 
+  const { callApiRaw: uploadPDFRaw } = useAPI("", {
+    method: "POST",
+  });
+
+  const { callApiRaw: uploadDocRaw } = useAPI("", {
+    method: "POST",
+  });
+
+  const buildPolicyPayload = (rawData, targetCustomerId, pdfUrl) => {
+    const formatDate = (val) => {
+      if (!val) return "";
+      try {
+        const d = dayjs(val);
+        return d.isValid() ? d.format("YYYY-MM-DD") : String(val);
+      } catch {
+        return String(val);
+      }
+    };
+
+    const mapCategory = (cat) => {
+      if (!cat) return "OTHER";
+      const val = String(cat).toUpperCase().trim();
+      if (val === "MOTOR" || val === "VEHICLE") return "VEHICLE";
+      if (val === "HEALTH") return "HEALTH";
+      if (val === "PERSONAL" || val === "LIFE") return "LIFE";
+      return "OTHER";
+    };
+
+    const policy_description = {
+      insurer: rawData.policyName || "",
+      coverage: rawData.subType || "",
+      ...(rawData.vehicleNumber
+        ? { vehicle_number: rawData.vehicleNumber }
+        : {}),
+      ...(rawData.vehicleName ? { vehicle_name: rawData.vehicleName } : {}),
+      ...(rawData.vehicleOwner ? { vehicle_owner: rawData.vehicleOwner } : {}),
+      ...(rawData.gvw ? { gvw: rawData.gvw } : {}),
+      ...(rawData.members?.length > 0 ? { members: rawData.members } : {}),
+    };
+
+    const payment_details = {
+      payment_mode: (rawData.txMode || "ONLINE").toUpperCase(),
+      payment_status: (rawData.payStatus === "done"
+        ? "PAID"
+        : rawData.payStatus || "PAID"
+      ).toUpperCase(),
+      ...(rawData.chequeNum
+        ? {
+            transaction_id: rawData.chequeNum,
+            cheque_status: rawData.chequeStatus,
+          }
+        : {}),
+      ...(rawData.txDate
+        ? { transaction_date: formatDate(rawData.txDate) }
+        : {}),
+      ...(rawData.txTime ? { transaction_time: rawData.txTime } : {}),
+      ...(rawData.txNote ? { transaction_note: rawData.txNote } : {}),
+    };
+
+    const commAmount = parseFloat(rawData.CommissionAmount) || 0;
+    const priceVal = parseFloat(rawData.price) || 0;
+    const commPercent =
+      priceVal > 0 && commAmount > 0
+        ? Math.round((commAmount / priceVal) * 100)
+        : 0;
+
+    const commission_details = rawData.showCommission
+      ? {
+          commission_percentage: commPercent,
+          commission_amount: commAmount,
+          ...(rawData.CommissionMode
+            ? { commission_mode: rawData.CommissionMode.toUpperCase() }
+            : {}),
+          ...(rawData.CommissionStatus
+            ? { commission_status: rawData.CommissionStatus.toUpperCase() }
+            : {}),
+          ...(rawData.CommissionDate
+            ? { commission_date: formatDate(rawData.CommissionDate) }
+            : {}),
+          ...(rawData.CommissionNote
+            ? { commission_note: rawData.CommissionNote }
+            : {}),
+        }
+      : {};
+
+    return {
+      customer_id: targetCustomerId,
+      policy_name: rawData.policyName,
+      category: mapCategory(rawData.category),
+      sub_type: rawData.subType || "",
+      issue_date: formatDate(rawData.issueDate),
+      expiry_date: formatDate(rawData.expiryDate),
+      premium_amount: (parseFloat(rawData.price) || 0).toFixed(2),
+      policy_pdf_url: pdfUrl,
+      policy_description,
+      payment_details,
+      commission_details,
+    };
+  };
+
+  const uploadCustomerDocuments = async (rawData, customerId) => {
+    if (!customerId) {
+      throw new Error("Customer ID is required for document upload.");
+    }
+
+    const documents = [
+      ["rcFile", "RC"],
+      ["dlFile", "DRIVING_LICENCE"],
+      ["previousPolicyFile", "PREVIOUS_POLICY"],
+      ["gstFile", "GST"],
+      ["gumastaFile", "GUMASTA"],
+      ["udyamFile", "UDYAM_AADHAR"],
+    ];
+
+    for (const [field, documentType] of documents) {
+      const file = rawData?.[field];
+
+      // Skip fields without a newly selected file.
+      if (!(file instanceof File)) continue;
+
+      const documentFormData = new FormData();
+      documentFormData.append("file", file);
+      documentFormData.append("document_type", documentType);
+
+      await uploadDocRaw(
+        documentFormData,
+        API_ENDPOINTS.CUSTOMERS.DOCUMENT_UPLOAD(customerId)
+      );
+    }
+  };
+
+  const uploadPolicyPDF = async (file, policyId) => {
+    // An existing URL does not need another upload.
+    if (!(file instanceof File)) {
+      return typeof file === "string" ? file : null;
+    }
+
+    if (!policyId) {
+      throw new Error("Policy ID is required for PDF upload.");
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await uploadPDFRaw(
+      formData,
+      API_ENDPOINTS.POLICIES.UPLOAD_PDF(policyId)
+    );
+
+    // Adjust this property if your backend uses a different response shape.
+    return response?.policy_pdf_url || response?.result?.policy_pdf_url || null;
+  };
+
   const handlePolicySubmit = async (submissionData) => {
     setIsSubmitting(true);
+
     try {
       const rawData = submissionData?.formData || policyFormData;
+
       const targetCustomerId = String(
         submissionData?.customerId ||
-        selectedCustomer?.value ||
-        selectedCustomer?.customer_id ||
-        (typeof selectedCustomer === "string" ? selectedCustomer : "")
+          selectedCustomer?.value ||
+          selectedCustomer?.customer_id ||
+          (typeof selectedCustomer === "string" ? selectedCustomer : "")
       );
 
-      const payload = {
-        ...rawData,
-        customer_id: targetCustomerId,
-        policy_name: rawData.policyName || rawData.policy_name || "",
-        issue_date: rawData.issueDate || rawData.issue_date || "",
-        expiry_date: rawData.expiryDate || rawData.expiry_date || "",
-        premium_amount: rawData.price ?? rawData.premium_amount ?? "",
-        sub_type: rawData.subType || rawData.sub_type || "",
-        status: "Active",
-      };
+      const policyId =
+        submissionData?.policyId ||
+        selectedPolicy?.policy_id ||
+        selectedPolicy?.id;
 
-      if (isEditMode) {
-        viewAndUpdatePolicy({
-          action: "update",
-          policy_id: selectedPolicy?.policy_id || submissionData?.policyId,
-          ...payload,
-        });
-        showToast.success("Policy Updated", "Policy schedule updated successfully.");
-        handlePolicyCreated();
-      } else {
-        createPolicyApi(payload);
+      const editing = Boolean(submissionData?.isEditMode && policyId);
+
+      if (!targetCustomerId) {
+        throw new Error("Please select a customer.");
       }
+
+      // 1. Upload customer documents.
+      await uploadCustomerDocuments(rawData, targetCustomerId);
+
+      // 2. Build the policy payload.
+      const payload = buildPolicyPayload(
+        rawData,
+        targetCustomerId,
+        typeof rawData.policyDoc === "string" ? rawData.policyDoc : null
+      );
+
+      let result;
+
+      if (editing) {
+        // 3A. Update existing policy.
+        result = await viewAndUpdatePolicy({
+          ...payload,
+          policy_id: policyId,
+          action: "update",
+        });
+
+        // Upload the replacement PDF only when a new file was selected.
+        if (rawData.policyDoc instanceof File) {
+          await uploadPolicyPDF(rawData.policyDoc, policyId);
+        }
+
+        showToast.success("Policy Updated", "Policy updated successfully.");
+      } else {
+        // 3B. Create the policy first.
+        result = await createPolicyApi(payload);
+
+        const createdPolicyId = result?.policy_id || result?.result?.policy_id;
+
+        if (!createdPolicyId && rawData.policyDoc instanceof File) {
+          throw new Error(
+            "Policy was created, but the response did not contain a policy ID for PDF upload."
+          );
+        }
+
+        // Upload the PDF once the policy ID exists.
+        if (rawData.policyDoc instanceof File) {
+          await uploadPolicyPDF(rawData.policyDoc, createdPolicyId);
+        }
+
+        showToast.success(
+          "Policy Registered Successfully!",
+          createdPolicyId
+            ? `Policy #${createdPolicyId} registered.`
+            : "Policy has been registered."
+        );
+      }
+
+      handlePolicyCreated(result);
     } catch (err) {
-      console.error("Policy submit error:", err);
-      showToast.error("Submission Error", err?.message || "Failed to submit policy.");
+      console.error("Policy submission error:", err);
+
+      const responseData = err?.response?.data;
+
+      const message =
+        typeof responseData === "object" && responseData !== null
+          ? Object.entries(responseData)
+              .map(
+                ([key, value]) =>
+                  `${key}: ${
+                    Array.isArray(value) ? value.join(", ") : String(value)
+                  }`
+              )
+              .join(" | ")
+          : err?.message || "Failed to submit policy.";
+
+      showToast.error("Policy Submission Failed", message);
+
+      // Preserve the error so the child form knows submission failed.
+      throw err;
     } finally {
       setIsSubmitting(false);
     }
@@ -288,40 +501,41 @@ const PolicyDashboardPage = () => {
 
   const handleSaveDraft = async (submissionData) => {
     setIsSubmitting(true);
+
     try {
       const rawData = submissionData?.formData || policyFormData;
       const targetCustomerId = String(
         submissionData?.customerId ||
-        selectedCustomer?.value ||
-        selectedCustomer?.customer_id ||
-        (typeof selectedCustomer === "string" ? selectedCustomer : "")
+          selectedCustomer?.value ||
+          selectedCustomer?.customer_id ||
+          (typeof selectedCustomer === "string" ? selectedCustomer : "")
       );
+      const policyId = selectedPolicy?.policy_id || submissionData?.policyId;
 
-      const payload = {
-        ...rawData,
-        customer_id: targetCustomerId,
-        policy_name: rawData.policyName || rawData.policy_name || "",
-        issue_date: rawData.issueDate || rawData.issue_date || "",
-        expiry_date: rawData.expiryDate || rawData.expiry_date || "",
-        premium_amount: rawData.price ?? rawData.premium_amount ?? "",
-        sub_type: rawData.subType || rawData.sub_type || "",
-        status: "Pending",
-      };
+      // ── Step 1: Customer Documents Upload ──────────────────
+      await uploadCustomerDocuments(rawData, targetCustomerId);
 
-      if (isEditMode) {
+      // ── Step 2: Build Payload (PDF nahi — draft mein pending)
+      const payload = buildPolicyPayload(rawData, targetCustomerId, null);
+
+      if (isEditMode && policyId) {
         viewAndUpdatePolicy({
-          action: "update",
-          policy_id: selectedPolicy?.policy_id || submissionData?.policyId,
           ...payload,
+          policy_id: policyId,
+          action: "update",
         });
       } else {
         createPolicyApi(payload);
       }
-      showToast.info("Draft Saved", "Policy saved as Pending review.");
+
+      showToast.info("Draft Saved", "Policy saved as Pending.");
       handlePolicyCreated();
     } catch (err) {
       console.error("Save draft error:", err);
-      showToast.error("Save Draft Error", err?.message || "Failed to save draft.");
+      showToast.error(
+        "Save Draft Error",
+        err?.message || "Failed to save draft."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -406,15 +620,7 @@ const PolicyDashboardPage = () => {
 
   return (
     <div className="h-full w-full bg-transparent">
-      {selectedPolicyForView ? (
-        <CustomerPolicyDetailsView
-          customerId={selectedPolicyForView.customerId}
-          initialTab={selectedPolicyForView.initialTab || "policies"}
-          highlightPolicyId={selectedPolicyForView.policyId}
-          onBack={() => setSelectedPolicyForView(null)}
-          originatingDirectory="policies"
-        />
-      ) : isOpenPolicyForm ? (
+      {isOpenPolicyForm ? (
         <PolicyRegistrationForm
           customerList={userList}
           customerOptions={customerOptions}
