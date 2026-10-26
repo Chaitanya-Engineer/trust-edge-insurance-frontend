@@ -422,45 +422,25 @@ const PolicyRegistrationForm = ({
       const vehicleNumberErr = validateVehicleNumber(formData.vehicleNumber);
       if (vehicleNumberErr) newErrors.vehicleNumber = vehicleNumberErr;
 
-      if (isMiscVehicle) {
-        if (!formData.gvw) {
-          newErrors.gvw = "GVW is required";
-        } else if (isNaN(formData.gvw) || Number(formData.gvw) <= 0) {
+      // GVW is optional; validate positive number only if entered
+      if (isMiscVehicle && formData.gvw) {
+        if (isNaN(formData.gvw) || Number(formData.gvw) <= 0) {
           newErrors.gvw = "GVW must be a positive number";
         }
       }
 
-      if (!formData.rcFile) {
-        newErrors.rcFile = "Registration Certificate (RC) is required";
-      }
-      if (!formData.dlFile) {
-        newErrors.dlFile = "Driving License (DL) is required";
-      }
-      if (formData.vehicleOwner && !formData.previousPolicyFile) {
-        newErrors.previousPolicyFile = "Previous Year Policy is required";
-      }
-
-      if (isCommercial) {
-        if (!formData.gstFile) {
-          newErrors.gstFile = "GST Certificate is required";
-        }
-        if (!formData.gumastaFile) {
-          newErrors.gumastaFile = "Gumasta License is required";
-        }
-        if (!formData.udyamFile) {
-          newErrors.udyamFile = "Udyam Registration is required";
-        }
-      }
+      // Motor documents (RC, DL, Previous Policy) & Commercial documents (GST, Gumasta, Udyam) are optional
     }
 
-    // Health Family conditional fields
+    // Health Family conditional fields (Optional)
     if (isHealthFamily) {
       const members = formData.members || [];
-      if (members.length === 0) {
-        newErrors.membersGeneral = "Please add at least one family member";
-      } else {
-        const memberErrors = {};
-        members.forEach((m) => {
+      const memberErrors = {};
+
+      members.forEach((m) => {
+        // Validate individual fields only if user has entered data for this member
+        const hasAnyData = m.name?.trim() || m.age || m.relation;
+        if (hasAnyData) {
           const mErrors = {};
           if (!m.name?.trim()) {
             mErrors.name = "Name is required";
@@ -481,11 +461,11 @@ const PolicyRegistrationForm = ({
           if (Object.keys(mErrors).length > 0) {
             memberErrors[m.id] = mErrors;
           }
-        });
-
-        if (Object.keys(memberErrors).length > 0) {
-          newErrors.members = memberErrors;
         }
+      });
+
+      if (Object.keys(memberErrors).length > 0) {
+        newErrors.members = memberErrors;
       }
     }
 
@@ -588,13 +568,21 @@ const PolicyRegistrationForm = ({
   const isCanSubmit = !!formData.policyDoc;
 
   // Pass raw form data to the parent; payload mapping and API requests live there.
-  const getSubmissionData = (submissionType) => ({
-    customerId: activeCustomerId,
-    formData,
-    policyId: selectedPolicy?.policy_id ?? selectedPolicy?.id ?? null,
-    isEditMode,
-    submissionType,
-  });
+  const getSubmissionData = (submissionType) => {
+    const validMembers = (formData.members || []).filter(
+      (m) => m.name?.trim() || m.age || m.relation
+    );
+    return {
+      customerId: activeCustomerId,
+      formData: {
+        ...formData,
+        members: validMembers,
+      },
+      policyId: selectedPolicy?.policy_id ?? selectedPolicy?.id ?? null,
+      isEditMode,
+      submissionType,
+    };
+  };
 
   const handleSaveDraftClick = () => {
     if (!activeCustomerId) {
@@ -1224,8 +1212,7 @@ const PolicyRegistrationForm = ({
                   <button
                     type="button"
                     onClick={() => removeMember(m.id)}
-                    disabled={(formData.members || []).length <= 1}
-                    className="h-10 w-full sm:w-10 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors border border-gray-200 sm:border-0"
+                    className="h-10 w-full sm:w-10 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors border border-gray-200 sm:border-0 cursor-pointer"
                   >
                     ✕
                   </button>

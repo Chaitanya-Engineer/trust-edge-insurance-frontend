@@ -87,7 +87,11 @@ export const normalizePolicy = (p) => {
   const rawPrice =
     parseFloat(String(p.premium_amount || p.price || 0).replace(/,/g, "")) || 0;
   const formattedPremium = `₹${rawPrice.toLocaleString("en-IN")}`;
-  const pdfUrl = p.policy_pdf_url || p.policyPdfUrl || null;
+  const rawPdf = p.policy_pdf_url || p.policyPdfUrl || null;
+  const pdfUrl =
+    typeof rawPdf === "string" && rawPdf.startsWith("/")
+      ? `${BASE_URL}${rawPdf}`
+      : rawPdf;
   const desc = p.policy_description || {};
   const pay = p.payment_details || {};
 

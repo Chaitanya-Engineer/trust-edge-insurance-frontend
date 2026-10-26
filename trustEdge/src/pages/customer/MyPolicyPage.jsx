@@ -295,6 +295,7 @@ function PolicyPageContent() {
                     {policy.policy_pdf_url && (
                       <a
                         href={policy.policy_pdf_url}
+                        download
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition-colors shadow-2xs"

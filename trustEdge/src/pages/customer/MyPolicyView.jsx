@@ -13,6 +13,10 @@ import {
   Building2,
   PhoneCall,
   MessageCircle,
+  ExternalLink,
+  CheckCircle2,
+  AlertCircle,
+  FileWarning,
 } from "lucide-react";
 import { mockSupportInfo } from "./constant";
 import { calculatePolicyTenure } from "./CustomerContext";
@@ -20,6 +24,7 @@ import { calculatePolicyTenure } from "./CustomerContext";
 export default function MyPolicyView({ policy, onBack }) {
   if (!policy) return null;
 
+  const effectivePolicy = policy;
   const isActive = policy.status?.toLowerCase() === "active";
 
   const getCategoryConfig = (category) => {
@@ -75,10 +80,12 @@ export default function MyPolicyView({ policy, onBack }) {
     desc.sum_assured || desc.sumAssured || desc.nominee || desc.nominee_name
   );
 
+  const effectivePdfUrl = policy.policy_pdf_url || policy.policyPdfUrl;
+
   return (
     <div className="space-y-6 sm:space-y-8 animate-fadeIn max-w-5xl mx-auto">
       {/* ── Top Navigation Bar ─────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <button
           type="button"
           onClick={onBack}
@@ -88,17 +95,38 @@ export default function MyPolicyView({ policy, onBack }) {
           <span>Back to All Policies</span>
         </button>
 
-        {policy.policy_pdf_url && (
-          <a
-            href={policy.policy_pdf_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0B2545] hover:bg-[#0E2F52] text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors"
-          >
-            <Download className="w-4 h-4 text-emerald-400" />
-            <span>Download Certificate</span>
-          </a>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {effectivePdfUrl ? (
+            <>
+              <a
+                href={effectivePdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-100 text-[#0B2545] font-semibold text-xs sm:text-sm border border-slate-200 shadow-2xs transition-colors"
+                title="Open certificate in new tab"
+              >
+                <ExternalLink className="w-4 h-4 text-slate-500" />
+                <span className="hidden sm:inline">Open Document</span>
+              </a>
+
+              <a
+                href={effectivePdfUrl}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0B2545] hover:bg-[#0E2F52] text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors"
+              >
+                <Download className="w-4 h-4 text-emerald-400" />
+                <span>Download Certificate</span>
+              </a>
+            </>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+              <span>Activation PDF In Preparation</span>
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ── Policy Hero Card ───────────────────────────────────────── */}
@@ -214,7 +242,104 @@ export default function MyPolicyView({ policy, onBack }) {
         </div>
       </div>
 
-      {/* ── Section 2: Coverage Particulars (Contextual by Insurance Type) ── */}
+      {/* ── Section 2: Official Policy Document & Activation Certificate ── */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-[#0B2545] text-white">
+              <FileText className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-[#0B2545]">
+                Official Policy Document & Certificate
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Digitally certified underwriter schedule and activation certificate
+              </p>
+            </div>
+          </div>
+
+          {effectivePdfUrl ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Certified PDF Available</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 self-start sm:self-auto">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+              <span>Document In Preparation</span>
+            </span>
+          )}
+        </div>
+
+        {effectivePdfUrl ? (
+          <div className="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-[#0B2545] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                PDF
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-sm font-bold text-[#0B2545] truncate">
+                  {policy.policy_name} — Policy Schedule
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Policy Reference: <strong className="font-mono text-slate-700">{policy.policy_id}</strong> • Format: Adobe Acrobat PDF
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 w-full sm:w-auto">
+              <a
+                href={effectivePdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-[#0B2545] font-semibold text-xs border border-slate-200 shadow-2xs transition-colors"
+                title="View PDF directly in a new browser tab"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                <span>Open PDF</span>
+              </a>
+
+              <a
+                href={effectivePdfUrl}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#0B2545] hover:bg-[#0E2F52] text-white font-semibold text-xs shadow-xs transition-colors"
+              >
+                <Download className="w-4 h-4 text-emerald-400" />
+                <span>Download PDF</span>
+              </a>
+            </div>
+          </div>
+        ) : (
+          <div className="p-5 sm:p-6 rounded-xl bg-amber-50/60 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <FileWarning className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-bold text-amber-950">
+                  Digital Document Attachment in Progress
+                </h4>
+                <p className="text-xs text-amber-900/80 mt-0.5 max-w-xl leading-relaxed">
+                  Your coverage is confirmed and active under reference{" "}
+                  <strong className="font-mono text-slate-900">{effectivePolicy.policy_id}</strong>.
+                  Your TrustEdge advisor is attaching the insurer-sealed PDF copy. You can request an express dispatch below.
+                </p>
+              </div>
+            </div>
+
+            <a
+              href={`tel:${mockSupportInfo.phone1.replace(/[^0-9+]/g, "")}`}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0B2545] hover:bg-[#0E2F52] text-white font-semibold text-xs transition-colors shadow-2xs self-start sm:self-auto shrink-0"
+            >
+              <PhoneCall className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Call Advisor</span>
+            </a>
+          </div>
+        )}
+      </div>
+
+      {/* ── Section 3: Coverage Particulars (Contextual by Insurance Type) ── */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
         <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
