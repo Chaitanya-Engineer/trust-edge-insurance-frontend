@@ -998,67 +998,69 @@ const PolicyRegistrationForm = ({
               )}
             </div>
 
-            {/* Document Uploads */}
-            <div
-              className={`grid grid-cols-1 gap-5 ${
-                formData.vehicleOwner ? "md:grid-cols-3" : "md:grid-cols-2"
-              } mt-4`}
-            >
-              <div>
-                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Registration Certificate (RC)
-                </label>
-                <DocumentUpload
-                  accept={["jpg", "jpeg", "png", "pdf"]}
-                  maxSizeKB={1024}
-                  documentCategory="Policy Document"
-                  placeholder="Upload RC Document (Max 1 MB)"
-                  onChange={(file) => handleInputChange("rcFile", file)}
-                  value={formData.rcFile}
-                  width="w-full"
-                  error={errors.rcFile}
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Driving License (DL)
-                </label>
-                <DocumentUpload
-                  accept={["jpg", "jpeg", "png", "pdf"]}
-                  maxSizeKB={1024}
-                  documentCategory="Policy Document"
-                  placeholder="Upload DL Document (Max 1 MB)"
-                  onChange={(file) => handleInputChange("dlFile", file)}
-                  value={formData.dlFile}
-                  width="w-full"
-                  error={errors.dlFile}
-                />
-              </div>
-
-              {formData.vehicleOwner && (
+            {/* Document Uploads (Hidden in edit mode) */}
+            {!isEditMode && (
+              <div
+                className={`grid grid-cols-1 gap-5 ${
+                  formData.vehicleOwner ? "md:grid-cols-3" : "md:grid-cols-2"
+                } mt-4`}
+              >
                 <div>
                   <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                    Previous Year Policy
+                    Registration Certificate (RC)
                   </label>
                   <DocumentUpload
                     accept={["jpg", "jpeg", "png", "pdf"]}
                     maxSizeKB={1024}
                     documentCategory="Policy Document"
-                    placeholder="Upload Previous Year Policy (Max 1 MB)"
-                    onChange={(file) =>
-                      handleInputChange("previousPolicyFile", file)
-                    }
-                    value={formData.previousPolicyFile}
+                    placeholder="Upload RC Document (Max 1 MB)"
+                    onChange={(file) => handleInputChange("rcFile", file)}
+                    value={formData.rcFile}
                     width="w-full"
-                    error={errors.previousPolicyFile}
+                    error={errors.rcFile}
                   />
                 </div>
-              )}
-            </div>
 
-            {/* Commercial Uploads */}
-            {isCommercial && (
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                    Driving License (DL)
+                  </label>
+                  <DocumentUpload
+                    accept={["jpg", "jpeg", "png", "pdf"]}
+                    maxSizeKB={1024}
+                    documentCategory="Policy Document"
+                    placeholder="Upload DL Document (Max 1 MB)"
+                    onChange={(file) => handleInputChange("dlFile", file)}
+                    value={formData.dlFile}
+                    width="w-full"
+                    error={errors.dlFile}
+                  />
+                </div>
+
+                {formData.vehicleOwner && (
+                  <div>
+                    <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                      Previous Year Policy
+                    </label>
+                    <DocumentUpload
+                      accept={["jpg", "jpeg", "png", "pdf"]}
+                      maxSizeKB={1024}
+                      documentCategory="Policy Document"
+                      placeholder="Upload Previous Year Policy (Max 1 MB)"
+                      onChange={(file) =>
+                        handleInputChange("previousPolicyFile", file)
+                      }
+                      value={formData.previousPolicyFile}
+                      width="w-full"
+                      error={errors.previousPolicyFile}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Commercial Uploads (Hidden in edit mode) */}
+            {isCommercial && !isEditMode && (
               <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 mt-6">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
                   Commercial Documents
