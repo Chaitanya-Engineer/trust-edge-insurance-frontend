@@ -58,54 +58,6 @@ button {
   font-family: 'Lexend', system-ui, -apple-system, sans-serif;
 }
 
-/*Lexend Font Family */
-@font-face {
-  font-family: 'Lexend';
-  src: url('src/assets/fonts/Lexend/static/Lexend-Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lexend';
-  src: url('src/assets/fonts/Lexend/static/Lexend-SemiBold.ttf') format('truetype');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lexend';
-  src: url('src/assets/fonts/Lexend/static/Lexend-Bold.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lexend';
-  src: url('src/assets/fonts/Lexend/static/Lexend-ExtraBold.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lexend';
-  src: url('src/assets/fonts/Lexend/static/Lexend-Medium.ttf') format('truetype');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Lexend';
-  src: url('src/assets/fonts/Lexend/static/Lexend-Light.ttf') format('truetype');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
 
 .gauge-chart svg {
   cursor: pointer;

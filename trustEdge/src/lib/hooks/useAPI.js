@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import axios from "axios";
 import store from "../../store/index.js";
 
@@ -10,101 +10,140 @@ export const useAPI = (url, options = {}) => {
   const [error, setError] = useState(null);
 
   const cancelTokenRef = useRef(null);
- const reduxToken = store.getState()?.auth?.accessToken;
-  // ─── Axios Instance ──────────────────────────────────────
+
+  const getToken = () =>
+    store.getState()?.auth?.accessToken ||
+    localStorage.getItem("access_token");
+
   const axiosInstance = axios.create({
     baseURL: BASE_URL,
   });
 
-  // ─── Request Interceptor ────────────────────────
-  axiosInstance.interceptors.request.use(
-    (request) => {
-      const token = reduxToken || localStorage.getItem("access_token");
-      if (token) {
-        request.headers["Authorization"] = `Bearer ${token}`;
-      }
-      request.headers["ngrok-skip-browser-warning"] = "true";
-      request.headers["Content-Type"] = "application/json";
-      return request;
-    },
-    (error) => Promise.reject(error)
-  );
+  axiosInstance.interceptors.request.use((config) => {
+    const token = getToken();
 
-  // ─── Response Interceptor ────────────────────────────────
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    config.headers["ngrok-skip-browser-warning"] = "true";
+
+    // Let the browser/Axios set the multipart boundary.
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    } else if (!config.headers["Content-Type"]) {
+      config.headers["Content-Type"] = "application/json";
+    }
+
+    return config;
+  });
+
   axiosInstance.interceptors.response.use(
     (response) => response,
-    (error) => {
-      if (error?.response?.status === 401) {
+    (err) => {
+      if (err.response?.status === 401) {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         window.location.href = "/login";
       }
-      return Promise.reject(error);
+
+      return Promise.reject(err);
     }
   );
 
-  // ─── Cancel API Call ─────────────────────────────────────
   const cancelApiCall = (reason = "Request cancelled!") => {
-    if (cancelTokenRef.current) {
-      cancelTokenRef.current.cancel(reason);
-    }
+    cancelTokenRef.current?.cancel(reason);
   };
 
-  // ─── Fetch Data ──────────────────────────────────────────
-  const fetchData = async (additionalParams) => {
-    setIsLoading(true);
-    setError(null);
+  // Shared request handler for JSON and FormData.
+  const request = async (
+    params = {},
+    customUrl,
+    { useCancelToken = false } = {}
+  ) => {
+    const method = (options.method || "GET").toUpperCase();
 
-    if (cancelTokenRef.current) {
-      cancelTokenRef.current.cancel("New request initiated.");
-    }
+    const isFormData = params instanceof FormData;
+    const body = isFormData
+      ? params
+      : {
+          ...(options.data || {}),
+          ...(params || {}),
+        };
 
-    cancelTokenRef.current = axios.CancelToken.source();
-
-    const requestBody = {
-      ...options?.data,
-      ...additionalParams,
+    const config = {
+      ...options,
+      url: customUrl || url,
+      method,
     };
 
-    const isGet = options?.method?.toUpperCase() === "GET"
-                  || !options?.method;  // default GET
+    // Avoid leaking custom hook options into Axios config.
+    delete config.onSuccess;
+    delete config.onFailure;
+    delete config.data;
 
-    try {
-      const response = await axiosInstance(url, {
-        ...options,
-        // GET → params (query string)
-        // POST/PUT/DELETE → data (body)
-        ...(isGet
-          ? { params: requestBody }
-          : { data: requestBody }),
-        cancelToken: cancelTokenRef.current.token,
-      });
-
-      setData(response.data);
-
-      if (options?.onSuccess) {
-        options.onSuccess(response.data, response.status);
-      }
-
-    } catch (err) {
-      if (axios.isCancel(err)) {
-        console.log("Request cancelled:", err.message);
-      } else {
-        setError(err);
-
-        if (options?.onFailure) {
-          options.onFailure(err);
-        }
-      }
-    } finally {
-      setIsLoading(false);
+    if (useCancelToken) {
+      cancelTokenRef.current?.cancel("New request initiated.");
+      cancelTokenRef.current = axios.CancelToken.source();
+      config.cancelToken = cancelTokenRef.current.token;
     }
+
+    if (method === "GET") {
+      config.params = isFormData ? undefined : body;
+    } else {
+      config.data = body;
+    }
+
+    return axiosInstance.request(config);
   };
 
-  // ─── callApi ─────────────────────────────────────────────
-  const callApi = (additionalParams) => {
+  const fetchData = useCallback(
+    async (additionalParams = {}) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await request(additionalParams, url, {
+          useCancelToken: true,
+        });
+
+        setData(response.data);
+        options.onSuccess?.(response.data, response.status);
+
+        return response.data;
+      } catch (err) {
+        if (axios.isCancel(err)) {
+          console.log("Request cancelled:", err.message);
+          return undefined;
+        }
+
+        setError(err);
+        options.onFailure?.(err);
+
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [url, options]
+  );
+
+  // Use for file uploads and dynamic URLs.
+  // Pass FormData directly; never spread it into an object.
+  const callApiRaw = async (payload, customUrl) => {
+    const response = await request(payload, customUrl);
+    return response.data;
+  };
+
+  const callApi = (additionalParams = {}) =>
     fetchData(additionalParams);
-  };
 
-  return { data, isLoading, error, callApi, cancelApiCall };
+  return {
+    data,
+    isLoading,
+    error,
+    callApi,
+    callApiRaw,
+    cancelApiCall,
+  };
 };

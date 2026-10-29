@@ -29,6 +29,8 @@ import {
   tableComponentStyleConstants,
   tableDataTypes,
 } from "./Constant";
+import NoDataFound from "../NoDataFound/NoDataFound";
+import LogoSpinner from "../LogoSpinner/LogoSpinner";
 
 const filterValues = {};
 
@@ -72,7 +74,11 @@ function TBL(props) {
   );
 }
 
-const THead = Fragment;
+const THead = forwardRef(({ children, ...props }, ref) => (
+  <thead ref={ref} {...props}>
+    {children}
+  </thead>
+));
 
 const TRow = forwardRef(({ item, ...props }, ref) => {
   const { ROW_STYLE } = tableComponentStyleConstants;
@@ -124,8 +130,10 @@ const TRow = forwardRef(({ item, ...props }, ref) => {
 
   const rowBgColor =
     index % 2 === 0
-      ? tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[0] ?? "var(--calender-bg)"
-      : tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[1] ?? "var(--calender-bg)";
+      ? tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[0] ??
+        "var(--calender-bg)"
+      : tableComponentConstants?.ROW_ALTERNATE_COLORS?.[theme]?.[1] ??
+        "var(--calender-bg)";
 
   return (
     <>
@@ -172,7 +180,17 @@ const TRow = forwardRef(({ item, ...props }, ref) => {
 
 const TBody = forwardRef(({ children, ...rest }, ref) => {
   const {
-    context: { loading, dataLength, endReached, headerLength },
+    context: {
+      loading,
+      dataLength,
+      endReached,
+      headerLength,
+      emptyTitle,
+      emptyDescription,
+      onRetry,
+      emptyAction,
+      noDataComponent,
+    },
   } = rest;
 
   return (
@@ -191,7 +209,7 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
               colSpan={headerLength ? headerLength + 1 : 20}
             >
               {/* <Loader height="5rem" width="5rem" /> */}
-              Loading
+              <LogoSpinner type="spin" size="md" />
             </TableCell>
           </Row>
         </TableBody>
@@ -207,7 +225,7 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
               colSpan={headerLength ? headerLength + 1 : 20}
             >
               {/* <Loader height="5rem" width="5rem" /> */}
-              Loading
+              <LogoSpinner type="spin" size="md" />
             </TableCell>
           </Row>
         </TableBody>
@@ -227,11 +245,21 @@ const TBody = forwardRef(({ children, ...rest }, ref) => {
             <TableCell
               style={{
                 textAlign: "center",
+                padding: "20px 16px",
+                borderBottom: "none",
               }}
-              colSpan={headerLength ? headerLength + 1 : 10}
+              colSpan={headerLength ? headerLength + 1 : 20}
             >
-              {/* <NoDataFound /> */}
-              NO DATA FOUND
+              {noDataComponent ? (
+                noDataComponent
+              ) : (
+                <NoDataFound
+                  title={emptyTitle}
+                  description={emptyDescription}
+                  onRetry={onRetry}
+                  action={emptyAction}
+                />
+              )}
             </TableCell>
           </Row>
         </TableBody>
@@ -251,9 +279,9 @@ const TableComponent = forwardRef(
       defaultSelected,
       radioChecked: propRadioChecked,
       headColor = tableComponentConstants.HEAD_THEME_COLOR ??
-      tableComponentConstants.HEAD_COLOR,
+        tableComponentConstants.HEAD_COLOR,
       dataSource: propDataSource,
-      selection = () => { },
+      selection = () => {},
       // tableStyle = {},
       isCheckbox = true,
       isHash = false,
@@ -261,14 +289,14 @@ const TableComponent = forwardRef(
       isRadio = false,
       borderRadius = "4px",
       onRowClick,
-      specialCellStyleFunction = () => { },
+      specialCellStyleFunction = () => {},
       className = "",
       loading = false,
       endReached,
       fixed = false,
       auto = false,
       stickyColumns = false,
-      onCellClick = () => { },
+      onCellClick = () => {},
       pagination = false,
       page: propPage = 1,
       pageSize: propPageSize = 5,
@@ -278,6 +306,12 @@ const TableComponent = forwardRef(
       pageSizeOptions = [5, 10, 25, { value: -1, label: "All" }],
       collapsible = false,
       renderExpandedRow = null,
+      emptyTitle,
+      emptyDescription,
+      onClearFilters,
+      onRetry,
+      emptyAction,
+      noDataComponent,
     },
     ref
   ) => {
@@ -311,7 +345,8 @@ const TableComponent = forwardRef(
     }, [propPageSize]);
 
     const isPaginationActive = pagination;
-    const totalRecords = propTotalCount !== undefined ? propTotalCount : (dataSource?.length || 0);
+    const totalRecords =
+      propTotalCount !== undefined ? propTotalCount : dataSource?.length || 0;
 
     const displayData = useMemo(() => {
       if (!isPaginationActive || propOnPageChange) {
@@ -323,7 +358,14 @@ const TableComponent = forwardRef(
       const start = (page - 1) * pageSize;
       const end = start + pageSize;
       return dataSource.slice(start, end);
-    }, [dataSource, isPaginationActive, page, pageSize, totalRecords, propOnPageChange]);
+    }, [
+      dataSource,
+      isPaginationActive,
+      page,
+      pageSize,
+      totalRecords,
+      propOnPageChange,
+    ]);
 
     const handlePageChange = (newPage) => {
       setPage(newPage);
@@ -699,7 +741,11 @@ const TableComponent = forwardRef(
             endReached={endReached}
             computeItemKey={(index, item) => item?.[id] ?? item?.id ?? index}
             increaseViewportBy={{ top: 600, bottom: 600 }}
-            style={{ height: "100%", minHeight: "400px", background: "var(--calender-bg)" }}
+            style={{
+              height: "100%",
+              minHeight: displayData?.length > 0 ? "400px" : "500px",
+              background: "var(--calender-bg)",
+            }}
             components={{
               Scroller,
               Table: TBL,
@@ -729,6 +775,12 @@ const TableComponent = forwardRef(
               displayData,
               clickable: onRowClick ? true : false,
               id,
+              emptyTitle,
+              emptyDescription,
+              onClearFilters,
+              onRetry,
+              emptyAction,
+              noDataComponent,
             }}
           />
         </Box>

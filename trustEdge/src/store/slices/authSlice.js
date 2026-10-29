@@ -6,7 +6,8 @@ const initialState = {
   accessToken: null,    // JWT access token
   refreshToken: null,   // JWT refresh token
   isLoggedIn: false,    // login status
-  isAdmin: false,       // admin hai ya nahi
+  isAdmin: false,   
+  customerId: null,     // admin hai ya nahi
 };
 
 // ─── Auth Slice ───────────────────────────────────────────────
@@ -26,6 +27,7 @@ const authSlice = createSlice({
       state.refreshToken = tokens.refresh;
       state.isLoggedIn   = true;
       state.isAdmin      = user.role === "ADMIN";
+      state.customerId   = user.customer_id || null; 
 
       // localStorage mein bhi save karo
       // (page refresh pe bhi token rahe)
@@ -64,5 +66,5 @@ export const selectUser       = (state) => state.auth.user;
 export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
 export const selectIsAdmin    = (state) => state.auth.isAdmin;
 export const selectAccessToken = (state) => state.auth.accessToken;
-
+export const selectCustomerId = (state) => state.auth.customerId;
 export default authSlice.reducer;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
 import CustomInput from "../../../../component/core_components/CustomInput/CustomeInput";
 import CustomDatePicker from "../../../../component/core_components/DatePicker/CustomDatePicker";
@@ -32,31 +32,91 @@ const chequeStatusOptions = [
 
 const PolicyRegistrationForm = ({
   customerList = [],
+  customerOptions: suppliedCustomerOptions = [],
   formData,
   onChange,
   onClickBack,
-  onSubmit,
+  onSubmitPolicy,
   onSaveDraft,
   onCancel,
   selectedCustomer = null,
   onSelectCustomer,
+  selectedPolicy = null,
+  isEditMode = false,
+  isSubmitting = false,
 }) => {
   const [internalCustomer, setInternalCustomer] = useState(null);
-  const activeCustomer =
-    selectedCustomer !== undefined && selectedCustomer !== null
-      ? selectedCustomer
-      : internalCustomer;
+  const [internalDropdownOptions, setInternalDropdownOptions] = useState([]);
+
+  const { callApi: fetchDropdownFallback } = useAPI(
+    API_ENDPOINTS?.ADMIN?.CUSTOMER_DROPDOWN,
+    {
+      method: "GET",
+      onSuccess: (data) => {
+        const list = Array.isArray(data) ? data : data?.results || [];
+        if (list.length > 0) {
+          setInternalDropdownOptions(list);
+        } else {
+          fetchUsersFallback();
+        }
+      },
+      onFailure: () => {
+        fetchUsersFallback();
+      },
+    }
+  );
+
+  const { callApi: fetchUsersFallback } = useAPI(
+    API_ENDPOINTS?.ADMIN?.USERS_LIST,
+    {
+      method: "GET",
+      onSuccess: (data) => {
+        const list = Array.isArray(data) ? data : data?.results || [];
+        setInternalDropdownOptions(list);
+      },
+    }
+  );
+
+  useEffect(() => {
+    const hasProps =
+      (Array.isArray(suppliedCustomerOptions) &&
+        suppliedCustomerOptions.length > 0) ||
+      (Array.isArray(customerList) && customerList.length > 0);
+    if (!hasProps) {
+      fetchDropdownFallback();
+    }
+  }, [suppliedCustomerOptions, customerList]);
+
+  const activeCustomer = useMemo(
+    () =>
+      selectedCustomer !== undefined && selectedCustomer !== null
+        ? selectedCustomer
+        : internalCustomer ||
+          (selectedPolicy?.customer_id != null
+            ? {
+                label:
+                  selectedPolicy.customer_name ||
+                  selectedPolicy.customer?.name ||
+                  `Customer #${selectedPolicy.customer_id}`,
+                value: String(selectedPolicy.customer_id),
+              }
+            : null),
+    [selectedCustomer, internalCustomer, selectedPolicy]
+  );
 
   const activeCustomerId = useMemo(() => {
     if (!activeCustomer) return "";
-    if (typeof activeCustomer === "string" || typeof activeCustomer === "number") {
+    if (
+      typeof activeCustomer === "string" ||
+      typeof activeCustomer === "number"
+    ) {
       return String(activeCustomer);
     }
     return String(
       activeCustomer.value ||
-      activeCustomer.customer_id ||
-      activeCustomer.id ||
-      ""
+        activeCustomer.customer_id ||
+        activeCustomer.id ||
+        ""
     );
   }, [activeCustomer]);
 
@@ -68,46 +128,41 @@ const PolicyRegistrationForm = ({
     }
   };
 
-  const [dropdownOptions, setDropdownOptions] = useState([]);
-
-  // Fetch strictly { label, value } from the dedicated dropdown endpoint
-  const { callApi: fetchCustomerDropdown } = useAPI(
-    API_ENDPOINTS?.ADMIN?.CUSTOMER_DROPDOWN,
-    {
-      method: "GET",
-      onSuccess: (data) => {
-        if (data && Array.isArray(data)) {
-          setDropdownOptions(
-            data.map((item) => ({
-              label: item.label,
-              value: String(item.value),
-            }))
-          );
-        }
-      },
-      onFailure: () => {
-        setDropdownOptions([]);
-      },
-    }
-  );
-
-  useEffect(() => {
-    fetchCustomerDropdown();
-  }, []);
-
-  // Strict { label, value } options only - no extra data
+  // Robust customer options loaded from props or direct fallback API
   const customerOptions = useMemo(() => {
-    if (dropdownOptions && dropdownOptions.length > 0) {
-      return dropdownOptions;
-    }
-    if (customerList && customerList.length > 0) {
-      return customerList.map((item) => ({
-        label: item.label || item.name || "Customer",
-        value: String(item.value || item.customer_id || item.id),
-      }));
-    }
-    return [];
-  }, [dropdownOptions, customerList]);
+    const rawList =
+      Array.isArray(suppliedCustomerOptions) &&
+      suppliedCustomerOptions.length > 0
+        ? suppliedCustomerOptions
+        : suppliedCustomerOptions?.results ||
+          (Array.isArray(customerList) && customerList.length > 0
+            ? customerList
+            : customerList?.results ||
+              (Array.isArray(internalDropdownOptions) &&
+              internalDropdownOptions.length > 0
+                ? internalDropdownOptions
+                : internalDropdownOptions?.results || []));
+
+    const source = Array.isArray(rawList) ? rawList : [];
+
+    return source
+      .map((item) => {
+        const id = item.value ?? item.customer_id ?? item.id ?? "";
+        const name =
+          item.label ||
+          item.name ||
+          item.full_name ||
+          item.fullName ||
+          item.customer_name ||
+          (id ? `Customer #${id}` : "Customer");
+        const extra = item.phone ? ` (${item.phone})` : "";
+        return {
+          label: item.label ? item.label : `${name}${extra}`,
+          value: String(id),
+        };
+      })
+      .filter((item) => item.value !== "");
+  }, [suppliedCustomerOptions, customerList, internalDropdownOptions]);
 
   const [errors, setErrors] = useState({});
   const [confirmModal, setConfirmModal] = useState({
@@ -194,7 +249,8 @@ const PolicyRegistrationForm = ({
   const isMotor = formData.category === "motor";
   const isHealthFamily =
     formData.category === "health" &&
-    (formData.subType === "Family Floater" || formData.subType === "Group Health");
+    (formData.subType === "Family Floater" ||
+      formData.subType === "Group Health");
   const isMiscVehicle = formData.subType === "Miscellaneous Vehicle";
   const isCommercial = formData.vehicleOwner === "commercial";
   const isCheque = formData.txMode === "cheque";
@@ -203,8 +259,12 @@ const PolicyRegistrationForm = ({
   const renderChequeDetails = (className, isCommission = false) => {
     const numKey = isCommission ? "commissionChequeNum" : "chequeNum";
     const statusKey = isCommission ? "commissionChequeStatus" : "chequeStatus";
-    const numError = isCommission ? errors.commissionChequeNum : errors.chequeNum;
-    const statusError = isCommission ? errors.commissionChequeStatus : errors.chequeStatus;
+    const numError = isCommission
+      ? errors.commissionChequeNum
+      : errors.chequeNum;
+    const statusError = isCommission
+      ? errors.commissionChequeStatus
+      : errors.chequeStatus;
 
     return (
       <div className={className}>
@@ -344,7 +404,10 @@ const PolicyRegistrationForm = ({
     // Expiry Date
     if (!formData.expiryDate) {
       newErrors.expiryDate = "Expiry date is required";
-    } else if (formData.issueDate && new Date(formData.expiryDate) <= new Date(formData.issueDate)) {
+    } else if (
+      formData.issueDate &&
+      new Date(formData.expiryDate) <= new Date(formData.issueDate)
+    ) {
       newErrors.expiryDate = "Expiry date must be after the issue date";
     }
 
@@ -359,45 +422,25 @@ const PolicyRegistrationForm = ({
       const vehicleNumberErr = validateVehicleNumber(formData.vehicleNumber);
       if (vehicleNumberErr) newErrors.vehicleNumber = vehicleNumberErr;
 
-      if (isMiscVehicle) {
-        if (!formData.gvw) {
-          newErrors.gvw = "GVW is required";
-        } else if (isNaN(formData.gvw) || Number(formData.gvw) <= 0) {
+      // GVW is optional; validate positive number only if entered
+      if (isMiscVehicle && formData.gvw) {
+        if (isNaN(formData.gvw) || Number(formData.gvw) <= 0) {
           newErrors.gvw = "GVW must be a positive number";
         }
       }
 
-      if (!formData.rcFile) {
-        newErrors.rcFile = "Registration Certificate (RC) is required";
-      }
-      if (!formData.dlFile) {
-        newErrors.dlFile = "Driving License (DL) is required";
-      }
-      if (formData.vehicleOwner && !formData.previousPolicyFile) {
-        newErrors.previousPolicyFile = "Previous Year Policy is required";
-      }
-
-      if (isCommercial) {
-        if (!formData.gstFile) {
-          newErrors.gstFile = "GST Certificate is required";
-        }
-        if (!formData.gumastaFile) {
-          newErrors.gumastaFile = "Gumasta License is required";
-        }
-        if (!formData.udyamFile) {
-          newErrors.udyamFile = "Udyam Registration is required";
-        }
-      }
+      // Motor documents (RC, DL, Previous Policy) & Commercial documents (GST, Gumasta, Udyam) are optional
     }
 
-    // Health Family conditional fields
+    // Health Family conditional fields (Optional)
     if (isHealthFamily) {
       const members = formData.members || [];
-      if (members.length === 0) {
-        newErrors.membersGeneral = "Please add at least one family member";
-      } else {
-        const memberErrors = {};
-        members.forEach((m) => {
+      const memberErrors = {};
+
+      members.forEach((m) => {
+        // Validate individual fields only if user has entered data for this member
+        const hasAnyData = m.name?.trim() || m.age || m.relation;
+        if (hasAnyData) {
           const mErrors = {};
           if (!m.name?.trim()) {
             mErrors.name = "Name is required";
@@ -418,11 +461,11 @@ const PolicyRegistrationForm = ({
           if (Object.keys(mErrors).length > 0) {
             memberErrors[m.id] = mErrors;
           }
-        });
-
-        if (Object.keys(memberErrors).length > 0) {
-          newErrors.members = memberErrors;
         }
+      });
+
+      if (Object.keys(memberErrors).length > 0) {
+        newErrors.members = memberErrors;
       }
     }
 
@@ -453,7 +496,9 @@ const PolicyRegistrationForm = ({
     // Tx Date & Time
     if (!formData.txDate) {
       newErrors.txDate = "Transaction date is required";
-    } else if (new Date(formData.txDate) > new Date(new Date().setHours(23, 59, 59, 999))) {
+    } else if (
+      new Date(formData.txDate) > new Date(new Date().setHours(23, 59, 59, 999))
+    ) {
       newErrors.txDate = "Transaction date cannot be in the future";
     }
     if (!formData.txTime) {
@@ -473,7 +518,8 @@ const PolicyRegistrationForm = ({
           if (isNaN(commissionVal) || commissionVal <= 0) {
             newErrors.CommissionAmount = "Commission must be a positive number";
           } else if (priceVal > 0 && commissionVal > priceVal) {
-            newErrors.CommissionAmount = "Commission cannot exceed policy price";
+            newErrors.CommissionAmount =
+              "Commission cannot exceed policy price";
           }
         }
 
@@ -486,8 +532,11 @@ const PolicyRegistrationForm = ({
         }
 
         if (isCommissionCheque) {
-          const commChequeNumErr = validateChequeNumber(formData.commissionChequeNum);
-          if (commChequeNumErr) newErrors.commissionChequeNum = commChequeNumErr;
+          const commChequeNumErr = validateChequeNumber(
+            formData.commissionChequeNum
+          );
+          if (commChequeNumErr)
+            newErrors.commissionChequeNum = commChequeNumErr;
           if (!formData.commissionChequeStatus) {
             newErrors.commissionChequeStatus = "Cheque status is required";
           }
@@ -499,7 +548,8 @@ const PolicyRegistrationForm = ({
           if (isNaN(commissionVal) || commissionVal <= 0) {
             newErrors.CommissionAmount = "Commission must be a positive number";
           } else if (priceVal > 0 && commissionVal > priceVal) {
-            newErrors.CommissionAmount = "Commission cannot exceed policy price";
+            newErrors.CommissionAmount =
+              "Commission cannot exceed policy price";
           }
         }
       }
@@ -507,162 +557,43 @@ const PolicyRegistrationForm = ({
 
     // Policy Document (Required ONLY for final submission to activate policy)
     if (isFinalSubmission && !formData.policyDoc) {
-      newErrors.policyDoc = "Policy document is required for final submission to activate policy";
+      newErrors.policyDoc =
+        "Policy document is required for final submission to activate policy";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const isCanSubmit = !!formData.policyDoc;
 
-  const formatDate = (val) => {
-    if (!val) return "";
-    try {
-      const d = dayjs(val);
-      return d.isValid() ? d.format("YYYY-MM-DD") : String(val);
-    } catch {
-      return String(val);
-    }
-  };
-
-  const mapCategory = (cat) => {
-    if (!cat) return "OTHER";
-    const val = String(cat).toUpperCase().trim();
-    if (val === "MOTOR" || val === "VEHICLE") return "VEHICLE";
-    if (val === "HEALTH") return "HEALTH";
-    if (val === "PERSONAL" || val === "LIFE") return "LIFE";
-    return "OTHER";
-  };
-
-  const buildPolicyPayload = () => {
-    const policy_description = {
-      insurer: formData.policyName || "",
-      coverage: formData.subType || "",
-      ...(formData.vehicleNumber ? { vehicle_number: formData.vehicleNumber } : {}),
-      ...(formData.vehicleName ? { vehicle_name: formData.vehicleName } : {}),
-      ...(formData.vehicleOwner ? { vehicle_owner: formData.vehicleOwner } : {}),
-      ...(formData.gvw ? { gvw: formData.gvw } : {}),
-      ...(formData.members && formData.members.length > 0 ? { members: formData.members } : {}),
-    };
-
-    const payment_details = {
-      payment_mode: (formData.txMode || "ONLINE").toUpperCase(),
-      payment_status: (formData.payStatus === "done" ? "PAID" : (formData.payStatus || "PAID")).toUpperCase(),
-      ...(formData.chequeNum ? { transaction_id: formData.chequeNum, cheque_status: formData.chequeStatus } : {}),
-      ...(formData.txDate ? { transaction_date: formatDate(formData.txDate) } : {}),
-      ...(formData.txTime ? { transaction_time: formData.txTime } : {}),
-      ...(formData.txNote ? { transaction_note: formData.txNote } : {}),
-    };
-
-    const commAmount = parseFloat(formData.CommissionAmount) || 0;
-    const priceVal = parseFloat(formData.price) || 0;
-    const commPercentage = priceVal > 0 && commAmount > 0
-      ? Math.round((commAmount / priceVal) * 100)
-      : 0;
-
-    const commission_details = formData.showCommission
-      ? {
-          commission_percentage: commPercentage,
-          commission_amount: commAmount,
-          ...(formData.CommissionMode ? { commission_mode: formData.CommissionMode.toUpperCase() } : {}),
-          ...(formData.CommissionStatus ? { commission_status: formData.CommissionStatus.toUpperCase() } : {}),
-          ...(formData.CommissionDate ? { commission_date: formatDate(formData.CommissionDate) } : {}),
-          ...(formData.CommissionNote ? { commission_note: formData.CommissionNote } : {}),
-        }
-      : {};
-
-    const pdfUrl =
-      typeof formData.policyDoc === "string"
-        ? formData.policyDoc
-        : formData.policyDoc?.url || null;
-
+  // Pass raw form data to the parent; payload mapping and API requests live there.
+  const getSubmissionData = (submissionType) => {
+    const validMembers = (formData.members || []).filter(
+      (m) => m.name?.trim() || m.age || m.relation
+    );
     return {
-      customer_id: activeCustomerId,
-      policy_name: formData.policyName || "",
-      category: mapCategory(formData.category),
-      sub_type: formData.subType || "",
-      issue_date: formatDate(formData.issueDate),
-      expiry_date: formatDate(formData.expiryDate),
-      premium_amount: (parseFloat(formData.price) || 0).toFixed(2),
-      policy_pdf_url: pdfUrl,
-      policy_description,
-      payment_details,
-      commission_details,
+      customerId: activeCustomerId,
+      formData: {
+        ...formData,
+        members: validMembers,
+      },
+      policyId: selectedPolicy?.policy_id ?? selectedPolicy?.id ?? null,
+      isEditMode,
+      submissionType,
     };
   };
-
-  const { callApi: createPolicyApi } = useAPI(
-    API_ENDPOINTS?.ADMIN?.CREATE_POLICY || "/api/policies/create_and_add_policy/",
-    {
-      method: "POST",
-      onSuccess: (response) => {
-        setIsSubmitting(false);
-        setConfirmModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
-        showToast.success(
-          "Policy Created Successfully!",
-          response?.policy_id
-            ? `Policy #${response.policy_id} has been created.`
-            : "The policy has been registered."
-        );
-        onSubmit?.(response);
-      },
-      onFailure: (err) => {
-        setIsSubmitting(false);
-        setConfirmModal((prev) => ({ ...prev, isLoading: false }));
-
-        const status = err?.response?.status;
-        const data = err?.response?.data;
-
-        if (status === 400 && data) {
-          const serverErrors = {};
-          if (typeof data === "object") {
-            Object.entries(data).forEach(([key, val]) => {
-              const msg = Array.isArray(val) ? val.join(" ") : String(val);
-              if (key === "customer_id" || key === "customer") serverErrors.selectedCustomer = msg;
-              else if (key === "policy_name" || key === "name") serverErrors.policyName = msg;
-              else if (key === "category") serverErrors.category = msg;
-              else if (key === "sub_type" || key === "subtype") serverErrors.subType = msg;
-              else if (key === "issue_date") serverErrors.issueDate = msg;
-              else if (key === "expiry_date") serverErrors.expiryDate = msg;
-              else if (key === "premium_amount" || key === "price") serverErrors.price = msg;
-              else if (key === "policy_pdf_url" || key === "policyDoc") serverErrors.policyDoc = msg;
-              else serverErrors[key] = msg;
-            });
-            if (data?.detail && typeof data.detail === "string" && data.detail.toLowerCase().includes("customer")) {
-              serverErrors.selectedCustomer = data.detail;
-            }
-            if (data?.error && typeof data.error === "string" && data.error.toLowerCase().includes("customer")) {
-              serverErrors.selectedCustomer = data.error;
-            }
-            setErrors((prev) => ({ ...prev, ...serverErrors }));
-          }
-          const errorMessage =
-            data?.detail ||
-            data?.error ||
-            data?.message ||
-            (typeof data === "object"
-              ? Object.entries(data)
-                  .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-                  .join(" | ")
-              : "Please check the highlighted fields.");
-          showToast.error("Validation Error", errorMessage);
-        } else if (status === 403) {
-          showToast.error("Access Denied", "Only an authenticated admin can create policies.");
-        } else if (status === 500) {
-          showToast.error("Server Error", "Policy creation failed due to a server error. Please try again.");
-        } else {
-          showToast.error("Creation Failed", data?.message || err?.message || "Failed to create policy.");
-        }
-      },
-    }
-  );
 
   const handleSaveDraftClick = () => {
     if (!activeCustomerId) {
-      showToast.error("Missing Customer", "Please select a customer before creating a draft policy.");
-      setErrors((prev) => ({ ...prev, selectedCustomer: "Customer is required" }));
+      showToast.error(
+        "Missing Customer",
+        "Please select a customer before creating a draft policy."
+      );
+      setErrors((prev) => ({
+        ...prev,
+        selectedCustomer: "Customer is required",
+      }));
       return;
     }
 
@@ -677,16 +608,28 @@ const PolicyRegistrationForm = ({
     setConfirmModal({
       isOpen: true,
       title: "Save Policy as Draft?",
-      description: "This policy will be created and added to the policy registry.",
+      description:
+        "This policy will be created and added to the policy registry.",
       confirmText: "Yes, Save Draft",
       cancelText: "Cancel",
       variant: "warning",
       onConfirm: async () => {
         if (isSubmitting) return;
-        setIsSubmitting(true);
         setConfirmModal((prev) => ({ ...prev, isLoading: true }));
-        const payload = buildPolicyPayload();
-        createPolicyApi(payload);
+        try {
+          await onSaveDraft?.(getSubmissionData("draft"));
+          setConfirmModal((prev) => ({
+            ...prev,
+            isOpen: false,
+            isLoading: false,
+          }));
+        } catch (error) {
+          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+          showToast.error(
+            "Save Failed",
+            error?.message || "Unable to save the policy draft."
+          );
+        }
       },
       isLoading: isSubmitting,
     });
@@ -696,8 +639,14 @@ const PolicyRegistrationForm = ({
     if (e) e.preventDefault();
 
     if (!activeCustomerId) {
-      showToast.error("Missing Customer", "Please select a customer before submitting the policy.");
-      setErrors((prev) => ({ ...prev, selectedCustomer: "Customer is required" }));
+      showToast.error(
+        "Missing Customer",
+        "Please select a customer before submitting the policy."
+      );
+      setErrors((prev) => ({
+        ...prev,
+        selectedCustomer: "Customer is required",
+      }));
       return;
     }
 
@@ -709,7 +658,10 @@ const PolicyRegistrationForm = ({
       setTimeout(() => {
         const firstErrorField = document.querySelector(".text-red-500");
         if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
+          firstErrorField.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
         }
       }, 100);
       return;
@@ -725,10 +677,21 @@ const PolicyRegistrationForm = ({
       variant: "success",
       onConfirm: async () => {
         if (isSubmitting) return;
-        setIsSubmitting(true);
         setConfirmModal((prev) => ({ ...prev, isLoading: true }));
-        const payload = buildPolicyPayload();
-        createPolicyApi(payload);
+        try {
+          await onSubmitPolicy?.(getSubmissionData("final"));
+          setConfirmModal((prev) => ({
+            ...prev,
+            isOpen: false,
+            isLoading: false,
+          }));
+        } catch (error) {
+          setConfirmModal((prev) => ({ ...prev, isLoading: false }));
+          showToast.error(
+            isEditMode ? "Update Failed" : "Submission Failed",
+            error?.message || "Unable to submit the policy."
+          );
+        }
       },
       isLoading: isSubmitting,
     });
@@ -749,7 +712,9 @@ const PolicyRegistrationForm = ({
 
       {/* Header */}
       <div className="border-b border-[#E5E9E7] pb-4 mb-8">
-        <h1 className="text-2xl font-bold text-[#0B2545]">Policy Details</h1>
+        <h1 className="text-2xl font-bold text-[#0B2545]">
+          {isEditMode ? "Update Policy Details" : "Policy Details"}
+        </h1>
         <p className="text-xs text-gray-500 mt-1">
           Fill in the policy information and payment details below.
         </p>
@@ -795,7 +760,9 @@ const PolicyRegistrationForm = ({
               error={!!errors.selectedCustomer}
             />
             {errors.selectedCustomer && (
-              <p className="mt-1.5 text-xs text-red-500">{errors.selectedCustomer}</p>
+              <p className="mt-1.5 text-xs text-red-500">
+                {errors.selectedCustomer}
+              </p>
             )}
           </div>
 
@@ -804,22 +771,29 @@ const PolicyRegistrationForm = ({
             {/* Policy Name / Insurance Company Dropdown */}
             <div className="w-full">
               <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                Insurance Company / Policy Name <span className="text-[#B42318] ml-0.5">*</span>
+                Insurance Company / Policy Name{" "}
+                <span className="text-[#B42318] ml-0.5">*</span>
               </label>
               <CustomSelect
                 options={insuranceCompanyOptions}
                 value={
                   insuranceCompanyOptions.find(
-                    (o) => o.value === formData.policyName || o.label === formData.policyName
+                    (o) =>
+                      o.value === formData.policyName ||
+                      o.label === formData.policyName
                   ) || null
                 }
-                onChange={(opt) => handleInputChange("policyName", opt?.value || "")}
+                onChange={(opt) =>
+                  handleInputChange("policyName", opt?.value || "")
+                }
                 placeholder="Select Insurance Company"
                 width="w-full"
                 error={!!errors.policyName}
               />
               {errors.policyName && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.policyName}</p>
+                <p className="mt-1.5 text-xs text-red-500">
+                  {errors.policyName}
+                </p>
               )}
             </div>
 
@@ -849,12 +823,17 @@ const PolicyRegistrationForm = ({
           </div>
 
           {/* Sub-Type, Issue Date, Expiry Date (3-column grid) */}
-          <div className={`grid grid-cols-1 gap-6 ${formData.category ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
+          <div
+            className={`grid grid-cols-1 gap-6 ${
+              formData.category ? "md:grid-cols-3" : "md:grid-cols-2"
+            }`}
+          >
             {/* Sub-Type (Conditional on category selection) */}
             {formData.category && (
               <div className="w-full">
                 <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Policy Sub-Type <span className="text-[#B42318] ml-0.5">*</span>
+                  Policy Sub-Type{" "}
+                  <span className="text-[#B42318] ml-0.5">*</span>
                 </label>
                 <CustomSelect
                   options={(subTypes[formData.category] || []).map((s) => ({
@@ -866,13 +845,17 @@ const PolicyRegistrationForm = ({
                       ? { value: formData.subType, label: formData.subType }
                       : null
                   }
-                  onChange={(opt) => handleInputChange("subType", opt?.value || "")}
+                  onChange={(opt) =>
+                    handleInputChange("subType", opt?.value || "")
+                  }
                   placeholder="Select sub-type"
                   width="w-full"
                   error={!!errors.subType}
                 />
                 {errors.subType && (
-                  <p className="mt-1.5 text-xs text-red-500">{errors.subType}</p>
+                  <p className="mt-1.5 text-xs text-red-500">
+                    {errors.subType}
+                  </p>
                 )}
               </div>
             )}
@@ -889,7 +872,9 @@ const PolicyRegistrationForm = ({
                 error={!!errors.issueDate}
               />
               {errors.issueDate && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.issueDate}</p>
+                <p className="mt-1.5 text-xs text-red-500">
+                  {errors.issueDate}
+                </p>
               )}
             </div>
 
@@ -906,7 +891,9 @@ const PolicyRegistrationForm = ({
                 error={!!errors.expiryDate}
               />
               {errors.expiryDate && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.expiryDate}</p>
+                <p className="mt-1.5 text-xs text-red-500">
+                  {errors.expiryDate}
+                </p>
               )}
             </div>
           </div>
@@ -941,7 +928,9 @@ const PolicyRegistrationForm = ({
                   error={!!errors.vehicleOwner}
                 />
                 {errors.vehicleOwner && (
-                  <p className="mt-1.5 text-xs text-red-500">{errors.vehicleOwner}</p>
+                  <p className="mt-1.5 text-xs text-red-500">
+                    {errors.vehicleOwner}
+                  </p>
                 )}
               </div>
 
@@ -959,7 +948,9 @@ const PolicyRegistrationForm = ({
                   error={!!errors.vehicleName}
                 />
                 {errors.vehicleName && (
-                  <p className="mt-1.5 text-xs text-red-500">{errors.vehicleName}</p>
+                  <p className="mt-1.5 text-xs text-red-500">
+                    {errors.vehicleName}
+                  </p>
                 )}
               </div>
 
@@ -980,7 +971,9 @@ const PolicyRegistrationForm = ({
                   maxLength={10}
                 />
                 {errors.vehicleNumber && (
-                  <p className="mt-1.5 text-xs text-red-500">{errors.vehicleNumber}</p>
+                  <p className="mt-1.5 text-xs text-red-500">
+                    {errors.vehicleNumber}
+                  </p>
                 )}
               </div>
 
@@ -1005,55 +998,69 @@ const PolicyRegistrationForm = ({
               )}
             </div>
 
-            {/* Document Uploads */}
-            <div className={`grid grid-cols-1 gap-5 ${formData.vehicleOwner ? 'md:grid-cols-3' : 'md:grid-cols-2'} mt-4`}>
-              <div>
-                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Registration Certificate (RC)
-                </label>
-                <DocumentUpload
-                  accept={["jpg", "jpeg", "png", "pdf"]}
-                  maxSize={10}
-                  placeholder="Upload RC Document"
-                  onChange={(file) => handleInputChange("rcFile", file)}
-                  width="w-full"
-                  error={errors.rcFile}
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Driving License (DL)
-                </label>
-                <DocumentUpload
-                  accept={["jpg", "jpeg", "png", "pdf"]}
-                  maxSize={10}
-                  placeholder="Upload DL Document"
-                  onChange={(file) => handleInputChange("dlFile", file)}
-                  width="w-full"
-                  error={errors.dlFile}
-                />
-              </div>
-
-              {formData.vehicleOwner && (
+            {/* Document Uploads (Hidden in edit mode) */}
+            {!isEditMode && (
+              <div
+                className={`grid grid-cols-1 gap-5 ${
+                  formData.vehicleOwner ? "md:grid-cols-3" : "md:grid-cols-2"
+                } mt-4`}
+              >
                 <div>
                   <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                    Previous Year Policy
+                    Registration Certificate (RC)
                   </label>
                   <DocumentUpload
                     accept={["jpg", "jpeg", "png", "pdf"]}
-                    maxSize={10}
-                    placeholder="Upload Previous Year Policy"
-                    onChange={(file) => handleInputChange("previousPolicyFile", file)}
+                    maxSizeKB={1024}
+                    documentCategory="Policy Document"
+                    placeholder="Upload RC Document (Max 1 MB)"
+                    onChange={(file) => handleInputChange("rcFile", file)}
+                    value={formData.rcFile}
                     width="w-full"
-                    error={errors.previousPolicyFile}
+                    error={errors.rcFile}
                   />
                 </div>
-              )}
-            </div>
 
-            {/* Commercial Uploads */}
-            {isCommercial && (
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                    Driving License (DL)
+                  </label>
+                  <DocumentUpload
+                    accept={["jpg", "jpeg", "png", "pdf"]}
+                    maxSizeKB={1024}
+                    documentCategory="Policy Document"
+                    placeholder="Upload DL Document (Max 1 MB)"
+                    onChange={(file) => handleInputChange("dlFile", file)}
+                    value={formData.dlFile}
+                    width="w-full"
+                    error={errors.dlFile}
+                  />
+                </div>
+
+                {formData.vehicleOwner && (
+                  <div>
+                    <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                      Previous Year Policy
+                    </label>
+                    <DocumentUpload
+                      accept={["jpg", "jpeg", "png", "pdf"]}
+                      maxSizeKB={1024}
+                      documentCategory="Policy Document"
+                      placeholder="Upload Previous Year Policy (Max 1 MB)"
+                      onChange={(file) =>
+                        handleInputChange("previousPolicyFile", file)
+                      }
+                      value={formData.previousPolicyFile}
+                      width="w-full"
+                      error={errors.previousPolicyFile}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Commercial Uploads (Hidden in edit mode) */}
+            {isCommercial && !isEditMode && (
               <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 mt-6">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
                   Commercial Documents
@@ -1065,9 +1072,11 @@ const PolicyRegistrationForm = ({
                     </label>
                     <DocumentUpload
                       accept={["pdf", "jpg", "jpeg", "png"]}
-                      maxSize={10}
-                      placeholder="Upload GST"
+                      maxSizeKB={1024}
+                      documentCategory="Policy Document"
+                      placeholder="Upload GST (Max 1 MB)"
                       onChange={(file) => handleInputChange("gstFile", file)}
+                      value={formData.gstFile}
                       width="w-full"
                       error={errors.gstFile}
                     />
@@ -1079,9 +1088,13 @@ const PolicyRegistrationForm = ({
                     </label>
                     <DocumentUpload
                       accept={["pdf", "jpg", "jpeg", "png"]}
-                      maxSize={10}
-                      placeholder="Upload Gumasta"
-                      onChange={(file) => handleInputChange("gumastaFile", file)}
+                      maxSizeKB={1024}
+                      documentCategory="Policy Document"
+                      placeholder="Upload Gumasta (Max 1 MB)"
+                      onChange={(file) =>
+                        handleInputChange("gumastaFile", file)
+                      }
+                      value={formData.gumastaFile}
                       width="w-full"
                       error={errors.gumastaFile}
                     />
@@ -1093,9 +1106,11 @@ const PolicyRegistrationForm = ({
                     </label>
                     <DocumentUpload
                       accept={["pdf", "jpg", "jpeg", "png"]}
-                      maxSize={10}
-                      placeholder="Upload Udyam"
+                      maxSizeKB={1024}
+                      documentCategory="Policy Document"
+                      placeholder="Upload Udyam (Max 1 MB)"
                       onChange={(file) => handleInputChange("udyamFile", file)}
+                      value={formData.udyamFile}
                       width="w-full"
                       error={errors.udyamFile}
                     />
@@ -1115,7 +1130,9 @@ const PolicyRegistrationForm = ({
                   Family Members
                 </h2>
                 {errors.membersGeneral && (
-                  <p className="text-xs text-[#B42318] mt-1">{errors.membersGeneral}</p>
+                  <p className="text-xs text-[#B42318] mt-1">
+                    {errors.membersGeneral}
+                  </p>
                 )}
               </div>
               <button
@@ -1143,10 +1160,12 @@ const PolicyRegistrationForm = ({
                       placeholder="Enter name"
                       width="w-full"
                       type="text"
-                      error={!!(errors.members?.[m.id]?.name)}
+                      error={!!errors.members?.[m.id]?.name}
                     />
                     {errors.members?.[m.id]?.name && (
-                      <p className="mt-1 text-[10px] text-red-500">{errors.members[m.id].name}</p>
+                      <p className="mt-1 text-[10px] text-red-500">
+                        {errors.members[m.id].name}
+                      </p>
                     )}
                   </div>
 
@@ -1160,10 +1179,12 @@ const PolicyRegistrationForm = ({
                       placeholder="Age"
                       width="w-full"
                       type="numeric"
-                      error={!!(errors.members?.[m.id]?.age)}
+                      error={!!errors.members?.[m.id]?.age}
                     />
                     {errors.members?.[m.id]?.age && (
-                      <p className="mt-1 text-[10px] text-red-500">{errors.members[m.id].age}</p>
+                      <p className="mt-1 text-[10px] text-red-500">
+                        {errors.members[m.id].age}
+                      </p>
                     )}
                   </div>
 
@@ -1173,24 +1194,27 @@ const PolicyRegistrationForm = ({
                     </label>
                     <CustomSelect
                       options={relations}
-                      value={relations.find((r) => r.value === m.relation) || null}
+                      value={
+                        relations.find((r) => r.value === m.relation) || null
+                      }
                       onChange={(opt) =>
                         updateMember(m.id, "relation", opt?.value || "")
                       }
                       placeholder="Select relation"
                       width="w-full"
-                      error={!!(errors.members?.[m.id]?.relation)}
+                      error={!!errors.members?.[m.id]?.relation}
                     />
                     {errors.members?.[m.id]?.relation && (
-                      <p className="mt-1 text-[10px] text-red-500">{errors.members[m.id].relation}</p>
+                      <p className="mt-1 text-[10px] text-red-500">
+                        {errors.members[m.id].relation}
+                      </p>
                     )}
                   </div>
 
                   <button
                     type="button"
                     onClick={() => removeMember(m.id)}
-                    disabled={(formData.members || []).length <= 1}
-                    className="h-10 w-full sm:w-10 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors border border-gray-200 sm:border-0"
+                    className="h-10 w-full sm:w-10 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors border border-gray-200 sm:border-0 cursor-pointer"
                   >
                     ✕
                   </button>
@@ -1216,7 +1240,8 @@ const PolicyRegistrationForm = ({
             {/* Policy Price */}
             <div className="w-full">
               <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                Policy Price (₹) <span className="text-[#B42318] ml-0.5">*</span>
+                Policy Price (₹){" "}
+                <span className="text-[#B42318] ml-0.5">*</span>
               </label>
               <CustomInput
                 value={formData.price || ""}
@@ -1234,7 +1259,8 @@ const PolicyRegistrationForm = ({
             {/* Transaction Mode */}
             <div className="w-full">
               <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                Transaction Mode <span className="text-[#B42318] ml-0.5">*</span>
+                Transaction Mode{" "}
+                <span className="text-[#B42318] ml-0.5">*</span>
               </label>
               <CustomSelect
                 options={transactionModeOptions}
@@ -1243,7 +1269,9 @@ const PolicyRegistrationForm = ({
                     (o) => o.value === formData.txMode
                   ) || null
                 }
-                onChange={(opt) => handleInputChange("txMode", opt?.value || "")}
+                onChange={(opt) =>
+                  handleInputChange("txMode", opt?.value || "")
+                }
                 placeholder="Select mode"
                 width="w-full"
                 error={!!errors.txMode}
@@ -1273,19 +1301,26 @@ const PolicyRegistrationForm = ({
                 error={!!errors.payStatus}
               />
               {errors.payStatus && (
-                <p className="mt-1.5 text-xs text-red-500">{errors.payStatus}</p>
+                <p className="mt-1.5 text-xs text-red-500">
+                  {errors.payStatus}
+                </p>
               )}
             </div>
           </div>
 
           {/* Cheque details (Conditional) */}
-          {isCheque && renderChequeDetails("rounded-xl bg-gray-50 border border-gray-200 p-5 mt-6", false)}
+          {isCheque &&
+            renderChequeDetails(
+              "rounded-xl bg-gray-50 border border-gray-200 p-5 mt-6",
+              false
+            )}
 
           {/* Transaction Date & Time and Transaction Note (2-column grid) */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-6 items-start">
             <div className="w-full">
               <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                Transaction Date & Time <span className="text-[#B42318] ml-0.5">*</span>
+                Transaction Date & Time{" "}
+                <span className="text-[#B42318] ml-0.5">*</span>
               </label>
               <CustomDateTimePicker
                 dateValue={formData.txDate || ""}
@@ -1304,7 +1339,8 @@ const PolicyRegistrationForm = ({
 
             <div className="w-full">
               <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                Transaction Note <span className="text-gray-400 font-normal">(Optional)</span>
+                Transaction Note{" "}
+                <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               <textarea
                 rows={2}
@@ -1325,13 +1361,18 @@ const PolicyRegistrationForm = ({
             </h2>
             <button
               type="button"
-              onClick={() => handleInputChange("showCommission", !formData.showCommission)}
-              className={`text-xs font-semibold px-3 py-1.5 rounded-[9px] border transition-colors cursor-pointer ${formData.showCommission
-                ? "bg-[#FDECEC] text-[#B42318] border-[#FCD2D2] hover:bg-[#FCE0E0]"
-                : "bg-[#EAF0F6] text-[#0B2545] border-[#E5E9E7] hover:bg-[#DCE6F1]"
-                }`}
+              onClick={() =>
+                handleInputChange("showCommission", !formData.showCommission)
+              }
+              className={`text-xs font-semibold px-3 py-1.5 rounded-[9px] border transition-colors cursor-pointer ${
+                formData.showCommission
+                  ? "bg-[#FDECEC] text-[#B42318] border-[#FCD2D2] hover:bg-[#FCE0E0]"
+                  : "bg-[#EAF0F6] text-[#0B2545] border-[#E5E9E7] hover:bg-[#DCE6F1]"
+              }`}
             >
-              {formData.showCommission ? "Remove Commission" : "+ Add Commission"}
+              {formData.showCommission
+                ? "Remove Commission"
+                : "+ Add Commission"}
             </button>
           </div>
 
@@ -1339,7 +1380,10 @@ const PolicyRegistrationForm = ({
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 bg-gray-50 border border-gray-200 rounded-xl p-6">
               <div>
                 <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Commission Amount (₹) {formData.CommissionStatus === "received" && <span className="text-[#B42318] ml-0.5">*</span>}
+                  Commission Amount (₹){" "}
+                  {formData.CommissionStatus === "received" && (
+                    <span className="text-[#B42318] ml-0.5">*</span>
+                  )}
                 </label>
                 <CustomInput
                   value={formData.CommissionAmount || ""}
@@ -1350,13 +1394,18 @@ const PolicyRegistrationForm = ({
                   error={!!errors.CommissionAmount}
                 />
                 {errors.CommissionAmount && (
-                  <p className="mt-1 text-xs text-red-500">{errors.CommissionAmount}</p>
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.CommissionAmount}
+                  </p>
                 )}
               </div>
 
               <div>
                 <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Commission Mode {formData.CommissionStatus === "received" && <span className="text-[#B42318] ml-0.5">*</span>}
+                  Commission Mode{" "}
+                  {formData.CommissionStatus === "received" && (
+                    <span className="text-[#B42318] ml-0.5">*</span>
+                  )}
                 </label>
                 <CustomSelect
                   options={transactionModeOptions}
@@ -1373,7 +1422,9 @@ const PolicyRegistrationForm = ({
                   error={!!errors.CommissionMode}
                 />
                 {errors.CommissionMode && (
-                  <p className="mt-1 text-xs text-red-500">{errors.CommissionMode}</p>
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.CommissionMode}
+                  </p>
                 )}
               </div>
 
@@ -1389,20 +1440,28 @@ const PolicyRegistrationForm = ({
                     ) || null
                   }
                   onChange={(opt) =>
-                    handleInputChange("CommissionStatus", opt?.value || "pending")
+                    handleInputChange(
+                      "CommissionStatus",
+                      opt?.value || "pending"
+                    )
                   }
                   placeholder="Select status"
                   width="w-full"
                   error={!!errors.CommissionStatus}
                 />
                 {errors.CommissionStatus && (
-                  <p className="mt-1 text-xs text-red-500">{errors.CommissionStatus}</p>
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.CommissionStatus}
+                  </p>
                 )}
               </div>
 
               <div>
                 <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Commission Date {formData.CommissionStatus === "received" && <span className="text-[#B42318] ml-0.5">*</span>}
+                  Commission Date{" "}
+                  {formData.CommissionStatus === "received" && (
+                    <span className="text-[#B42318] ml-0.5">*</span>
+                  )}
                 </label>
                 <CustomDatePicker
                   value={formData.CommissionDate || ""}
@@ -1411,12 +1470,18 @@ const PolicyRegistrationForm = ({
                   error={!!errors.CommissionDate}
                 />
                 {errors.CommissionDate && (
-                  <p className="mt-1 text-xs text-red-500">{errors.CommissionDate}</p>
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.CommissionDate}
+                  </p>
                 )}
               </div>
 
               {/* Commission Cheque details (Conditional) */}
-              {isCommissionCheque && renderChequeDetails("md:col-span-2 rounded-xl bg-white border border-gray-200 p-5", true)}
+              {isCommissionCheque &&
+                renderChequeDetails(
+                  "md:col-span-2 rounded-xl bg-white border border-gray-200 p-5",
+                  true
+                )}
 
               <div className="md:col-span-2">
                 <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
@@ -1435,44 +1500,79 @@ const PolicyRegistrationForm = ({
             </div>
           ) : (
             <p className="text-xs text-gray-400">
-              Optional Commission tracking details. Click "+ Add Commission" to toggle.
+              Optional Commission tracking details. Click "+ Add Commission" to
+              toggle.
             </p>
           )}
         </div>
 
         {/* ================= Upload Policy Document ================= */}
-        <div className="mb-8 mt-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#E5E9E7] pb-2 mb-3">
-            <h2 className="text-lg font-bold text-[#0B2545] sm:text-xl">
-              Upload Policy Document {formData.policyDoc && <span className="text-[#2F6F3E] text-xs font-semibold ml-2">✓ Attached</span>}
-            </h2>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#EAF0F6] text-[#0B2545]">
-              Final Activation Requirement
-            </span>
-          </div>
+        {formData.policyDoc ? (
+          <div className="mb-6">
+            <h3 className="mb-3 text-sm font-semibold text-[#344054]">
+              Existing Documents
+            </h3>
 
-          {/* Submission Guidance Callout */}
-          <div className="mb-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-2.5 flex items-center gap-2 text-xs text-[#475569]">
-            <span className="text-sm">💡</span>
-            <span>
-              <strong className="text-[#0B2545]">Save Draft</strong> keeps policy <strong>Pending</strong>. Upload policy document to unlock <strong>Submit Policy</strong> for <strong>Active</strong> status.
-            </span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-lg border border-[#E5E9E7] p-3">
+                <span className="text-sm text-[#344054]">
+                  {"Policy Document PDF"}
+                </span>
+                <a
+                  href={formData.policyDoc} // ← direct public URL
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-blue-600 hover:underline"
+                >
+                  View Document
+                </a>
+              </div>
+            </div>
           </div>
+        ) : (
+          <div className="mb-8 mt-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#E5E9E7] pb-2 mb-3">
+              <h2 className="text-lg font-bold text-[#0B2545] sm:text-xl">
+                Upload Policy Document{" "}
+                {formData.policyDoc && (
+                  <span className="text-[#2F6F3E] text-xs font-semibold ml-2">
+                    ✓ Attached
+                  </span>
+                )}
+              </h2>
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#EAF0F6] text-[#0B2545]">
+                Final Activation Requirement
+              </span>
+            </div>
 
-          <DocumentUpload
-            accept={["pdf", "jpg", "jpeg", "png"]}
-            maxSize={25}
-            placeholder="Drag and drop or browse to upload Policy PDF"
-            onChange={(file) => {
-              handleInputChange("policyDoc", file);
-              if (!file && errors.policyDoc) {
-                setErrors((prev) => ({ ...prev, policyDoc: null }));
-              }
-            }}
-            width="w-full"
-            error={errors.policyDoc}
-          />
-        </div>
+            {/* Submission Guidance Callout */}
+            <div className="mb-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-2.5 flex items-center gap-2 text-xs text-[#475569]">
+              <span className="text-sm">💡</span>
+              <span>
+                <strong className="text-[#0B2545]">Save Draft</strong> keeps
+                policy <strong>Pending</strong>. Upload policy document to
+                unlock <strong>Submit Policy</strong> for{" "}
+                <strong>Active</strong> status.
+              </span>
+            </div>
+
+            <DocumentUpload
+              accept={["pdf", "jpg", "jpeg", "png"]}
+              maxSizeKB={1024}
+              documentCategory="Policy Document"
+              placeholder="Drag and drop or browse to upload Policy PDF (Max 1 MB)"
+              onChange={(file) => {
+                handleInputChange("policyDoc", file);
+                if (!file && errors.policyDoc) {
+                  setErrors((prev) => ({ ...prev, policyDoc: null }));
+                }
+              }}
+              value={formData.policyDoc}
+              width="w-full"
+              error={errors.policyDoc}
+            />
+          </div>
+        )}
 
         {/* ================= Action Buttons ================= */}
         <div className="flex flex-col-reverse gap-3 border-t border-[#E5E9E7] pt-6 mt-8 sm:flex-row sm:justify-end">
@@ -1493,19 +1593,27 @@ const PolicyRegistrationForm = ({
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-[#C9A227] group-hover:bg-[#FCD34D] transition-colors"></span>
-            Save Draft
+            {isEditMode ? "Save Changes as Draft" : "Save Draft"}
           </button>
 
-          {isCanSubmit && (
+          {(isCanSubmit || isEditMode) && (
             <button
               type="submit"
               disabled={isSubmitting}
               className={`w-full rounded-[9px] bg-[#2F6F3E] hover:bg-[#235630] active:bg-[#1A4224] active:scale-[0.98] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 shadow-sm hover:shadow-md sm:w-auto flex items-center justify-center gap-2 animate-fadeIn ${
-                isSubmitting ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
+                isSubmitting
+                  ? "opacity-60 cursor-not-allowed"
+                  : "cursor-pointer"
               }`}
             >
               <span>✓</span>
-              {isSubmitting ? "Submitting..." : "Submit Policy"}
+              {isSubmitting
+                ? isEditMode
+                  ? "Updating..."
+                  : "Submitting..."
+                : isEditMode
+                ? "Update Policy"
+                : "Submit Policy"}
             </button>
           )}
         </div>
@@ -1514,7 +1622,10 @@ const PolicyRegistrationForm = ({
       {/* Reusable Confirmation Modal */}
       <ConfirmationModal
         isOpen={confirmModal.isOpen}
-        onClose={() => !isSubmitting && setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onClose={() =>
+          !isSubmitting &&
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+        }
         onConfirm={confirmModal.onConfirm}
         title={confirmModal.title}
         description={confirmModal.description}

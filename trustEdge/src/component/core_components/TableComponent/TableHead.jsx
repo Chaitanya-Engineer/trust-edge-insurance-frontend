@@ -67,10 +67,11 @@ const TableHead = forwardRef(
     }
     const customHeadColor =
       typeof headColor === typeof {} ? headColor[theme] : headColor;
+    const customTextColor =
+      tableComponentConstants?.HEAD_TXT_THEME_COLOR[theme] ?? "#0E4B35";
 
     return (
-      <Head sx={{ backgroundColor: `${customHeadColor} !important`, zIndex: 10, position: "sticky", top: 0 }}>
-        <tr>
+      <tr style={{ backgroundColor: `${customHeadColor} !important` }}>
           {isSelection && (
             <TableCell
               className="pr-0"
@@ -105,8 +106,9 @@ const TableHead = forwardRef(
                 minWidth: "60px !important",
                 p: "14px 8px !important",
                 textAlign: "center",
+                color: `${customTextColor} !important`,
               }}
-              className="!py-3.5 !font-['Lexend'] !text-[11px] !font-bold !uppercase !tracking-wider text-[#667085]"
+              className="!py-3.5 !font-['Lexend'] !text-[11px] !font-bold !uppercase !tracking-wider"
             >
               Expand
             </TableCell>
@@ -120,15 +122,14 @@ const TableHead = forwardRef(
                 sx={{
                   backgroundColor: `${customHeadColor} !important`,
                   textAlign: headCell?.text_align,
-                  color:
-                    tableComponentConstants?.HEAD_TXT_THEME_COLOR[theme] ??
-                    "#676792",
+                  color: `${customTextColor} !important`,
                   width:
                     window.innerWidth > 2200
                       ? headCell?.width
                         ? Number(headCell?.width) + 50
-                        : `${headers?.length * 10}%`
-                      : headCell?.width ?? `${headers?.length * 10}%`,
+                        : undefined
+                      : headCell?.width,
+                  minWidth: headCell?.width,
                 }}
               >
                 <div
@@ -139,7 +140,7 @@ const TableHead = forwardRef(
                     "flex items-center gap-2"
                   )}
                 >
-                  <span className="text-nowrap">
+                  <span className="text-nowrap font-semibold" style={{ color: customTextColor }}>
                     {headCell?.specialTitle
                       ? headCell?.specialTitle()
                       : headCell?.title}
@@ -165,8 +166,8 @@ const TableHead = forwardRef(
                             "& .MuiTableSortLabel-icon": {
                               color:
                                 orderBy === headCell.accessor
-                                  ? "var(--secondary-icon) !important"
-                                  : "#918FD0 !important",
+                                  ? `${customTextColor} !important`
+                                  : "rgba(255, 255, 255, 0.75) !important",
                             },
                           }}
                           IconComponent={
@@ -205,7 +206,6 @@ const TableHead = forwardRef(
             </TableCell>
           )}
         </tr>
-      </Head>
     );
   }
 );

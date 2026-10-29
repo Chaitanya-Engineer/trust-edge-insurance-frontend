@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
 import { routes } from "../lib/constant/routes";
 import { ROLES } from "../lib/constant/roles";
@@ -17,6 +17,7 @@ function ScrollToTop() {
 
 import PublicLayout from "../component/layout/PublicLayout";
 import AdminLayout from "../component/layout/AdminLayout";
+import CustomerLayout from "../component/layout/CustomerLayout";
 // import UserLayout from "../component/layout/UserLayout";
 
 // ─── Loading Spinner ──────────────────────────────────────────
@@ -34,7 +35,8 @@ function PageLoader() {
 // ─── Layout Wrapper ───────────────────────────────────────────
 function LayoutWrapper({ layout, children }) {
   if (layout === "admin") return <AdminLayout>{children}</AdminLayout>;
-  //   if (layout === "user") return <UserLayout>{children}</UserLayout>;
+  if (layout === "customer" || layout === "user")
+    return <CustomerLayout>{children}</CustomerLayout>;
   if (layout === "auth") return <>{children}</>; // no header/footer
   return <PublicLayout>{children}</PublicLayout>; // default
 }
@@ -44,25 +46,25 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      {/* <Suspense fallback={<PageLoader />}> */}
-      <Routes>
-        {routes.map((route) => {
-          const Component = route.component;
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {routes.map((route) => {
+            const Component = route.component;
 
-          return (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={
-                <LayoutWrapper layout={route.layout}>
-                  <Component />
-                </LayoutWrapper>
-              }
-            />
-          );
-        })}
-      </Routes>
-      {/* </Suspense> */}
+            return (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={
+                  <LayoutWrapper layout={route.layout}>
+                    <Component />
+                  </LayoutWrapper>
+                }
+              />
+            );
+          })}
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

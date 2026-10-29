@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAPI } from "../../lib/hooks/useAPI";
 import { API_ENDPOINTS } from "../../lib/constant/ApiEndpoints";
+import LogoSpinner from "../../component/core_components/LogoSpinner/LogoSpinner";
 
 // ─── Format Date ─────────────────────────────────────────────
 const formatDate = (dateStr) => {
@@ -50,7 +51,7 @@ const DashboardPage = () => {
       },
       onFailure: (error) => {
         console.log("error", error);
-        setUserList([]);
+        setdashboardData({});
       },
     }
   );
