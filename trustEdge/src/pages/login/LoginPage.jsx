@@ -38,7 +38,7 @@ export default function LoginPage() {
       if (data?.user?.role === "ADMIN") {
         navigate("/admin");
       } else {
-        navigate("/dashboard");
+        navigate("/customer");
       }
     },
 
@@ -119,7 +119,7 @@ export default function LoginPage() {
               className="h-28 w-auto object-contain select-none"
             />
             <p className="text-[10px] font-bold text-navy uppercase tracking-wider mt-3">
-              Advisor Portal
+              Portal Sign In
             </p>
           </div>
 
@@ -129,10 +129,10 @@ export default function LoginPage() {
               <ShieldCheck className="w-5 h-5 text-navy" />
             </div>
             <h2 className="text-xl font-extrabold text-navy tracking-tight">
-              Advisor Sign In
+              Sign In to Your Account
             </h2>
             <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-              Access your advisor portal and policy management tools.
+              Access your advisor or customer insurance portal.
             </p>
           </div>
 
@@ -141,7 +141,7 @@ export default function LoginPage() {
             {/* Username Input */}
             <div className="relative">
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider px-1">
-                Username
+                Username / Email
               </label>
               <div className="relative">
                 <User className="absolute left-4 top-3.5 w-4 h-4 text-slate-400" />
@@ -149,7 +149,7 @@ export default function LoginPage() {
                   required
                   name="username"
                   type="text"
-                  placeholder="Enter username"
+                  placeholder="Enter username or email"
                   value={formData.username}
                   onChange={(e) =>
                     setFormData({ ...formData, username: e.target.value })
