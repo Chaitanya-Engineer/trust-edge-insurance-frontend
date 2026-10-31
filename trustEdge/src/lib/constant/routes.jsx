@@ -62,13 +62,15 @@ const ExpiredNotificationReport = lazy(() =>
   import("../../pages/admin/ExpiryNotificationReport/ExpiryNotificationReport")
 );
 
+const RevenueReport = lazy(() =>
+  import("../../pages/admin/RevenueReport/RevenueReport")
+);
+
 // Customer Pages
 const CustomerDashboardPage = lazy(() =>
   import("../../pages/customer/CustomerDashboardPage")
 );
-const MyPolicyPage = lazy(() =>
-  import("../../pages/customer/MyPolicyPage")
-);
+const MyPolicyPage = lazy(() => import("../../pages/customer/MyPolicyPage"));
 const CustomerProfilePage = lazy(() =>
   import("../../pages/customer/CustomerProfilePage")
 );
@@ -184,6 +186,13 @@ export const routes = [
     name: "Expiry Notification Report",
     path: "/admin/expiry-notification",
     component: ExpiredNotificationReport,
+    userRoles: [ROLES.ADMIN],
+    layout: "admin",
+  },
+  {
+    name: "Revenue Report",
+    path: "/admin/revenue-report",
+    component: RevenueReport,
     userRoles: [ROLES.ADMIN],
     layout: "admin",
   },

@@ -17,7 +17,8 @@ export const API_ENDPOINTS = {
     SHOW_POLICY_BY_CUSTOMER_ID : "/api/policies/view_policy_by_customer/",
     VIEW_AND_UPDATE_POLICY : "/api/policies/detail/",
     EXPIRED_POLICIES: "/api/dashboard/policy-alerts/",
-    SHOW_PENDING_POLICY_USER: "/api/dashboard/pending-policies/"
+    SHOW_PENDING_POLICY_USER: "/api/dashboard/pending-policies/",
+    REVENUE_REPORT: "/api/dashboard/revenue/",
   },
   POLICIES: {
   UPLOAD_PDF: (id) => `/api/policies/${id}/upload-pdf/`,

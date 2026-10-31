@@ -47,7 +47,9 @@ export default function Topbar({ onToggleSidebar, isSidebarCollapsed }) {
           type="button"
           onClick={onToggleSidebar}
           className="p-2 rounded-lg text-[#0B2545] hover:bg-[#EAF0F6] transition-colors cursor-pointer focus:outline-none"
-          title={isSidebarCollapsed ? "Expand Navigation" : "Collapse Navigation"}
+          title={
+            isSidebarCollapsed ? "Expand Navigation" : "Collapse Navigation"
+          }
         >
           <svg
             className="w-5 h-5"
@@ -69,7 +71,9 @@ export default function Topbar({ onToggleSidebar, isSidebarCollapsed }) {
           <span className="text-[14px] sm:text-[15px] font-bold text-[#0B2545] tracking-tight">
             {getGreeting()}, {user?.name?.split(" ")[0] || "Admin"} 👋
           </span>
-          <span className="hidden sm:inline text-xs text-[#667085] font-normal">•</span>
+          <span className="hidden sm:inline text-xs text-[#667085] font-normal">
+            •
+          </span>
           <span className="hidden sm:inline text-[12px] text-[#667085] font-normal">
             {today}
           </span>
@@ -79,7 +83,7 @@ export default function Topbar({ onToggleSidebar, isSidebarCollapsed }) {
       {/* Right — Notifications + Profile Dropdown */}
       <div className="flex items-center gap-2">
         {/* Notification Bell */}
-        <button
+        {/* <button
           type="button"
           className="relative p-2.5 rounded-lg text-[#718096] hover:bg-[#F4F7F6] transition-colors"
         >
@@ -97,7 +101,7 @@ export default function Topbar({ onToggleSidebar, isSidebarCollapsed }) {
             />
           </svg>
           <span className="absolute top-2 right-2 w-2 h-2 bg-[#B42318] rounded-full"></span>
-        </button>
+        </button> */}
 
         {/* Profile Dropdown */}
         <div className="relative">

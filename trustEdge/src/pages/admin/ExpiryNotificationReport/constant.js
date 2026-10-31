@@ -43,10 +43,18 @@ export const Header = [
     width: 160,
   },
   {
+    title: "Contact No.",
+    accessor: "customer_phone",
+    type: "string",
+    width: 160,
+    isCopy:true
+  },
+  {
     title: "Remaining Days",
     accessor: "remaining_days",
-    type: "string",
+    type: "number",
     width: 150,
+    text_align:'center'
   },
   {
     title: "Status",
