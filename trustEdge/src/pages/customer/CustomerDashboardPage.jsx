@@ -35,7 +35,7 @@ function DashboardContent() {
     (p) => p.status?.toLowerCase() === "active"
   ).length;
   const renewalDuePolicies = customerPolicies.filter(
-    (p) => p.status?.toLowerCase().includes("expired") || p.isRenewalUpcoming
+    (p) => p.status?.toLowerCase().includes("renewal") || p.isRenewalUpcoming
   );
 
   const totalPremiumInvested = customerPolicies.reduce(
@@ -48,27 +48,20 @@ function DashboardContent() {
     if (cat.includes("health")) {
       return {
         icon: HeartPulse,
-        badgeStyle:
-          "bg-gradient-to-r from-rose-50 to-pink-50 text-rose-700 border-rose-200/80",
+        badgeStyle: "bg-gradient-to-r from-rose-50 to-pink-50 text-rose-700 border-rose-200/80",
         iconStyle: "bg-rose-100/70 text-rose-700",
       };
     }
-    if (
-      cat.includes("motor") ||
-      cat.includes("vehicle") ||
-      cat.includes("car")
-    ) {
+    if (cat.includes("motor") || cat.includes("vehicle") || cat.includes("car")) {
       return {
         icon: Car,
-        badgeStyle:
-          "bg-gradient-to-r from-sky-50 to-cyan-50 text-sky-700 border-sky-200/80",
+        badgeStyle: "bg-gradient-to-r from-sky-50 to-cyan-50 text-sky-700 border-sky-200/80",
         iconStyle: "bg-sky-100/70 text-sky-700",
       };
     }
     return {
       icon: Shield,
-      badgeStyle:
-        "bg-gradient-to-r from-violet-50 to-purple-50 text-purple-700 border-purple-200/80",
+      badgeStyle: "bg-gradient-to-r from-violet-50 to-purple-50 text-purple-700 border-purple-200/80",
       iconStyle: "bg-purple-100/70 text-purple-700",
     };
   };
@@ -79,15 +72,13 @@ function DashboardContent() {
       <div className="relative overflow-hidden rounded-2xl bg-[#0B2545] text-white p-5 sm:p-8 lg:p-9 shadow-sm border border-[#0E2F52]">
         <div className="relative z-10 max-w-2xl">
           <span className="text-[11px] sm:text-xs font-semibold text-slate-300 tracking-wide uppercase">
-            Member Portal • ID:{" "}
-            {customerProfile?.customerId || customerProfile?.customer_id || "—"}
+            Member Portal • ID: {customerProfile?.customerId || customerProfile?.customer_id || "—"}
           </span>
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white mt-1">
             Welcome back, {customerProfile?.name || "Valued Customer"}! 👋
           </h1>
           <p className="mt-2 text-xs sm:text-base text-slate-300 leading-relaxed">
-            Manage your active insurance policies, track upcoming renewals, and
-            connect with your dedicated TrustEdge advisor.
+            Manage your active insurance policies, track upcoming renewals, and connect with your dedicated TrustEdge advisor.
           </p>
 
           <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
@@ -129,9 +120,7 @@ function DashboardContent() {
           <p className="mt-2 text-xl sm:text-3xl font-bold text-[#0B2545]">
             {totalPolicies}
           </p>
-          <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400">
-            In your portfolio
-          </p>
+          <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400">In your portfolio</p>
         </div>
 
         {/* Card 2: Active Policies */}
@@ -147,9 +136,7 @@ function DashboardContent() {
           <p className="mt-2 text-xl sm:text-3xl font-bold text-[#2F6F3E]">
             {activePolicies}
           </p>
-          <p className="mt-0.5 text-[11px] sm:text-xs text-emerald-600 font-medium">
-            Currently protected
-          </p>
+          <p className="mt-0.5 text-[11px] sm:text-xs text-emerald-600 font-medium">Currently protected</p>
         </div>
 
         {/* Card 3: Upcoming Renewals */}
@@ -165,9 +152,7 @@ function DashboardContent() {
           <p className="mt-2 text-xl sm:text-3xl font-bold text-amber-600">
             {renewalDuePolicies.length}
           </p>
-          <p className="mt-0.5 text-[11px] sm:text-xs text-amber-700 font-medium">
-            Action recommended
-          </p>
+          <p className="mt-0.5 text-[11px] sm:text-xs text-amber-700 font-medium">Action recommended</p>
         </div>
 
         {/* Card 4: Total Premium */}
@@ -183,9 +168,7 @@ function DashboardContent() {
           <p className="mt-2 text-xl sm:text-3xl font-bold text-[#0B2545] truncate">
             ₹{totalPremiumInvested.toLocaleString("en-IN")}
           </p>
-          <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400">
-            Total yearly protection
-          </p>
+          <p className="mt-0.5 text-[11px] sm:text-xs text-slate-400">Total yearly protection</p>
         </div>
       </div>
 
@@ -202,8 +185,7 @@ function DashboardContent() {
                   Upcoming Policy Renewal Alert
                 </h2>
                 <p className="text-xs sm:text-sm text-amber-800">
-                  Renew before expiry date to maintain continuous insurance
-                  coverage.
+                  Renew before expiry date to maintain continuous insurance coverage.
                 </p>
               </div>
             </div>
@@ -325,8 +307,7 @@ function DashboardContent() {
               No Active Policies Found
             </h3>
             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-              You do not have any registered policies yet. Contact your advisor
-              Mr. Chaudhari to add your policy records.
+              You do not have any registered policies yet. Contact your advisor Mr. Chaudhari to add your policy records.
             </p>
             <div className="mt-4">
               <Link
@@ -352,9 +333,7 @@ function DashboardContent() {
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <div
-                        className={`p-2.5 sm:p-3 rounded-xl ${config.iconStyle} shadow-2xs`}
-                      >
+                      <div className={`p-2.5 sm:p-3 rounded-xl ${config.iconStyle} shadow-2xs`}>
                         <Icon className="w-5 h-5" />
                       </div>
                       <span
@@ -366,9 +345,7 @@ function DashboardContent() {
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            isActive
-                              ? "bg-emerald-500"
-                              : "bg-amber-500 animate-pulse"
+                            isActive ? "bg-emerald-500" : "bg-amber-500 animate-pulse"
                           }`}
                         />
                         {policy.status}
@@ -379,9 +356,7 @@ function DashboardContent() {
                       {policy.policy_name}
                     </h3>
 
-                    <div
-                      className={`inline-flex mt-2 px-2.5 py-0.5 rounded-md text-[11px] sm:text-xs font-semibold border ${config.badgeStyle}`}
-                    >
+                    <div className={`inline-flex mt-2 px-2.5 py-0.5 rounded-md text-[11px] sm:text-xs font-semibold border ${config.badgeStyle}`}>
                       {policy.category} • {policy.sub_type}
                     </div>
 
@@ -394,6 +369,9 @@ function DashboardContent() {
                           </span>
                         </div>
                       )}
+                      
+                      
+                      
                       <div className="flex items-center justify-between text-slate-500">
                         <span>Expires On:</span>
                         <span className="font-bold text-slate-800">
@@ -509,9 +487,7 @@ function DashboardContent() {
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-200/90 leading-relaxed font-normal max-w-xl">
-              Quality healthcare shouldn't come with financial stress. Get
-              comprehensive hospital and medical coverage designed to safeguard
-              your family’s savings from unexpected health emergencies.
+              Quality healthcare shouldn't come with financial stress. Get comprehensive hospital and medical coverage designed to safeguard your family’s savings from unexpected health emergencies.
             </p>
 
             <div className="pt-1.5">

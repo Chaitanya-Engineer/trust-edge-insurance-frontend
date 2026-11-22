@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 
-import { FileText, PencilIcon } from "lucide-react";
+import { FileText, Eye, Pencil } from "lucide-react";
 import TableComponent from "../../../component/core_components/TableComponent/TableComponent";
 import LogoSpinner from "../../../component/core_components/LogoSpinner/LogoSpinner";
 import PolicyRegistrationForm from "../UserDashboardPage/helperComponent/PolicyRegistrationForm";
+import ConfirmationModal from "../../../component/core_components/ConfirmationModal/ConfirmationModal";
 import CustomDateRangePicker from "../../../component/core_components/DatePicker/CustomDateRangePicker";
 import CustomerPolicyDetailsView from "../../../component/shared/CustomerPolicyDetailsView/CustomerPolicyDetailsView";
 import { API_ENDPOINTS } from "../../../lib/constant/ApiEndpoints";
@@ -12,17 +13,101 @@ import { showToast } from "../../../component/core_components/CustomToast/Custom
 import { rawPoliciesData, policyTableHeaders } from "./constant";
 import { getStatusPill } from "../UserDashboardPage/constant";
 
+// Normalizer ensuring row compatibility with table headers
+const normalizePolicyItem = (p, index = 0) => {
+  if (!p || typeof p !== "object") return null;
+  const policyId = p.policy_id || p.policyId || p.id || `POL-${index + 1}`;
+  const customerId =
+    p.customer_id ||
+    p.customerId ||
+    p.customer?.id ||
+    p.customer?.customer_id ||
+    `CUST-${1001 + (index % 10)}`;
+  const customerName =
+    p.customer_name ||
+    p.customerName ||
+    p.policyHolderName ||
+    p.customer?.name ||
+    p.customer?.fullName ||
+    "Customer";
+  const policyName =
+    p.policy_name ||
+    p.policyName ||
+    p.policy_description?.insurer ||
+    "Insurance Policy";
+  const category = p.category || "General";
+  const subType =
+    p.sub_type || p.subType || p.policy_description?.coverage || "Standard";
+  const rawPremium = p.premium_amount || p.price || "0";
+  const formattedPremium =
+    typeof rawPremium === "number"
+      ? `₹${rawPremium.toLocaleString("en-IN")}`
+      : String(rawPremium).startsWith("₹")
+      ? String(rawPremium)
+      : `₹${rawPremium}`;
+
+  const issueDate = p.issue_date || p.issueDate || "";
+  const expiryDate = p.expiry_date || p.expiryDate || "";
+  const status = typeof p.status === "string" ? p.status : "Active";
+  const pdfUrl =
+    typeof p.policy_pdf_url === "string"
+      ? p.policy_pdf_url
+      : typeof p.policyPdfUrl === "string"
+      ? p.policyPdfUrl
+      : p.policy_pdf_url?.url || p.policyPdfUrl?.url || null;
+  const createdBy =
+    p.created_by_name ||
+    (typeof p.created_by === "object" ? p.created_by?.name : p.created_by) ||
+    p.issuedBy ||
+    p.issued_by ||
+    "Mr. Chaudhari";
+
+  return {
+    ...p,
+    id: policyId,
+    policy_id: policyId,
+    policyId,
+    customer_id: customerId,
+    customerId,
+    customer_name: customerName,
+    customerName,
+    policyHolderName: customerName,
+    policy_name: policyName,
+    policyName,
+    category,
+    sub_type: subType,
+    subType,
+    premium_amount: formattedPremium,
+    price: rawPremium,
+    issue_date: issueDate,
+    issueDate,
+    expiry_date: expiryDate,
+    expiryDate,
+    status,
+    documents: pdfUrl,
+    policy_pdf_url: pdfUrl,
+    policyPdfUrl: pdfUrl,
+    created_by_name: createdBy,
+    issuedBy: createdBy,
+  };
+};
+
 const PolicyDashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isOpenPolicyForm, setIsOpenPolicyForm] = useState(false);
   const [userList, setUserList] = useState([]);
-  const [policiesList, setPoliciesList] = useState(rawPoliciesData);
+  const [policiesList, setPoliciesList] = useState(() =>
+    rawPoliciesData.map(normalizePolicyItem).filter(Boolean)
+  );
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditPolicyMode, setIsEditPolicyMode] = useState(false);
+  const [isViewPolicyMode, setIsViewPolicyMode] = useState(false);
+  const [isConfirmPolicyEditOpen, setIsConfirmPolicyEditOpen] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const isEditMode = isEditPolicyMode;
+  const isViewMode = isViewPolicyMode;
   const [customerOptions, setCustomerOptions] = useState([]);
   const [policyFormData, setPolicyFormData] = useState({
     policyName: "",
@@ -78,12 +163,23 @@ const PolicyDashboardPage = () => {
     {
       method: "POST",
       onSuccess: (res) => {
-        setPoliciesList(res);
+        const rawList = Array.isArray(res)
+          ? res
+          : Array.isArray(res?.results)
+          ? res.results
+          : Array.isArray(res?.data)
+          ? res.data
+          : [];
+        const normalized =
+          rawList.length > 0
+            ? rawList.map(normalizePolicyItem).filter(Boolean)
+            : rawPoliciesData.map(normalizePolicyItem);
+        setPoliciesList(normalized);
         setIsLoading(false);
       },
       onFailure: (err) => {
-        // Graceful fallback to default policies
         console.warn(err, "Using default policies dataset");
+        setPoliciesList(rawPoliciesData.map(normalizePolicyItem));
         setIsLoading(false);
       },
     }
@@ -133,6 +229,21 @@ const PolicyDashboardPage = () => {
         const payment = policy?.payment_details || {};
         const commission = policy?.commission_details || {};
 
+        let membersList = [];
+        if (Array.isArray(description?.members)) {
+          membersList = description.members;
+        } else if (
+          typeof description?.members === "string" &&
+          description.members.trim()
+        ) {
+          try {
+            const parsed = JSON.parse(description.members);
+            if (Array.isArray(parsed)) membersList = parsed;
+          } catch {
+            membersList = [];
+          }
+        }
+
         setPolicyFormData({
           policyName: description?.insurer || policy?.policy_name || "",
 
@@ -161,7 +272,7 @@ const PolicyDashboardPage = () => {
           previousPolicyFile: null,
           policyDoc: policy.policy_pdf_url || null,
 
-          members: (description?.members || []).map((member, index) => ({
+          members: membersList.map((member, index) => ({
             id: member?.id || index + 1,
             name: member?.name || "",
             age: member?.age ?? "",
@@ -171,8 +282,11 @@ const PolicyDashboardPage = () => {
           price: policy?.premium_amount || "",
           txMode: (payment?.payment_mode || "").toLowerCase(),
           payStatus:
-            payment?.payment_status === "PAID"
+            (payment?.payment_status || "").toUpperCase() === "PAID" ||
+            (payment?.payment_status || "").toLowerCase() === "done"
               ? "done"
+              : (payment?.payment_status || "").toLowerCase() === "submitted"
+              ? "submitted"
               : (payment?.payment_status || "pending").toLowerCase(),
 
           chequeNum: payment?.transaction_id || "",
@@ -181,11 +295,16 @@ const PolicyDashboardPage = () => {
           txTime: payment?.transaction_time || "",
           txNote: payment?.transaction_note || "",
 
-          showCommission: Object.keys(commission).length > 0,
+          showCommission:
+            commission && typeof commission === "object"
+              ? Object.keys(commission).length > 0
+              : false,
           CommissionAmount: commission?.commission_amount ?? "",
           CommissionMode: (commission?.commission_mode || "").toLowerCase(),
           CommissionStatus: (
-            commission?.commission_status || "pending"
+            String(commission?.commission_status || "").toLowerCase() === "received"
+              ? "sent"
+              : commission?.commission_status || "pending"
           ).toLowerCase(),
           CommissionDate: commission?.commission_date || "",
           CommissionNote: commission?.commission_note || "",
@@ -242,6 +361,8 @@ const PolicyDashboardPage = () => {
     }
     fetchPolicies();
     setIsOpenPolicyForm(false);
+    setIsEditPolicyMode(false);
+    setIsViewPolicyMode(false);
   };
 
   const { callApiRaw: uploadPDFRaw } = useAPI("", {
@@ -288,6 +409,8 @@ const PolicyDashboardPage = () => {
       payment_mode: (rawData.txMode || "ONLINE").toUpperCase(),
       payment_status: (rawData.payStatus === "done"
         ? "PAID"
+        : rawData.payStatus === "submitted"
+        ? "SUBMITTED"
         : rawData.payStatus || "PAID"
       ).toUpperCase(),
       ...(rawData.chequeNum
@@ -542,7 +665,8 @@ const PolicyDashboardPage = () => {
   };
 
   const renderDocumentBadge = (row) => {
-    const pdfUrl = row?.policyPdfUrl || row?.policy_pdf_url;
+    const rawPdf = row?.policyPdfUrl || row?.policy_pdf_url;
+    const pdfUrl = typeof rawPdf === "string" ? rawPdf : rawPdf?.url || null;
     if (pdfUrl) {
       return (
         <a
@@ -567,14 +691,25 @@ const PolicyDashboardPage = () => {
   };
 
   const handleEditPolicy = (policy) => {
-    setIsEditPolicyMode(true);
+    setIsEditPolicyMode(false);
+    setIsViewPolicyMode(true);
+    setSelectedPolicy(policy);
     fetchCustomerDropdown();
+    const policyId = policy?.policy_id || policy?.policyId || policy?.id;
+    const customerId = policy?.customer_id || policy?.customerId;
     viewAndUpdatePolicy({
       action: "get",
-      policy_id: policy?.policy_id,
-      customer_id: policy?.customer_id,
+      policy_id: policyId,
+      customer_id: customerId,
     });
     setIsOpenPolicyForm(true);
+  };
+
+  const handleCancelPolicyRegistration = () => {
+    setIsOpenPolicyForm(false);
+    setIsEditPolicyMode(false);
+    setIsViewPolicyMode(false);
+    setSelectedPolicy(null);
   };
 
   const handleDateChange = (startDate, endDate) => {
@@ -600,16 +735,23 @@ const PolicyDashboardPage = () => {
     } else if (header?.accessor === "edit") {
       return {
         ...header,
+        title: "View / Update",
         type: "special",
         specialCellRowFunction: (row) => {
           return (
             <div className="flex h-full flex-row gap-2 items-center justify-center">
-              <div
-                className="h-full p-2 bg-slate-200 rounded-md shadow-md cursor-pointer"
-                onClick={() => handleEditPolicy(row)}
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#F8FAFC] hover:bg-[#0B2545] text-[#0B2545] hover:text-white border border-[#CBD5E1] shadow-2xs transition-all cursor-pointer group"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditPolicy(row);
+                }}
+                title="View / Update Policy"
               >
-                <PencilIcon size={18} />
-              </div>
+                <Eye size={15} className="shrink-0 group-hover:scale-105 transition-transform" />
+                <Pencil size={13} className="shrink-0 text-slate-400 group-hover:text-white transition-colors" />
+              </button>
             </div>
           );
         },
@@ -629,10 +771,12 @@ const PolicyDashboardPage = () => {
           selectedCustomer={selectedCustomer}
           onSelectCustomer={setSelectedCustomer}
           selectedPolicy={selectedPolicy}
-          isEditMode={isEditMode}
+          isEditMode={isEditPolicyMode}
+          isViewMode={isViewPolicyMode}
+          onEnableEdit={() => setIsConfirmPolicyEditOpen(true)}
           isSubmitting={isSubmitting}
-          onClickBack={() => setIsOpenPolicyForm(false)}
-          onCancel={() => setIsOpenPolicyForm(false)}
+          onClickBack={handleCancelPolicyRegistration}
+          onCancel={handleCancelPolicyRegistration}
           onSubmitPolicy={handlePolicySubmit}
           onSaveDraft={handleSaveDraft}
         />
@@ -656,6 +800,9 @@ const PolicyDashboardPage = () => {
                 onClick={() => {
                   fetchCustomerDropdown();
                   setSelectedCustomer(null);
+                  setIsEditPolicyMode(false);
+                  setIsViewPolicyMode(false);
+                  setSelectedPolicy(null);
                   setPolicyFormData({
                     policyName: "",
                     category: "",
@@ -709,7 +856,7 @@ const PolicyDashboardPage = () => {
           </div>
 
           {/* Main Direct Policies Table */}
-          <div className="min-h-[30vh] h-full w-full">
+          <div className="min-h-[460px] h-[calc(100vh-230px)] w-full flex-1">
             {isLoading ? (
               <div className="flex h-full min-h-[30vh] items-center justify-center bg-white rounded-xl border border-slate-100 shadow-sm">
                 <LogoSpinner type="spin" size="md" />
@@ -730,6 +877,22 @@ const PolicyDashboardPage = () => {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal to Enable Editing */}
+      <ConfirmationModal
+        isOpen={isConfirmPolicyEditOpen}
+        onClose={() => setIsConfirmPolicyEditOpen(false)}
+        onConfirm={() => {
+          setIsConfirmPolicyEditOpen(false);
+          setIsViewPolicyMode(false);
+          setIsEditPolicyMode(true);
+        }}
+        title="Enable Editing?"
+        description="Are you sure you want to update this record?"
+        confirmText="Confirm Update"
+        cancelText="Cancel"
+        variant="primary"
+      />
     </div>
   );
 };

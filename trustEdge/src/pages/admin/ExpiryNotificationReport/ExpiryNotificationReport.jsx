@@ -40,6 +40,8 @@ const ExpiryNotificationReport = () => {
       <div>
         <TableComponent
           fixed
+          isSelection={false}
+          isCheckbox={false}
           defaultHeaders={Header}
           dataSource={tableData}
           pagination={false}

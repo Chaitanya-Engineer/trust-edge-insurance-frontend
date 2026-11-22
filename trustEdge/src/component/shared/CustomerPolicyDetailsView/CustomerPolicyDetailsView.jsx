@@ -58,6 +58,7 @@ import {
 const chequeStatusOptions = [
   { value: "cleared", label: "Cleared" },
   { value: "pending_clearance", label: "Pending Clearance" },
+  { value: "submitted", label: "Submitted" },
   { value: "bounced", label: "Bounced" },
 ];
 
@@ -264,7 +265,13 @@ const CustomerPolicyDetailsView = ({
         members: policyDesc.members || [{ id: 1, name: "", age: "", relation: "Self" }],
         // Payment Details
         txMode: payDetails.payment_mode || payDetails.txMode || "upi",
-        payStatus: payDetails.payment_status || payDetails.payStatus || "done",
+        payStatus:
+          (payDetails.payment_status || payDetails.payStatus || "").toUpperCase() === "PAID" ||
+          (payDetails.payment_status || payDetails.payStatus || "").toLowerCase() === "done"
+            ? "done"
+            : (payDetails.payment_status || payDetails.payStatus || "").toLowerCase() === "submitted"
+            ? "submitted"
+            : (payDetails.payment_status || payDetails.payStatus || "done").toLowerCase(),
         chequeNum: payDetails.cheque_num || payDetails.chequeNum || "",
         chequeStatus: payDetails.cheque_status || payDetails.chequeStatus || "cleared",
         txDate: payDetails.transaction_date || payDetails.txDate || "",
@@ -274,7 +281,10 @@ const CustomerPolicyDetailsView = ({
         showCommission: !!commDetails.show_commission || !!commDetails.showCommission || false,
         CommissionAmount: commDetails.commission_amount || commDetails.CommissionAmount || "",
         CommissionMode: commDetails.commission_mode || commDetails.CommissionMode || "upi",
-        CommissionStatus: commDetails.commission_status || commDetails.CommissionStatus || "pending",
+        CommissionStatus:
+          (commDetails.commission_status || commDetails.CommissionStatus || "").toLowerCase() === "received"
+            ? "sent"
+            : (commDetails.commission_status || commDetails.CommissionStatus || "pending").toLowerCase(),
         CommissionDate: commDetails.commission_date || commDetails.CommissionDate || "",
         CommissionNote: commDetails.commission_note || commDetails.CommissionNote || "",
         commissionChequeNum: commDetails.commission_cheque_num || commDetails.commissionChequeNum || "",
@@ -476,6 +486,14 @@ const CustomerPolicyDetailsView = ({
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FBF5DF] text-[#C9A227] border border-[#F2E5B5]">
           <span className="w-2 h-2 rounded-full bg-[#C9A227]"></span>
           Review Required
+        </span>
+      );
+    }
+    if (status === "submitted") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#EFF8FF] text-[#175CD3] border border-[#B2DDFF]">
+          <span className="w-2 h-2 rounded-full bg-[#175CD3]"></span>
+          Submitted
         </span>
       );
     }
@@ -1463,7 +1481,9 @@ const CustomerPolicyDetailsView = ({
                             options={paymentStatusOptions}
                             value={
                               paymentStatusOptions.find(
-                                (o) => o.value === policyFormData.payStatus
+                                (o) =>
+                                  o.value?.toLowerCase() === policyFormData.payStatus?.toLowerCase() ||
+                                  o.label?.toLowerCase() === policyFormData.payStatus?.toLowerCase()
                               ) || null
                             }
                             onChange={(opt) =>
@@ -1503,7 +1523,9 @@ const CustomerPolicyDetailsView = ({
                               options={chequeStatusOptions}
                               value={
                                 chequeStatusOptions.find(
-                                  (o) => o.value === policyFormData.chequeStatus
+                                  (o) =>
+                                    o.value?.toLowerCase() === (policyFormData.chequeStatus || "").toLowerCase() ||
+                                    o.label?.toLowerCase() === (policyFormData.chequeStatus || "").toLowerCase()
                                 ) || null
                               }
                               onChange={(opt) =>

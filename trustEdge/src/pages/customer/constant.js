@@ -227,7 +227,7 @@ export const mockSupportInfo = {
   office_address:
     "TrustEdge Insurance Advisory, Nariman Point, Express Towers 8th Floor, Mumbai, Maharashtra 400021",
   advisor: {
-    name: "Mr. Chaudhari",
+    name: "Mr. Kisan Chaudhari",
     designation: "Dedicated Senior Insurance Advisor",
     phone: "+91 97735 48537",
     email: "trustedgeimf@gmail.com",
