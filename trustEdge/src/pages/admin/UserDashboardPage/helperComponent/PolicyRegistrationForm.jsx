@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
+import { Pencil, Eye, Lock } from "lucide-react";
 import CustomInput from "../../../../component/core_components/CustomInput/CustomeInput";
 import CustomDatePicker from "../../../../component/core_components/DatePicker/CustomDatePicker";
 import CustomDateTimePicker from "../../../../component/core_components/DatePicker/CustomDateTimePicker";
@@ -16,6 +17,7 @@ import {
   categoryOptions,
   transactionModeOptions,
   vehicleOwnerOptions,
+  vehicleNameOptions,
   paymentStatusOptions,
   CommissionStatusOptions,
   insuranceCompanyOptions,
@@ -27,6 +29,7 @@ import { useAPI } from "../../../../lib/hooks/useAPI";
 const chequeStatusOptions = [
   { value: "cleared", label: "Cleared" },
   { value: "pending_clearance", label: "Pending Clearance" },
+  { value: "submitted", label: "Submitted" },
   { value: "bounced", label: "Bounced" },
 ];
 
@@ -43,6 +46,8 @@ const PolicyRegistrationForm = ({
   onSelectCustomer,
   selectedPolicy = null,
   isEditMode = false,
+  isViewMode = false,
+  onEnableEdit,
   isSubmitting = false,
 }) => {
   const [internalCustomer, setInternalCustomer] = useState(null);
@@ -165,6 +170,7 @@ const PolicyRegistrationForm = ({
   }, [suppliedCustomerOptions, customerList, internalDropdownOptions]);
 
   const [errors, setErrors] = useState({});
+  const [vehicleInputText, setVehicleInputText] = useState("");
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: "",
@@ -175,6 +181,34 @@ const PolicyRegistrationForm = ({
     onConfirm: null,
     isLoading: false,
   });
+
+  const selectedVehicleOption = useMemo(() => {
+    if (!formData?.vehicleName) return null;
+    return (
+      vehicleNameOptions.find((o) => o.value === formData.vehicleName) || {
+        value: formData.vehicleName,
+        label: formData.vehicleName,
+      }
+    );
+  }, [formData?.vehicleName]);
+
+  const handleVehicleChange = (opt) => {
+    setVehicleInputText("");
+    handleInputChange("vehicleName", opt?.value || "");
+  };
+
+  const handleVehicleInputChange = (val, { action }) => {
+    if (action === "input-change") {
+      setVehicleInputText(val);
+    }
+  };
+
+  const handleVehicleBlur = () => {
+    if (vehicleInputText.trim()) {
+      handleInputChange("vehicleName", vehicleInputText.trim());
+      setVehicleInputText("");
+    }
+  };
 
   useEffect(() => {
     if (activeCustomerId && errors.selectedCustomer) {
@@ -297,12 +331,15 @@ const PolicyRegistrationForm = ({
               options={chequeStatusOptions}
               value={
                 chequeStatusOptions.find(
-                  (o) => o.value === formData[statusKey]
+                  (o) =>
+                    o.value?.toLowerCase() === (formData[statusKey] || "").toLowerCase() ||
+                    o.label?.toLowerCase() === (formData[statusKey] || "").toLowerCase()
                 ) || null
               }
               onChange={(opt) =>
                 handleInputChange(statusKey, opt?.value || "pending_clearance")
               }
+              isDisabled={isViewMode}
               placeholder="Select status"
               width="w-full"
               error={!!statusError}
@@ -416,9 +453,6 @@ const PolicyRegistrationForm = ({
       if (!formData.vehicleOwner) {
         newErrors.vehicleOwner = "Vehicle type is required";
       }
-      if (!formData.vehicleName?.trim()) {
-        newErrors.vehicleName = "Vehicle name is required";
-      }
       const vehicleNumberErr = validateVehicleNumber(formData.vehicleNumber);
       if (vehicleNumberErr) newErrors.vehicleNumber = vehicleNumberErr;
 
@@ -429,7 +463,6 @@ const PolicyRegistrationForm = ({
         }
       }
 
-      // Motor documents (RC, DL, Previous Policy) & Commercial documents (GST, Gumasta, Udyam) are optional
     }
 
     // Health Family conditional fields (Optional)
@@ -507,9 +540,11 @@ const PolicyRegistrationForm = ({
 
     // Commission Details
     if (formData.showCommission) {
-      const isReceived = formData.CommissionStatus === "received";
+      const isSent =
+        formData.CommissionStatus === "sent" ||
+        formData.CommissionStatus === "received";
 
-      if (isReceived) {
+      if (isSent) {
         if (!formData.CommissionAmount) {
           newErrors.CommissionAmount = "Commission amount is required";
         } else {
@@ -710,17 +745,61 @@ const PolicyRegistrationForm = ({
         </button>
       </div>
 
-      {/* Header */}
-      <div className="border-b border-[#E5E9E7] pb-4 mb-8">
-        <h1 className="text-2xl font-bold text-[#0B2545]">
-          {isEditMode ? "Update Policy Details" : "Policy Details"}
-        </h1>
-        <p className="text-xs text-gray-500 mt-1">
-          Fill in the policy information and payment details below.
-        </p>
+      {/* Header & Badges */}
+      <div className="border-b border-[#E5E9E7] pb-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-[#0B2545]">
+            {isViewMode
+              ? "Policy Details"
+              : isEditMode
+              ? "Update Policy Details"
+              : "Register Policy"}
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            {isViewMode
+              ? "Review policy information, coverage details, and payment records."
+              : isEditMode
+              ? "Modify policy details, update documents, and save your changes."
+              : "Fill in the policy information and payment details below."}
+          </p>
+        </div>
+        <div>
+          {isViewMode && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#EAF0F6] text-[#0B2545] border border-[#CBD5E1]">
+              <Eye size={13} className="text-[#0B2545]" />
+              View Mode (Read-Only)
+            </span>
+          )}
+          {isEditMode && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              Edit Mode
+            </span>
+          )}
+        </div>
       </div>
 
+      {/* Edit Mode Banner */}
+      {isEditMode && (
+        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50/90 p-4 shadow-xs animate-fadeIn">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0B2545] text-white">
+              <Pencil size={15} />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-bold text-[#0B2545]">
+                Edit form is active to update it.
+              </h4>
+              <p className="mt-0.5 text-xs text-slate-600">
+                You can now modify the existing details and save your changes.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleFinalSubmitClick} className="w-full">
+        <fieldset disabled={isViewMode} className="space-y-8 border-none p-0 m-0 min-w-0">
         {/* ================= SECTION 1: Policy Details ================= */}
         <div className="mb-8">
           <h2 className="mb-6 text-lg font-bold text-[#0B2545] border-b border-[#E5E9E7] pb-2 sm:text-xl">
@@ -729,9 +808,16 @@ const PolicyRegistrationForm = ({
 
           {/* Customer Selection Dropdown - strictly { label, value } */}
           <div className="mb-6 w-full">
-            <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-              Select Customer <span className="text-[#B42318] ml-0.5">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-[13px] font-semibold text-[#344054]">
+                Select Customer <span className="text-[#B42318] ml-0.5">*</span>
+              </label>
+              {isEditMode && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded select-none">
+                  <Lock className="w-3 h-3 text-slate-400" /> Locked
+                </span>
+              )}
+            </div>
             <CustomSelect
               options={customerOptions}
               value={
@@ -755,10 +841,16 @@ const PolicyRegistrationForm = ({
               }}
               placeholder="Select customer..."
               width="w-full"
-              isClearable={true}
-              isSearchable={true}
+              isClearable={!isEditMode && !isViewMode}
+              isSearchable={!isEditMode && !isViewMode}
+              isDisabled={isViewMode || isEditMode}
               error={!!errors.selectedCustomer}
             />
+            {isEditMode && (
+              <p className="mt-1 text-[11px] text-slate-400">
+                Customer cannot be changed for an existing registered policy.
+              </p>
+            )}
             {errors.selectedCustomer && (
               <p className="mt-1.5 text-xs text-red-500">
                 {errors.selectedCustomer}
@@ -898,7 +990,6 @@ const PolicyRegistrationForm = ({
             </div>
           </div>
         </div>
-
         {/* ================= SECTION 2: Conditional Details ================= */}
         {/* Motor Insurance */}
         {isMotor && (
@@ -937,14 +1028,18 @@ const PolicyRegistrationForm = ({
               {/* Vehicle Name */}
               <div className="w-full">
                 <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  Vehicle Name
+                  Vehicle Name{" "}
                 </label>
-                <CustomInput
-                  value={formData.vehicleName || ""}
-                  onChange={(val) => handleInputChange("vehicleName", val)}
-                  placeholder="e.g. Honda Activa 6G"
+                <CustomSelect
+                  isCreatable={true}
+                  options={vehicleNameOptions}
+                  value={selectedVehicleOption}
+                  onChange={handleVehicleChange}
+                  onInputChange={handleVehicleInputChange}
+                  onBlur={handleVehicleBlur}
+                  formatCreateLabel={(val) => `Use "${val}"`}
+                  placeholder="Select or type vehicle name..."
                   width="w-full"
-                  type="text"
                   error={!!errors.vehicleName}
                 />
                 {errors.vehicleName && (
@@ -1290,12 +1385,15 @@ const PolicyRegistrationForm = ({
                 options={paymentStatusOptions}
                 value={
                   paymentStatusOptions.find(
-                    (o) => o.value === formData.payStatus
+                    (o) =>
+                      o.value?.toLowerCase() === formData.payStatus?.toLowerCase() ||
+                      o.label?.toLowerCase() === formData.payStatus?.toLowerCase()
                   ) || null
                 }
                 onChange={(opt) =>
                   handleInputChange("payStatus", opt?.value || "pending")
                 }
+                isDisabled={isViewMode}
                 placeholder="Select status"
                 width="w-full"
                 error={!!errors.payStatus}
@@ -1381,7 +1479,8 @@ const PolicyRegistrationForm = ({
               <div>
                 <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
                   Commission Amount (₹){" "}
-                  {formData.CommissionStatus === "received" && (
+                  {(formData.CommissionStatus === "sent" ||
+                    formData.CommissionStatus === "received") && (
                     <span className="text-[#B42318] ml-0.5">*</span>
                   )}
                 </label>
@@ -1403,7 +1502,8 @@ const PolicyRegistrationForm = ({
               <div>
                 <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
                   Commission Mode{" "}
-                  {formData.CommissionStatus === "received" && (
+                  {(formData.CommissionStatus === "sent" ||
+                    formData.CommissionStatus === "received") && (
                     <span className="text-[#B42318] ml-0.5">*</span>
                   )}
                 </label>
@@ -1436,7 +1536,10 @@ const PolicyRegistrationForm = ({
                   options={CommissionStatusOptions}
                   value={
                     CommissionStatusOptions.find(
-                      (o) => o.value === formData.CommissionStatus
+                      (o) =>
+                        o.value === formData.CommissionStatus ||
+                        (formData.CommissionStatus === "received" &&
+                          o.value === "sent")
                     ) || null
                   }
                   onChange={(opt) =>
@@ -1459,7 +1562,8 @@ const PolicyRegistrationForm = ({
               <div>
                 <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
                   Commission Date{" "}
-                  {formData.CommissionStatus === "received" && (
+                  {(formData.CommissionStatus === "sent" ||
+                    formData.CommissionStatus === "received") && (
                     <span className="text-[#B42318] ml-0.5">*</span>
                   )}
                 </label>
@@ -1507,72 +1611,106 @@ const PolicyRegistrationForm = ({
         </div>
 
         {/* ================= Upload Policy Document ================= */}
-        {formData.policyDoc ? (
-          <div className="mb-6">
-            <h3 className="mb-3 text-sm font-semibold text-[#344054]">
-              Existing Documents
-            </h3>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between rounded-lg border border-[#E5E9E7] p-3">
-                <span className="text-sm text-[#344054]">
-                  {"Policy Document PDF"}
-                </span>
-                <a
-                  href={formData.policyDoc} // ← direct public URL
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-semibold text-blue-600 hover:underline"
-                >
-                  View Document
-                </a>
+        {isViewMode ? (
+          formData.policyDoc ? (
+            <div className="mb-6">
+              <h3 className="mb-3 text-sm font-semibold text-[#344054]">
+                Existing Policy Document
+              </h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between rounded-lg border border-[#E5E9E7] bg-[#F8FAFC] p-3.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#0B2545]"></span>
+                    <span className="text-sm font-medium text-[#344054]">
+                      Policy Document PDF
+                    </span>
+                  </div>
+                  <a
+                    href={typeof formData.policyDoc === "string" ? formData.policyDoc : "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    <Eye size={15} />
+                    <span>View Document</span>
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="mb-6 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-4 text-xs text-gray-500">
+              No policy document PDF attached.
+            </div>
+          )
         ) : (
           <div className="mb-8 mt-8">
+            {formData.policyDoc && typeof formData.policyDoc === "string" && (
+              <div className="mb-4">
+                <h3 className="mb-2 text-sm font-semibold text-[#344054]">
+                  Current Document
+                </h3>
+                <div className="flex items-center justify-between rounded-lg border border-[#E5E9E7] bg-[#F8FAFC] p-3 mb-4">
+                  <span className="text-sm text-[#344054]">
+                    Policy Document PDF
+                  </span>
+                  <a
+                    href={formData.policyDoc}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:underline"
+                  >
+                    <Eye size={14} />
+                    <span>View Current Document</span>
+                  </a>
+                </div>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#E5E9E7] pb-2 mb-3">
               <h2 className="text-lg font-bold text-[#0B2545] sm:text-xl">
-                Upload Policy Document{" "}
+                {isEditMode ? "Upload Replacement Document (Optional)" : "Upload Policy Document"}{" "}
                 {formData.policyDoc && (
                   <span className="text-[#2F6F3E] text-xs font-semibold ml-2">
                     ✓ Attached
                   </span>
                 )}
               </h2>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#EAF0F6] text-[#0B2545]">
-                Final Activation Requirement
-              </span>
+              {!isEditMode && (
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#EAF0F6] text-[#0B2545]">
+                  Final Activation Requirement
+                </span>
+              )}
             </div>
 
-            {/* Submission Guidance Callout */}
-            <div className="mb-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-2.5 flex items-center gap-2 text-xs text-[#475569]">
-              <span className="text-sm">💡</span>
-              <span>
-                <strong className="text-[#0B2545]">Save Draft</strong> keeps
-                policy <strong>Pending</strong>. Upload policy document to
-                unlock <strong>Submit Policy</strong> for{" "}
-                <strong>Active</strong> status.
-              </span>
-            </div>
+            {!isEditMode && (
+              <div className="mb-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-2.5 flex items-center gap-2 text-xs text-[#475569]">
+                <span className="text-sm">💡</span>
+                <span>
+                  <strong className="text-[#0B2545]">Save Draft</strong> keeps
+                  policy <strong>Pending</strong>. Upload policy document to
+                  unlock <strong>Submit Policy</strong> for{" "}
+                  <strong>Active</strong> status.
+                </span>
+              </div>
+            )}
 
             <DocumentUpload
               accept={["pdf", "jpg", "jpeg", "png"]}
               maxSizeKB={1024}
               documentCategory="Policy Document"
-              placeholder="Drag and drop or browse to upload Policy PDF (Max 1 MB)"
+              placeholder={isEditMode ? "Upload new file to replace current policy document (Max 1 MB)" : "Drag and drop or browse to upload Policy PDF (Max 1 MB)"}
               onChange={(file) => {
                 handleInputChange("policyDoc", file);
                 if (!file && errors.policyDoc) {
                   setErrors((prev) => ({ ...prev, policyDoc: null }));
                 }
               }}
-              value={formData.policyDoc}
+              value={formData.policyDoc instanceof File ? formData.policyDoc : null}
               width="w-full"
               error={errors.policyDoc}
             />
           </div>
         )}
+        </fieldset>
 
         {/* ================= Action Buttons ================= */}
         <div className="flex flex-col-reverse gap-3 border-t border-[#E5E9E7] pt-6 mt-8 sm:flex-row sm:justify-end">
@@ -1581,40 +1719,53 @@ const PolicyRegistrationForm = ({
             onClick={onCancel}
             className="w-full rounded-[9px] border border-[#E5E9E7] bg-white px-5 py-2.5 text-sm font-semibold text-[#0B2545] transition-all duration-200 hover:bg-[#F4F7F6] active:scale-[0.98] sm:w-auto cursor-pointer"
           >
-            Cancel
+            {isViewMode ? "Back to Directory" : "Cancel"}
           </button>
 
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={handleSaveDraftClick}
-            className={`w-full rounded-[9px] border border-[#0B2545] bg-[#F8FAFC] px-5 py-2.5 text-sm font-semibold text-[#0B2545] transition-all duration-200 hover:bg-[#0B2545] hover:text-white hover:shadow-md active:bg-[#061527] active:scale-[0.98] sm:w-auto flex items-center justify-center gap-2 group ${
-              isSubmitting ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-[#C9A227] group-hover:bg-[#FCD34D] transition-colors"></span>
-            {isEditMode ? "Save Changes as Draft" : "Save Draft"}
-          </button>
-
-          {(isCanSubmit || isEditMode) && (
+          {isViewMode ? (
             <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`w-full rounded-[9px] bg-[#2F6F3E] hover:bg-[#235630] active:bg-[#1A4224] active:scale-[0.98] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 shadow-sm hover:shadow-md sm:w-auto flex items-center justify-center gap-2 animate-fadeIn ${
-                isSubmitting
-                  ? "opacity-60 cursor-not-allowed"
-                  : "cursor-pointer"
-              }`}
+              type="button"
+              onClick={onEnableEdit}
+              className="w-full rounded-[9px] bg-[#0B2545] hover:bg-[#0E2F52] active:scale-[0.98] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 shadow-sm hover:shadow-md sm:w-auto flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>✓</span>
-              {isSubmitting
-                ? isEditMode
-                  ? "Updating..."
-                  : "Submitting..."
-                : isEditMode
-                ? "Update Policy"
-                : "Submit Policy"}
+              <Pencil size={15} />
+              <span>Update</span>
             </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleSaveDraftClick}
+                className={`w-full rounded-[9px] border border-[#0B2545] bg-[#F8FAFC] px-5 py-2.5 text-sm font-semibold text-[#0B2545] transition-all duration-200 hover:bg-[#0B2545] hover:text-white hover:shadow-md active:bg-[#061527] active:scale-[0.98] sm:w-auto flex items-center justify-center gap-2 group ${
+                  isSubmitting ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-[#C9A227] group-hover:bg-[#FCD34D] transition-colors"></span>
+                {isEditMode ? "Save Changes as Draft" : "Save Draft"}
+              </button>
+
+              {(isCanSubmit || isEditMode) && (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full rounded-[9px] bg-[#2F6F3E] hover:bg-[#235630] active:bg-[#1A4224] active:scale-[0.98] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 shadow-sm hover:shadow-md sm:w-auto flex items-center justify-center gap-2 animate-fadeIn ${
+                    isSubmitting
+                      ? "opacity-60 cursor-not-allowed"
+                      : "cursor-pointer"
+                  }`}
+                >
+                  <span>✓</span>
+                  {isSubmitting
+                    ? isEditMode
+                      ? "Updating..."
+                      : "Submitting..."
+                    : isEditMode
+                    ? "Update Policy"
+                    : "Submit Policy"}
+                </button>
+              )}
+            </>
           )}
         </div>
       </form>

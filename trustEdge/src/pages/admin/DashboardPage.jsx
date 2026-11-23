@@ -133,7 +133,7 @@ const DashboardPage = () => {
         <KPICard
           title="Expire Policies"
           value={dashboadData?.stats?.expired_policies || "--"}
-          color="green"
+          color="red"
           icon={<ClockFading className="w-[18px] h-[18px]" />}
         />
       </div>

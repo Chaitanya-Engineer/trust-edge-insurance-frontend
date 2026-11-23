@@ -1,5 +1,6 @@
 import React from "react";
 import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
 
 const CustomSelect = ({
   value = null,
@@ -10,6 +11,12 @@ const CustomSelect = ({
   isDisabled = false,
   isClearable = true,
   isSearchable = true,
+  isCreatable = false,
+  onCreateOption,
+  formatCreateLabel = (inputValue) => `Use "${inputValue}"`,
+  onInputChange,
+  inputValue,
+  onBlur,
   name = "",
   className = "",
   error = false,
@@ -61,13 +68,20 @@ const CustomSelect = ({
     }),
   };
 
+  const Component = isCreatable ? CreatableSelect : Select;
+
   return (
     <div className={`${width} ${className}`}>
-      <Select
+      <Component
         name={name}
         value={value}
         options={options}
         onChange={handleChange}
+        onCreateOption={onCreateOption}
+        formatCreateLabel={formatCreateLabel}
+        onInputChange={onInputChange}
+        inputValue={inputValue}
+        onBlur={onBlur}
         placeholder={placeholder}
         isDisabled={isDisabled}
         isClearable={isClearable}

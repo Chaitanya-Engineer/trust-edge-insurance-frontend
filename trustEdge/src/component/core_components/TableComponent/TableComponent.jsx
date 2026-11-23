@@ -12,7 +12,6 @@ import {
 import moment from "moment";
 import {
   forwardRef,
-  Fragment,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -35,40 +34,141 @@ import LogoSpinner from "../LogoSpinner/LogoSpinner";
 const filterValues = {};
 
 const Scroller = forwardRef((props, ref) => {
+  const { style, className = "", sx = {}, context, ...rest } = props;
+  const internalRef = useRef(null);
+
+  useEffect(() => {
+    const el = internalRef.current;
+    if (!el) return;
+
+    let isDown = false;
+    let startX = 0;
+    let startY = 0;
+    let scrollLeft = 0;
+    let scrollTop = 0;
+    let hasDragged = false;
+
+    const onMouseDown = (e) => {
+      // Only drag on primary left click
+      if (e.button !== 0) return;
+
+      const target = e.target;
+      // Skip dragging if clicking interactive controls
+      if (
+        target.closest(
+          "button, input, select, textarea, a, [role='button'], [role='checkbox'], svg, .cursor-pointer, .no-drag"
+        )
+      ) {
+        return;
+      }
+
+      // Do not intercept clicks on native scrollbars
+      const rect = el.getBoundingClientRect();
+      if (e.clientX >= rect.right - 14 || e.clientY >= rect.bottom - 14) {
+        return;
+      }
+
+      isDown = true;
+      hasDragged = false;
+      startX = e.clientX;
+      startY = e.clientY;
+      scrollLeft = el.scrollLeft;
+      scrollTop = el.scrollTop;
+
+      const onMouseMove = (moveEvent) => {
+        if (!isDown) return;
+        const walkX = moveEvent.clientX - startX;
+        const walkY = moveEvent.clientY - startY;
+
+        // 4px threshold before activating drag mode
+        if (Math.abs(walkX) > 4 || Math.abs(walkY) > 4) {
+          hasDragged = true;
+          el.style.cursor = "grabbing";
+          el.style.userSelect = "none";
+          el.scrollLeft = scrollLeft - walkX;
+          el.scrollTop = scrollTop - walkY;
+        }
+      };
+
+      const onMouseUp = () => {
+        isDown = false;
+        el.style.cursor = "";
+        el.style.userSelect = "";
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+
+        if (hasDragged) {
+          // Prevent accidental click activation after drag-scrolling
+          const captureClick = (clickEvent) => {
+            clickEvent.stopPropagation();
+            clickEvent.preventDefault();
+            window.removeEventListener("click", captureClick, true);
+          };
+          window.addEventListener("click", captureClick, true);
+          setTimeout(() => {
+            window.removeEventListener("click", captureClick, true);
+          }, 100);
+        }
+      };
+
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
+    };
+
+    el.addEventListener("mousedown", onMouseDown);
+
+    return () => {
+      el.removeEventListener("mousedown", onMouseDown);
+    };
+  }, []);
+
   return (
     <TableContainer
       component={Paper}
+      className={`custom-table-scrollbar ${className}`}
       sx={{
         boxShadow: "none",
-        borderRadius: props?.context?.borderRadius ?? "4px",
+        borderRadius: context?.borderRadius ?? "4px",
+        height: "100%",
+        width: "100%",
+        ...sx,
       }}
-      {...props}
-      ref={ref}
+      style={{
+        ...style,
+        overflow: "auto",
+        overflowX: "auto",
+        overflowY: "auto",
+      }}
+      ref={(node) => {
+        internalRef.current = node;
+        if (typeof ref === "function") {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      }}
+      {...rest}
     />
   );
 });
 
-// const Scroller = forwardRef((props, ref) => {
-//   return <div ref={ref} {...props} style={{ overflow: 'auto' }} />;
-// });
-
 function TBL(props) {
+  const { context, ...restProps } = props;
   const { TABLE_STYLE } = tableComponentStyleConstants;
-
   const { ARIA_LABELD_BY, TABLE_SIZE } = tableComponentConstants;
 
-  const tableLayout = props?.context?.type ?? "auto";
+  const tableLayout = context?.type ?? "auto";
 
   return (
     <Table
       stickyHeader
-      sx={TABLE_STYLE(tableCellClasses, tableLayout, props?.context?.theme)}
+      sx={TABLE_STYLE(tableCellClasses, tableLayout, context?.theme)}
       aria-labelledby={ARIA_LABELD_BY}
       size={TABLE_SIZE}
-      {...props}
+      {...restProps}
       style={{
         borderCollapse: "separate",
-        height: props.context.dataLength > 0 ? "" : "100%",
+        height: context?.dataLength > 0 ? "" : "100%",
       }}
     />
   );
@@ -80,31 +180,29 @@ const THead = forwardRef(({ children, ...props }, ref) => (
   </thead>
 ));
 
-const TRow = forwardRef(({ item, ...props }, ref) => {
+const TRow = forwardRef(({ item, context, ...props }, ref) => {
   const { ROW_STYLE } = tableComponentStyleConstants;
 
   const { ROW_ROLE, TAB_INDEX } = tableComponentConstants;
 
   const {
-    context: {
-      theme,
-      isSelected,
-      isRadio,
-      rowColor,
-      setRadioChecked,
-      setSelection,
-      onRowClick,
-      collapsible,
-      renderExpandedRow,
-      expandedRows,
-      displayData,
-      headerLength,
-      isSelection,
-      isHash,
-      clickable,
-      id,
-    },
-  } = props;
+    theme,
+    isSelected,
+    isRadio,
+    rowColor,
+    setRadioChecked,
+    setSelection,
+    onRowClick,
+    collapsible,
+    renderExpandedRow,
+    expandedRows,
+    displayData,
+    headerLength,
+    isSelection,
+    isHash,
+    clickable,
+    id,
+  } = context || {};
 
   const index = props["data-index"];
   const rowItem = item || displayData?.[index];
@@ -349,15 +447,16 @@ const TableComponent = forwardRef(
       propTotalCount !== undefined ? propTotalCount : dataSource?.length || 0;
 
     const displayData = useMemo(() => {
+      const safeData = Array.isArray(dataSource) ? dataSource : [];
       if (!isPaginationActive || propOnPageChange) {
-        return dataSource;
+        return safeData;
       }
       if (pageSize === -1 || pageSize >= totalRecords) {
-        return dataSource;
+        return safeData;
       }
       const start = (page - 1) * pageSize;
       const end = start + pageSize;
-      return dataSource.slice(start, end);
+      return safeData.slice(start, end);
     }, [
       dataSource,
       isPaginationActive,
@@ -406,9 +505,10 @@ const TableComponent = forwardRef(
     }, []);
 
     useEffect(() => {
+      const safePropData = Array.isArray(propDataSource) ? propDataSource : [];
       if (order && orderBy)
-        setDataSource([...propDataSource].sort(getComparator(order, orderBy)));
-      else setDataSource(propDataSource);
+        setDataSource([...safePropData].sort(getComparator(order, orderBy)));
+      else setDataSource(safePropData);
 
       const apiFilterAccessors =
         headCells
@@ -734,7 +834,7 @@ const TableComponent = forwardRef(
       <Box
         className={`mb-0 flex flex-col h-full w-full !overflow-hidden border border-[rgba(11,37,69,0.05)] rounded-[14px] shadow-[0_4px_20px_rgba(11,37,69,0.04)] bg-white ${className}`}
       >
-        <Box className="flex-1 w-full min-h-0">
+        <Box className="flex-1 w-full min-h-0 h-full">
           <TableVirtuoso
             ref={tableVirtuosoRef}
             data={displayData}
@@ -743,8 +843,8 @@ const TableComponent = forwardRef(
             increaseViewportBy={{ top: 600, bottom: 600 }}
             style={{
               height: "100%",
-              minHeight: displayData?.length > 0 ? "400px" : "500px",
-              background: "var(--calender-bg)",
+              minHeight: displayData?.length > 0 ? "400px" : "480px",
+              background: "#ffffff",
             }}
             components={{
               Scroller,

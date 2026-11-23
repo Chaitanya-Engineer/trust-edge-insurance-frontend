@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { ArrowUpRight, PencilIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowUpRight, Eye, Pencil } from "lucide-react";
 import TableComponent from "../../../component/core_components/TableComponent/TableComponent";
 import LogoSpinner from "../../../component/core_components/LogoSpinner/LogoSpinner";
 import UserRegistrationForm from "./helperComponent/UserRegistrationForm";
 import PolicyRegistrationForm from "./helperComponent/PolicyRegistrationForm";
+import ConfirmationModal from "../../../component/core_components/ConfirmationModal/ConfirmationModal";
 import { API_ENDPOINTS } from "../../../lib/constant/ApiEndpoints";
 import { useAPI } from "../../../lib/hooks/useAPI";
 import { showToast } from "../../../component/core_components/CustomToast/CustomToast";
@@ -15,6 +16,8 @@ const UserDashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isOpenForm, setIsOpenForm] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isViewMode, setIsViewMode] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
 
   // Policy states
@@ -209,6 +212,8 @@ const UserDashboardPage = () => {
       payment_mode: (rawData.txMode || "ONLINE").toUpperCase(),
       payment_status: (rawData.payStatus === "done"
         ? "PAID"
+        : rawData.payStatus === "submitted"
+        ? "SUBMITTED"
         : rawData.payStatus || "PAID"
       ).toUpperCase(),
       ...(rawData.chequeNum
@@ -296,6 +301,7 @@ const UserDashboardPage = () => {
   // ─── Customer Registration / Update ───────────────────────────
 
   const handleSubmitRegistration = async (data) => {
+    setIsSubmitting(true);
     try {
       if (isEditMode) {
         // ── Edit Mode ────────────────────────────────────
@@ -338,6 +344,7 @@ const UserDashboardPage = () => {
           "Customer details updated successfully."
         );
         setIsEditMode(false);
+        setIsViewMode(false);
         setIsOpenForm(false);
         AllUsersList();
       } else {
@@ -400,6 +407,8 @@ const UserDashboardPage = () => {
           error?.message ||
           "Could not save customer details."
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -512,7 +521,8 @@ const UserDashboardPage = () => {
   // ─── Event Handlers ───────────────────────────────────────────
 
   const handleEditCustomer = (customer) => {
-    setIsEditMode(true);
+    setIsEditMode(false);
+    setIsViewMode(true);
     setIsOpenForm(true);
     setSelectedCustomerId(customer?.customer_id);
     showCustomerDetails({
@@ -524,6 +534,7 @@ const UserDashboardPage = () => {
   const handleClickBack = () => {
     setIsOpenForm(false);
     setIsEditMode(false);
+    setIsViewMode(false);
     setFormData(initialFormData);
     AllUsersList();
   };
@@ -531,6 +542,7 @@ const UserDashboardPage = () => {
   const handleCancelRegistration = () => {
     setIsOpenForm(false);
     setIsEditMode(false);
+    setIsViewMode(false);
     setFormData(initialFormData);
   };
 
@@ -605,15 +617,22 @@ const UserDashboardPage = () => {
     } else if (header?.accessor === "edit") {
       return {
         ...header,
+        title: "View / Update",
         type: "special",
         specialCellRowFunction: (row) => (
           <div className="flex h-full flex-row gap-2 items-center justify-center">
-            <div
-              className="h-full p-2 bg-slate-200 rounded-md shadow-md cursor-pointer"
-              onClick={() => handleEditCustomer(row)}
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#F8FAFC] hover:bg-[#0B2545] text-[#0B2545] hover:text-white border border-[#CBD5E1] shadow-2xs transition-all cursor-pointer group"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditCustomer(row);
+              }}
+              title="View / Update Member"
             >
-              <PencilIcon size={18} />
-            </div>
+              <Eye size={15} className="shrink-0 group-hover:scale-105 transition-transform" />
+              <Pencil size={13} className="shrink-0 text-slate-400 group-hover:text-white transition-colors" />
+            </button>
           </div>
         ),
       };
@@ -640,7 +659,10 @@ const UserDashboardPage = () => {
           onCancel={handleCancelRegistration}
           onSubmit={handleSubmitRegistration}
           isEditMode={isEditMode}
+          isViewMode={isViewMode}
+          onEnableEdit={() => setIsConfirmModalOpen(true)}
           customerId={selectedCustomerId}
+          isSubmitting={isSubmitting}
         />
       ) : isOpenPolicyForm ? (
         <PolicyRegistrationForm
@@ -734,6 +756,7 @@ const UserDashboardPage = () => {
                 type="button"
                 onClick={() => {
                   setIsEditMode(false);
+                  setIsViewMode(false);
                   setFormData(initialFormData);
                   setIsOpenForm(true);
                 }}
@@ -745,7 +768,7 @@ const UserDashboardPage = () => {
           </div>
 
           {/* Table */}
-          <div className="min-h-[30vh] h-full w-full">
+          <div className="min-h-[460px] h-[calc(100vh-230px)] w-full flex-1">
             {isLoading ? (
               <div className="flex h-full min-h-[30vh] items-center justify-center bg-white rounded-xl border border-slate-100 shadow-sm">
                 <LogoSpinner type="spin" size="md" />
@@ -755,6 +778,7 @@ const UserDashboardPage = () => {
                 theme="light"
                 defaultHeaders={tableHeaders}
                 dataSource={userList}
+                isSelection={false}
                 pagination={false}
                 pageSize={5}
                 pageSizeOptions={[5, 10, 25, { value: -1, label: "All" }]}
@@ -774,6 +798,22 @@ const UserDashboardPage = () => {
           )}
         </div>
       )}
+
+      {/* Confirmation Modal to Enable Editing */}
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={() => {
+          setIsConfirmModalOpen(false);
+          setIsViewMode(false);
+          setIsEditMode(true);
+        }}
+        title="Enable Editing?"
+        description="Are you sure you want to update this record?"
+        confirmText="Confirm Update"
+        cancelText="Cancel"
+        variant="primary"
+      />
     </div>
   );
 };

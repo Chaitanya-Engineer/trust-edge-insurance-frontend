@@ -155,7 +155,7 @@ const RevenueReport = () => {
           itemStyle: { color: "#2563eb", borderRadius: [5, 5, 0, 0] },
         },
         {
-          name: "Commission Received",
+          name: "Commission Sent",
           type: "line",
           yAxisIndex: 1,
           smooth: true,
@@ -245,9 +245,9 @@ const RevenueReport = () => {
               tone="amber"
             />
             <StatCard
-              title="Commission Received"
+              title="Commission Sent"
               value={inr(summary.commission_received)}
-              hint="Status: Received"
+              hint="Status: Sent"
               tone="green"
             />
             <StatCard
@@ -267,7 +267,7 @@ const RevenueReport = () => {
           {/* 2. Monthly trend */}
           <Section
             title="Monthly Trend"
-            subtitle="Premium is shown in the month it was paid; commission in the month it was received."
+            subtitle="Premium is shown in the month it was paid; commission in the month it was sent."
           >
             {data.monthly_trend.length === 0 ? (
               <p className="p-6 text-center text-sm text-slate-400">
@@ -291,7 +291,7 @@ const RevenueReport = () => {
                   <Th>Category / Sub-type</Th>
                   <Th right>Policies</Th>
                   <Th right>Premium</Th>
-                  <Th right>Commission Received</Th>
+                  <Th right>Commission Sent</Th>
                   <Th right>Commission Pending</Th>
                 </tr>
               </thead>
@@ -326,7 +326,7 @@ const RevenueReport = () => {
           {/* 4. Insurance company-wise */}
           <Section
             title="Insurance Company-wise"
-            subtitle="Which company's commission is received and which is still pending."
+            subtitle="Which company's commission is sent and which is still pending."
           >
             <table className="w-full min-w-[640px]">
               <thead className="bg-slate-50">
@@ -334,7 +334,7 @@ const RevenueReport = () => {
                   <Th>Insurance Company</Th>
                   <Th right>Policies</Th>
                   <Th right>Premium</Th>
-                  <Th right>Commission Received</Th>
+                  <Th right>Commission Sent</Th>
                   <Th right>Commission Pending</Th>
                 </tr>
               </thead>

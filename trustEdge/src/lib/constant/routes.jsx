@@ -66,11 +66,17 @@ const RevenueReport = lazy(() =>
   import("../../pages/admin/RevenueReport/RevenueReport")
 );
 
+const PartnerPortalsPage = lazy(() =>
+  import("../../pages/admin/PartnerPortalsPage")
+);
+
 // Customer Pages
 const CustomerDashboardPage = lazy(() =>
   import("../../pages/customer/CustomerDashboardPage")
 );
-const MyPolicyPage = lazy(() => import("../../pages/customer/MyPolicyPage"));
+const MyPolicyPage = lazy(() =>
+  import("../../pages/customer/MyPolicyPage")
+);
 const CustomerProfilePage = lazy(() =>
   import("../../pages/customer/CustomerProfilePage")
 );
@@ -193,6 +199,13 @@ export const routes = [
     name: "Revenue Report",
     path: "/admin/revenue-report",
     component: RevenueReport,
+    userRoles: [ROLES.ADMIN],
+    layout: "admin",
+  },
+  {
+    name: "Partner Portals",
+    path: "/admin/partner-portals",
+    component: PartnerPortalsPage,
     userRoles: [ROLES.ADMIN],
     layout: "admin",
   },

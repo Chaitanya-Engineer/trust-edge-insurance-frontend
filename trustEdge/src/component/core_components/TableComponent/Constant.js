@@ -83,8 +83,8 @@ export const tableComponentStyleConstants = {
       },
 
       tableLayout,
-      maxWidth: "100%",
-      // borderCollapse: "separate",
+      minWidth: "100%",
+      width: "max-content",
     };
   },
 };

@@ -182,12 +182,6 @@ export const users = [
 
 export const headers = [
   {
-    title: "ID",
-    accessor: "customer_id",
-    type: "string",
-    width: 80,
-  },
-  {
     title: "Full Name",
     accessor: "name",
     type: "string",
@@ -233,12 +227,12 @@ export const headers = [
     width: 130,
   },
   {
-    title: "Update",
+    title: "View / Update",
     accessor: "edit",
     type: "special",
     is_filter: false,
     is_sortable: false,
-    width: 120,
+    width: 140,
     header_align: "center",
     text_align: "center",
     specialCellRowFunction: (row) => null,
@@ -314,14 +308,32 @@ export const vehicleOwnerOptions = [
   { value: "commercial", label: "Commercial" },
 ];
 
+export const vehicleNameOptions = [
+  { value: "Ashok Leyland 4020", label: "Ashok Leyland 4020" },
+  { value: "Ashok Leyland 4620", label: "Ashok Leyland 4620" },
+  { value: "Ashok Leyland 1920", label: "Ashok Leyland 1920" },
+  { value: "Ashok Leyland 3520", label: "Ashok Leyland 3520" },
+  { value: "Ashok Leyland 3518", label: "Ashok Leyland 3518" },
+  { value: "Ashok Leyland 4019", label: "Ashok Leyland 4019" },
+  { value: "Ashok Leyland 4520", label: "Ashok Leyland 4520" },
+];
+
 export const paymentStatusOptions = [
   { value: "done", label: "Done" },
   { value: "pending", label: "Pending" },
+  { value: "submitted", label: "Submitted" },
+];
+
+export const chequeStatusOptions = [
+  { value: "cleared", label: "Cleared" },
+  { value: "pending_clearance", label: "Pending Clearance" },
+  { value: "submitted", label: "Submitted" },
+  { value: "bounced", label: "Bounced" },
 ];
 
 export const CommissionStatusOptions = [
   { value: "pending", label: "Pending" },
-  { value: "received", label: "Received" },
+  { value: "sent", label: "Sent" },
 ];
 
 export const insuranceCompanyOptions = [
@@ -440,7 +452,11 @@ export const ModalHeader = [
 
 export const getStatusPill = (statusVal) => {
   if (!statusVal) return null;
-  const lower = statusVal.toLowerCase().trim();
+  const strVal =
+    typeof statusVal === "object"
+      ? statusVal.name || statusVal.label || statusVal.status || "Active"
+      : String(statusVal);
+  const lower = strVal.toLowerCase().trim();
 
   // 🟡 Pending (Yellow/Amber)
   if (lower.includes("review") || lower === "pending" || lower === "new") {
@@ -448,6 +464,16 @@ export const getStatusPill = (statusVal) => {
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FBF5DF] text-[#C9A227]">
         <span className="w-1.5 h-1.5 rounded-full bg-[#C9A227]"></span>
         Pending
+      </span>
+    );
+  }
+
+  // 🟣 Submitted (Blue/Slate)
+  if (lower === "submitted") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#EFF8FF] text-[#175CD3] border border-[#B2DDFF]">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#175CD3]"></span>
+        Submitted
       </span>
     );
   }
@@ -491,7 +517,7 @@ export const getStatusPill = (statusVal) => {
   return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#F2F4F7] text-[#344054]">
       <span className="w-1.5 h-1.5 rounded-full bg-[#667085]"></span>
-      {statusVal}
+      {strVal}
     </span>
   );
 };

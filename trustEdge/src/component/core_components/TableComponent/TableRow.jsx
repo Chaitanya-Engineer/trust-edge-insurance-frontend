@@ -1,15 +1,11 @@
-import { useState } from "react";
-
+import { memo, useMemo, isValidElement, useState } from "react";
 import { Checkbox, Radio, TableCell, Tooltip, IconButton } from "@mui/material";
-
+import clsx from "clsx";
 import {
   tableComponentConstants,
   tableDataTypes,
   tableRowConstants,
 } from "./Constant";
-import clsx from "clsx";
-
-import { memo, useMemo } from "react";
 import { Info, ArrowUpRight, ChevronDown, ChevronRight } from "lucide-react";
 
 import {
@@ -71,7 +67,11 @@ const TableRow = memo(
     function getColumnData(column, data) {
       const { accessor, type, isCopy } = column;
 
-      const cell = data[accessor];
+      let cell = data?.[accessor];
+      if (typeof cell === "object" && cell !== null && !isValidElement(cell)) {
+        cell = cell.name || cell.label || cell.title || cell.full_name || "";
+      }
+
       switch (type) {
         case ARRAY:
           return cell ? (
@@ -90,14 +90,14 @@ const TableRow = memo(
             cell?.length !== 0 ? (
               isCopy ? (
                 <div className="group/cell flex items-center justify-between gap-1.5 w-full min-w-0">
-                  <span className="truncate flex-1">{cell}</span>
+                  <span className="truncate flex-1">{String(cell)}</span>
                   <button
                     type="button"
                     className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded hover:bg-black/5 text-[#667085] hover:text-[#0B2545] opacity-0 group-hover/cell:opacity-100 max-md:opacity-100 transition-opacity cursor-pointer border-none bg-transparent p-0"
                     title={`Copy ${column?.title || "text"}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigator.clipboard.writeText(cell).then(() => {
+                      navigator.clipboard.writeText(String(cell)).then(() => {
                         showToast.success(
                           "Copied to Clipboard!",
                           `${column?.title || "Text"}: ${cell}`
@@ -113,7 +113,7 @@ const TableRow = memo(
                   </button>
                 </div>
               ) : (
-                cell
+                String(cell)
               )
             ) : (
               <Hyphen position={column?.null_align ?? "left"} />
@@ -135,7 +135,9 @@ const TableRow = memo(
           return cell === null || cell === undefined ? <Hyphen /> : cell;
         case SPECIAL:
           return (
-            column.specialCellRowFunction(data) ?? (
+            (typeof column?.specialCellRowFunction === "function"
+              ? column.specialCellRowFunction(data)
+              : data?.[accessor]) ?? (
               <Hyphen position={column?.null_align ?? "center"} />
             )
           );
@@ -186,11 +188,8 @@ const TableRow = memo(
                   e?.stopPropagation();
                 }}
                 checked={isItemSelected}
-                slotProps={{
-                  input: {
+                inputProps={{
                     [LABLED_BY]: labelId,
-                    "aria-label": `Select row ${row?.id || index + 1}`,
-                  },
                 }}
               />
             )}

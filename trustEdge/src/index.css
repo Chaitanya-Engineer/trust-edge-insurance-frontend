@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --scrollbar-bg: #F1F5F9;
+  --scrollbar-primary: #94A3B8;
+  --scrollbar-hover: #64748B;
+  --scrollbar-active: #0B2545;
+}
+
 *,
 *::after,
 *::before {
@@ -15,27 +22,85 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-::-webkit-scrollbar {
-  width: 0.2rem;
-  height: 0.6rem;
+/* ─────────────────────────────────────────────
+   GLOBAL SCROLLBARS
+───────────────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-primary) var(--scrollbar-bg);
+}
 
-  @media (min-width: 768px) {
-    width: 0.5rem;
-    height: 0.5rem;
-  }
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
   background-color: var(--scrollbar-bg);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-primary);
-  border-radius: 100px;
+  border-radius: 9999px;
+  border: 2px solid var(--scrollbar-bg);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-active);
 }
 
 ::-webkit-scrollbar-corner {
   background: var(--scrollbar-bg);
+}
+
+/* ─────────────────────────────────────────────
+   UX DESIGNER: DRAG-FRIENDLY TABLE SCROLLBARS
+───────────────────────────────────────────── */
+.custom-table-scrollbar {
+  scrollbar-width: auto !important; /* Normal width in Firefox for easy grabbing */
+  scrollbar-color: #94A3B8 #F1F5F9 !important;
+}
+
+/* Horizontal & Vertical scrollbars: 12px hit-area for effortless mouse dragging */
+.custom-table-scrollbar::-webkit-scrollbar {
+  width: 12px !important;  /* Vertical scrollbar width */
+  height: 12px !important; /* Horizontal scrollbar height */
+  display: block !important;
+}
+
+.custom-table-scrollbar::-webkit-scrollbar-track {
+  background: #F1F5F9 !important;
+  border-radius: 8px !important;
+  margin: 2px !important;
+  border: 1px solid #E2E8F0 !important;
+}
+
+.custom-table-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #94A3B8 !important;
+  border-radius: 8px !important;
+  border: 2px solid #F1F5F9 !important;
+  background-clip: padding-box !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  transition: background-color 0.15s ease-in-out !important;
+}
+
+.custom-table-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #475569 !important;
+}
+
+.custom-table-scrollbar::-webkit-scrollbar-thumb:active {
+  background-color: #0B2545 !important;
+}
+
+.custom-table-scrollbar::-webkit-scrollbar-corner {
+  background: #E2E8F0 !important;
 }
 
 * {
@@ -58,6 +123,60 @@ button {
   font-family: 'Lexend', system-ui, -apple-system, sans-serif;
 }
 
+/*Lexend Font Family 
+@font-face {
+  font-family: 'Lexend';
+  src: url('src/assets/fonts/Lexend/static/Lexend-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lexend';
+  src: url('src/assets/fonts/Lexend/static/Lexend-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lexend';
+  src: url('src/assets/fonts/Lexend/static/Lexend-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lexend';
+  src: url('src/assets/fonts/Lexend/static/Lexend-ExtraBold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lexend';
+  src: url('src/assets/fonts/Lexend/static/Lexend-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lexend';
+  src: url('src/assets/fonts/Lexend/static/Lexend-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
+/* Lexend Font Family - Loaded via Google Fonts */
+/*
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap');
+*/
 
 .gauge-chart svg {
   cursor: pointer;

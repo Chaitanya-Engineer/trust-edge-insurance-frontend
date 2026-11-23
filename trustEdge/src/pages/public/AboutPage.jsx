@@ -54,9 +54,12 @@ const values = [
 ];
 
 const vehicleTypes = [
-  { icon: Car, label: "Small Cars" },
-  { icon: Truck, label: "Big Vehicles & Commercial" },
-  { icon: Bike, label: "Two-Wheelers" },
+  { icon: Car, label: "Health Insurance" },
+  { icon: Truck, label: "Personal Insurance" },
+  { icon: Bike, label: "Motor Insurance" },
+  { icon: Car, label: "Property Insurance" },
+  { icon: Truck, label: "Marine Insurance" },
+  { icon: Bike, label: "Workmen Compensation Insurance" },
 ];
 
 
@@ -138,13 +141,13 @@ const AboutPage = () => {
             </h2>
             <div className="mt-3 h-1 w-16 rounded-full bg-gold" />
 
-            <p className="mt-6 text-base md:text-lg leading-relaxed text-slate-600">
-              We are an independent insurance marketing firm specializing in motor insurance for every kind of vehicle — small cars, two-wheelers, and large commercial fleets. With over two decades of experience, we compare plans across India's leading insurers so you get the right cover at the right price, without the confusion.
+            <p className="mt-6 text-base md:text-lg leading-relaxed text-slate-600 text-justify">
+              TrustEdge Insurance Marketing LLP is committed to helping individuals, families, and businesses protect what matters most through informed insurance decisions. With over 22 years of experience in the insurance industry, we focus on simplifying complex insurance choices through transparent guidance, personalized assistance, and customer-focused service.            </p>
+            <p className="mt-4 text-base md:text-lg leading-relaxed text-slate-600 text-justify">
+              We understand that every customer has different needs, priorities, and financial considerations. That is why we help customers explore suitable insurance options across multiple categories, including Health, Personal, Motor, Property, Marine, and Workmen Compensation insurance.</p>
+            <p className="mt-4 text-base md:text-lg leading-relaxed text-slate-600 text-justify">Our approach goes beyond policy selection. We believe in helping customers understand their coverage, make informed decisions, and navigate their insurance journey with greater confidence. From initial inquiries and policy documentation to policy-related assistance and claims support, our team strives to provide reliable guidance at every step.</p>
+            <p className="mt-4 text-base md:text-lg leading-relaxed text-slate-600 text-justify">At TrustEdge, we believe that insurance is more than financial protection, it is about peace of mind, accountability, and lasting relationships. Through transparency, responsible guidance, and a commitment to customer satisfaction, we aim to build trust that extends well beyond the purchase of a policy.
             </p>
-            <p className="mt-4 text-base md:text-lg leading-relaxed text-slate-600">
-              From policy selection to claim support, our dedicated team stays with you throughout the journey — because real protection isn't just about selling policies; it's about building long-term trust.
-            </p>
-
             <div className="mt-8 flex flex-wrap gap-3">
               {vehicleTypes?.map(({ icon: Icon, label }, i) => (
                 <div
@@ -172,21 +175,35 @@ const AboutPage = () => {
                   <CheckCircle2 className="h-5 w-5 text-green-brand flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="font-bold text-navy block text-sm">100% Transparency</span>
-                    <span className="text-xs text-slate-500 mt-0.5 block leading-relaxed">No hidden charges or complex jargon. We clarify every clause upfront.</span>
+                    <span className="text-xs text-slate-500 mt-0.5 block leading-relaxed">We clearly explain policy benefits, exclusions, and premiums so customers can make informed decisions without confusion.</span>
                   </div>
                 </li>
                 <li className="flex items-start gap-3.5">
                   <CheckCircle2 className="h-5 w-5 text-green-brand flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="font-bold text-navy block text-sm">Unbiased Advice</span>
-                    <span className="text-xs text-slate-500 mt-0.5 block leading-relaxed">We display and compare options across all our major partners impartially.</span>
+                    <span className="text-xs text-slate-500 mt-0.5 block leading-relaxed">We help customers compare suitable options from our partner insurers, focusing on coverage relevance and individual needs.</span>
                   </div>
                 </li>
                 <li className="flex items-start gap-3.5">
                   <CheckCircle2 className="h-5 w-5 text-green-brand flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="font-bold text-navy block text-sm">Dedicated Claims Support</span>
-                    <span className="text-xs text-slate-500 mt-0.5 block leading-relaxed">If you experience an accident, we follow up with the insurer on your behalf.</span>
+                    <span className="text-xs text-slate-500 mt-0.5 block leading-relaxed">We assist with claim queries, documentation, and insurer coordination even after the policy is issued.</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3.5">
+                  <CheckCircle2 className="h-5 w-5 text-green-brand flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-navy block text-sm">Customer-First Approach</span>
+                    <span className="text-xs text-slate-500 mt-0.5 block leading-relaxed">We understand each customer's unique needs and offer guidance tailored to their priorities — not a one-size-fits-all solution.</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3.5">
+                  <CheckCircle2 className="h-5 w-5 text-green-brand flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-navy block text-sm">Long-Term Relationships</span>
+                    <span className="text-xs text-slate-500 mt-0.5 block leading-relaxed">We aim to be a reliable partner throughout your insurance journey, offering ongoing support and accessibility.</span>
                   </div>
                 </li>
               </ul>

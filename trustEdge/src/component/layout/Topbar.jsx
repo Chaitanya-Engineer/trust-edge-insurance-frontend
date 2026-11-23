@@ -1,13 +1,22 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { Popover } from "@mui/material";
 import { clearCredentials, selectUser } from "../../store/slices/authSlice";
 
 export default function Topbar({ onToggleSidebar, isSidebarCollapsed }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const location = useLocation();
+  const [anchorEl, setAnchorEl] = useState(null);
   const user = useSelector(selectUser);
+
+  const open = Boolean(anchorEl);
+
+  // Close dropdown on route change
+  useEffect(() => {
+    setAnchorEl(null);
+  }, [location.pathname]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -24,6 +33,7 @@ export default function Topbar({ onToggleSidebar, isSidebarCollapsed }) {
   });
 
   const handleLogout = () => {
+    setAnchorEl(null);
     dispatch(clearCredentials());
     navigate("/login");
   };
@@ -107,7 +117,7 @@ export default function Topbar({ onToggleSidebar, isSidebarCollapsed }) {
         <div className="relative">
           <button
             type="button"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+            onClick={(e) => setAnchorEl(open ? null : e.currentTarget)}
             className="flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-[#F4F7F6] transition-colors cursor-pointer"
           >
             <div className="w-8 h-8 bg-[#0B2545] rounded-full flex items-center justify-center flex-shrink-0">
@@ -125,7 +135,7 @@ export default function Topbar({ onToggleSidebar, isSidebarCollapsed }) {
 
             <svg
               className={`w-4 h-4 text-[#667085] transition-transform duration-200 ${
-                dropdownOpen ? "rotate-180" : ""
+                open ? "rotate-180" : ""
               }`}
               fill="none"
               stroke="currentColor"
@@ -140,69 +150,88 @@ export default function Topbar({ onToggleSidebar, isSidebarCollapsed }) {
             </svg>
           </button>
 
-          {dropdownOpen && (
-            <div className="absolute right-0 top-12 w-48 bg-white rounded-xl shadow-lg border border-[#E5E9E7] py-1 z-50">
-              <div className="px-4 py-2 border-b border-[#E5E9E7]">
-                <p className="text-sm font-semibold text-[#0B2545]">
-                  {user?.name || "Admin"}
-                </p>
-                <p className="text-xs text-[#667085] truncate">
-                  {user?.email || "admin@trustedge.com"}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setDropdownOpen(false);
-                  navigate("/admin/settings");
-                }}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#0B2545] hover:bg-[#F4F7F6] transition-colors cursor-pointer"
-              >
-                <svg
-                  className="w-4 h-4 text-[#667085]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                Settings
-              </button>
-
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#B42318] hover:bg-[#FDECEC] transition-colors font-medium cursor-pointer"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
-                </svg>
-                Logout
-              </button>
+          <Popover
+            open={open}
+            anchorEl={anchorEl}
+            onClose={() => setAnchorEl(null)}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+            slotProps={{
+              paper: {
+                className: "w-48 bg-white rounded-xl shadow-lg border border-[#E5E9E7] py-1 mt-2",
+                style: {
+                  borderRadius: "12px",
+                  boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)",
+                },
+              },
+            }}
+          >
+            <div className="px-4 py-2 border-b border-[#E5E9E7]">
+              <p className="text-sm font-semibold text-[#0B2545]">
+                {user?.name || "Admin"}
+              </p>
+              <p className="text-xs text-[#667085] truncate">
+                {user?.email || "admin@trustedge.com"}
+              </p>
             </div>
-          )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setAnchorEl(null);
+                navigate("/admin/settings");
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#0B2545] hover:bg-[#F4F7F6] transition-colors cursor-pointer"
+            >
+              <svg
+                className="w-4 h-4 text-[#667085]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              Settings
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#B42318] hover:bg-[#FDECEC] transition-colors font-medium cursor-pointer"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              Logout
+            </button>
+          </Popover>
         </div>
       </div>
     </header>
