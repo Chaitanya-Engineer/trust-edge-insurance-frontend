@@ -1,0 +1,218 @@
+[
+    {
+        "index": 1,
+        "id": 4023,
+        "name": "Andaman and Nicobar Islands",
+        "state_code": "AN"
+    },
+    {
+        "index": 2,
+        "id": 4017,
+        "name": "Andhra Pradesh",
+        "state_code": "AP"
+    },
+    {
+        "index": 3,
+        "id": 4024,
+        "name": "Arunachal Pradesh",
+        "state_code": "AR"
+    },
+    {
+        "index": 4,
+        "id": 4027,
+        "name": "Assam",
+        "state_code": "AS"
+    },
+    {
+        "index": 5,
+        "id": 4037,
+        "name": "Bihar",
+        "state_code": "BR"
+    },
+    {
+        "index": 6,
+        "id": 4031,
+        "name": "Chandigarh",
+        "state_code": "CH"
+    },
+    {
+        "index": 7,
+        "id": 4040,
+        "name": "Chhattisgarh",
+        "state_code": "CT"
+    },
+    {
+        "index": 8,
+        "id": 4033,
+        "name": "Dadra and Nagar Haveli and Daman and Diu",
+        "state_code": "DH"
+    },
+    {
+        "index": 9,
+        "id": 4021,
+        "name": "Delhi",
+        "state_code": "DL"
+    },
+    {
+        "index": 10,
+        "id": 4009,
+        "name": "Goa",
+        "state_code": "GA"
+    },
+    {
+        "index": 11,
+        "id": 4030,
+        "name": "Gujarat",
+        "state_code": "GJ"
+    },
+    {
+        "index": 12,
+        "id": 4007,
+        "name": "Haryana",
+        "state_code": "HR"
+    },
+    {
+        "index": 13,
+        "id": 4020,
+        "name": "Himachal Pradesh",
+        "state_code": "HP"
+    },
+    {
+        "index": 14,
+        "id": 4029,
+        "name": "Jammu and Kashmir",
+        "state_code": "JK"
+    },
+    {
+        "index": 15,
+        "id": 4025,
+        "name": "Jharkhand",
+        "state_code": "JH"
+    },
+    {
+        "index": 16,
+        "id": 4026,
+        "name": "Karnataka",
+        "state_code": "KA"
+    },
+    {
+        "index": 17,
+        "id": 4028,
+        "name": "Kerala",
+        "state_code": "KL"
+    },
+    {
+        "index": 18,
+        "id": 4852,
+        "name": "Ladakh",
+        "state_code": "LA"
+    },
+    {
+        "index": 19,
+        "id": 4019,
+        "name": "Lakshadweep",
+        "state_code": "LD"
+    },
+    {
+        "index": 20,
+        "id": 4039,
+        "name": "Madhya Pradesh",
+        "state_code": "MP"
+    },
+    {
+        "index": 21,
+        "id": 4008,
+        "name": "Maharashtra",
+        "state_code": "MH"
+    },
+    {
+        "index": 22,
+        "id": 4010,
+        "name": "Manipur",
+        "state_code": "MN"
+    },
+    {
+        "index": 23,
+        "id": 4006,
+        "name": "Meghalaya",
+        "state_code": "ML"
+    },
+    {
+        "index": 24,
+        "id": 4036,
+        "name": "Mizoram",
+        "state_code": "MZ"
+    },
+    {
+        "index": 25,
+        "id": 4018,
+        "name": "Nagaland",
+        "state_code": "NL"
+    },
+    {
+        "index": 26,
+        "id": 4013,
+        "name": "Odisha",
+        "state_code": "OR"
+    },
+    {
+        "index": 27,
+        "id": 4011,
+        "name": "Puducherry",
+        "state_code": "PY"
+    },
+    {
+        "index": 28,
+        "id": 4015,
+        "name": "Punjab",
+        "state_code": "PB"
+    },
+    {
+        "index": 29,
+        "id": 4014,
+        "name": "Rajasthan",
+        "state_code": "RJ"
+    },
+    {
+        "index": 30,
+        "id": 4034,
+        "name": "Sikkim",
+        "state_code": "SK"
+    },
+    {
+        "index": 31,
+        "id": 4035,
+        "name": "Tamil Nadu",
+        "state_code": "TN"
+    },
+    {
+        "index": 32,
+        "id": 4012,
+        "name": "Telangana",
+        "state_code": "TG"
+    },
+    {
+        "index": 33,
+        "id": 4038,
+        "name": "Tripura",
+        "state_code": "TR"
+    },
+    {
+        "index": 34,
+        "id": 4022,
+        "name": "Uttar Pradesh",
+        "state_code": "UP"
+    },
+    {
+        "index": 35,
+        "id": 4016,
+        "name": "Uttarakhand",
+        "state_code": "UT"
+    },
+    {
+        "index": 36,
+        "id": 4853,
+        "name": "West Bengal",
+        "state_code": "WB"
+    }
+]

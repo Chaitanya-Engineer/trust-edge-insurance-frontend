@@ -301,6 +301,7 @@ const UserDashboardPage = () => {
   // ─── Customer Registration / Update ───────────────────────────
 
   const handleSubmitRegistration = async (data) => {
+    setIsSubmitting(true);
     try {
       if (isEditMode) {
         // ── Edit Mode ────────────────────────────────────
@@ -406,6 +407,8 @@ const UserDashboardPage = () => {
           error?.message ||
           "Could not save customer details."
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -659,6 +662,7 @@ const UserDashboardPage = () => {
           isViewMode={isViewMode}
           onEnableEdit={() => setIsConfirmModalOpen(true)}
           customerId={selectedCustomerId}
+          isSubmitting={isSubmitting}
         />
       ) : isOpenPolicyForm ? (
         <PolicyRegistrationForm

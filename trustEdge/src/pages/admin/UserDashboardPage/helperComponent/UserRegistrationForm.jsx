@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pencil, Eye, Lock } from "lucide-react";
+import { Pencil, Eye, Lock, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogTitle,
@@ -12,6 +12,7 @@ import { genderOptions } from "../constant";
 import CustomInput from "../../../../component/core_components/CustomInput/CustomeInput";
 import CustomDatePicker from "../../../../component/core_components/DatePicker/CustomDatePicker";
 import CustomSelect from "../../../../component/core_components/CustomSelect/CustomSelect";
+import IndiaLocationDropdown from "../../../../component/core_components/IndiaLocationDropdown";
 import DocumentUpload from "../../../../component/core_components/DocumentUpload/DocumentUpload";
 import {
   validateFullName,
@@ -35,6 +36,7 @@ const UserRegistrationForm = ({
   isViewMode = false,
   onEnableEdit,
   customerId,
+  isSubmitting = false,
 }) => {
   const [errors, setErrors] = useState({});
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -111,7 +113,7 @@ const UserRegistrationForm = ({
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    if (isViewMode) return;
+    if (isViewMode || isSubmitting) return;
 
     if (!validateForm()) {
       showToast.error(
@@ -145,10 +147,14 @@ const UserRegistrationForm = ({
     onSubmit?.(payload);
   };
 
-  const handleConfirmSubmit = () => {
-    if (!isVerified) return;
-    setIsConfirmOpen(false);
-    onSubmit?.(buildPayload());
+  const handleConfirmSubmit = async () => {
+    if (!isVerified || isSubmitting) return;
+    try {
+      await onSubmit?.(buildPayload());
+      setIsConfirmOpen(false);
+    } catch {
+      // Error handling is handled in onSubmit/UserDashboardPage
+    }
   };
 
   return (
@@ -477,46 +483,18 @@ const UserRegistrationForm = ({
 
               {/* City, State, PIN Code (3-column grid) */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <IndiaLocationDropdown
+                  state={formData?.state || ""}
+                  city={formData?.city || ""}
+                  onStateChange={(value) => handleInputChange("state", value)}
+                  onCityChange={(value) => handleInputChange("city", value)}
+                  disabled={isViewMode}
+                  stateError={!!errors.state}
+                  stateHelperText={errors.state}
+                  cityError={!!errors.city}
+                  cityHelperText={errors.city}
+                />
 
-                {/* State */}
-                <div className="w-full">
-                  <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                    State <span className="text-[#B42318] ml-0.5">*</span>
-                  </label>
-
-                  <CustomInput
-                    value={formData?.state || ""}
-                    onChange={(value) => handleInputChange("state", value)}
-                    width="w-full"
-                    type="text"
-                    placeholder="Enter state"
-                    disabled={isViewMode}
-                    error={!!errors.state}
-                  />
-                  {errors.state && (
-                    <p className="mt-1.5 text-xs text-red-500">{errors.state}</p>
-                  )}
-                </div>
-
-                {/* City */}
-                <div className="w-full">
-                  <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                    City <span className="text-[#B42318] ml-0.5">*</span>
-                  </label>
-
-                  <CustomInput
-                    value={formData?.city || ""}
-                    onChange={(value) => handleInputChange("city", value)}
-                    width="w-full"
-                    type="text"
-                    placeholder="Enter city"
-                    disabled={isViewMode}
-                    error={!!errors.city}
-                  />
-                  {errors.city && (
-                    <p className="mt-1.5 text-xs text-red-500">{errors.city}</p>
-                  )}
-                </div>
                 {/* PIN Code (DB: pincode) */}
                 <div className="w-full">
                   <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
@@ -640,24 +618,6 @@ const UserRegistrationForm = ({
             </h2>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* PAN Card */}
-              <div>
-                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
-                  PAN Card <span className="text-[#B42318] ml-0.5">*</span>
-                </label>
-
-                <DocumentUpload
-                  accept={["jpg", "jpeg", "png", "pdf"]}
-                  maxSizeKB={320}
-                  documentCategory="KYC Document"
-                  multiple={false}
-                  placeholder="Upload PAN card (Max 320 KB)"
-                  onChange={(file) => handleInputChange("panCard", file)}
-                  value={formData?.panCard}
-                  width="w-full"
-                  error={errors?.panCard}
-                />
-              </div>
 
               {/* Aadhaar Card */}
               <div>
@@ -677,6 +637,26 @@ const UserRegistrationForm = ({
                   error={errors?.aadhaarCard}
                 />
               </div>
+
+              {/* PAN Card */}
+              <div>
+                <label className="mb-1.5 block text-[13px] font-semibold text-[#344054]">
+                  PAN Card <span className="text-[#B42318] ml-0.5">*</span>
+                </label>
+
+                <DocumentUpload
+                  accept={["jpg", "jpeg", "png", "pdf"]}
+                  maxSizeKB={320}
+                  documentCategory="KYC Document"
+                  multiple={false}
+                  placeholder="Upload PAN card (Max 320 KB)"
+                  onChange={(file) => handleInputChange("panCard", file)}
+                  value={formData?.panCard}
+                  width="w-full"
+                  error={errors?.panCard}
+                />
+              </div>
+
             </div>
           </div>
         )}
@@ -686,7 +666,12 @@ const UserRegistrationForm = ({
           <button
             type="button"
             onClick={onCancel}
-            className="w-full rounded-[9px] border border-[#E5E9E7] bg-white px-6 py-2.5 text-sm font-semibold text-[#0B2545] transition hover:bg-[#F4F7F6] sm:w-auto cursor-pointer"
+            disabled={isSubmitting}
+            className={`w-full rounded-[9px] border border-[#E5E9E7] bg-white px-6 py-2.5 text-sm font-semibold text-[#0B2545] transition sm:w-auto ${
+              isSubmitting
+                ? "opacity-60 cursor-not-allowed"
+                : "hover:bg-[#F4F7F6] cursor-pointer"
+            }`}
           >
             {isViewMode ? "Back to Directory" : "Cancel"}
           </button>
@@ -703,11 +688,23 @@ const UserRegistrationForm = ({
           ) : (
             <button
               type="submit"
-              className="w-full rounded-[9px] bg-[#0B2545] px-6 py-2.5
-               text-sm font-semibold text-white transition
-               hover:bg-[#0E2F52] sm:w-auto cursor-pointer"
+              disabled={isSubmitting}
+              className={`w-full rounded-[9px] bg-[#0B2545] px-6 py-2.5 text-sm font-semibold text-white transition sm:w-auto flex items-center justify-center gap-2 shadow-sm ${
+                isSubmitting
+                  ? "opacity-75 cursor-not-allowed bg-[#0B2545]/80"
+                  : "hover:bg-[#0E2F52] cursor-pointer"
+              }`}
             >
-              {isEditMode ? "Update Customer" : "Register Customer"}
+              {isSubmitting && <Loader2 size={16} className="animate-spin text-white" />}
+              <span>
+                {isSubmitting
+                  ? isEditMode
+                    ? "Updating Customer..."
+                    : "Registering Customer..."
+                  : isEditMode
+                  ? "Update Customer"
+                  : "Register Customer"}
+              </span>
             </button>
           )}
         </div>
@@ -716,7 +713,9 @@ const UserRegistrationForm = ({
       {/* MUI Confirmation Popup for New User Registration */}
       <Dialog
         open={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
+        onClose={() => {
+          if (!isSubmitting) setIsConfirmOpen(false);
+        }}
         maxWidth="sm"
         fullWidth
         PaperProps={{
@@ -753,6 +752,7 @@ const UserRegistrationForm = ({
             control={
               <Checkbox
                 checked={isVerified}
+                disabled={isSubmitting}
                 onChange={(e) => setIsVerified(e.target.checked)}
                 sx={{
                   color: "#0B2545",
@@ -773,22 +773,28 @@ const UserRegistrationForm = ({
         <DialogActions sx={{ px: 3, py: 2 }}>
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={() => setIsConfirmOpen(false)}
-            className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+            className={`px-4 py-2 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm font-semibold text-slate-700 transition ${
+              isSubmitting
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-slate-50 cursor-pointer"
+            }`}
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleConfirmSubmit}
-            disabled={!isVerified}
-            className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-white transition ${
-              isVerified
+            disabled={!isVerified || isSubmitting}
+            className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-white transition flex items-center justify-center gap-2 ${
+              isVerified && !isSubmitting
                 ? "bg-[#0B2545] hover:bg-[#0E2F52] cursor-pointer shadow-xs"
-                : "bg-slate-300 text-slate-500 cursor-not-allowed"
+                : "bg-slate-300 text-slate-500 cursor-not-allowed opacity-80"
             }`}
           >
-            Confirm
+            {isSubmitting && <Loader2 size={15} className="animate-spin text-white" />}
+            <span>{isSubmitting ? "Registering..." : "Confirm"}</span>
           </button>
         </DialogActions>
       </Dialog>
